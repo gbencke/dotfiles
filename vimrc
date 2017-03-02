@@ -1,47 +1,44 @@
-
 set foldmethod=indent
 set foldlevel=99
 
+" Shared Clipboard with Ubuntu 
+set clipboard=unnamedplus
+" No text wrapping
+set nowrap
+
+"setting tabs and so on...
+autocmd Filetype javascript setlocal ts=4 sts=4 sw=4
+autocmd Filetype python setlocal ts=4 sts=4 sw=4
+
 nnoremap <space> za
 
+"My plugins
 call plug#begin('~/.vim/plugged')
-
 Plug 'junegunn/vim-easy-align'
+Plug 'https://github.com/pangloss/vim-javascript'
 Plug 'https://github.com/junegunn/vim-github-dashboard.git'
 Plug 'https://github.com/junegunn/vim-plug.git'
 Plug 'https://github.com/tpope/vim-fugitive.git'
-Plug 'https://github.com/scrooloose/syntastic.git'
-Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
+Plug 'SirVer/ultisnips' 
+Plug 'honza/vim-snippets'
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
-Plug 'tmhedberg/SimpylFold'
 Plug 'vim-scripts/indentpython.vim'
-Plug 'Valloric/YouCompleteMe'
 Plug 'scrooloose/syntastic'
-Plug 'nvie/vim-flake8'
 Plug 'https://github.com/Yggdroot/indentLine'
 Plug 'https://github.com/juanedi/predawn.vim'
 Plug 'https://github.com/vim-scripts/repmo.vim/'
-
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'mattn/emmet-vim'
+Plug 'cakebaker/scss-syntax.vim'
 call plug#end()
+
 
 set encoding=utf-8
 set nu
+set mouse=a
 
-
-au BufNewFile,BufRead *.py
-    \ set tabstop=4
-"    \ set softtabstop=4
-    \ set shiftwidth=4
-    \ set textwidth=79
-    \ set expandtab
-    \ set autoindent
-    \ set fileformat=unix
-
-"au BufNewFile,BufRead *.js, *.html, *.css
-"    \ set tabstop=2
-"    \ set softtabstop=2
-"    \ set shiftwidth=2
-
+"Configure Status Line
 if has('statusline')
       set laststatus=2
       set statusline=%<%f\    
@@ -56,17 +53,5 @@ if has('statusline')
       set statusline+=%=%-14.(%l,%c%V%)\ %p%%  
 endif
 
-let g:EclimCompletionMethod='omnifunc'
-
 colorscheme desert
-
-map <up> <nop>
-map <down> <nop>
-map <left> <nop>
-map <right> <nop>
-
-imap <up> <nop>
-imap <down> <nop>
-imap <left> <nop>
-imap <right> <nop>
 
