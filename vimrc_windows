@@ -1,0 +1,50 @@
+set foldmethod=indent
+set foldlevel=99
+
+set guioptions-=m  "remove menu bar
+set guioptions-=T  "remove toolbar
+set guioptions-=r  "remove right-hand scroll bar
+set guioptions-=L  "remove left-hand scroll bar
+set guifont=Courier_New:h8
+
+" No text wrapping
+set nowrap
+
+"My plugins
+call plug#begin('~/vimfiles/plugged')
+Plug 'junegunn/vim-easy-align'
+Plug 'https://github.com/pangloss/vim-javascript'
+Plug 'https://github.com/junegunn/vim-plug.git'
+Plug 'https://github.com/tpope/vim-fugitive.git' " Git Plugin
+Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
+Plug 'scrooloose/syntastic'
+Plug 'https://github.com/Yggdroot/indentLine'
+Plug 'https://github.com/juanedi/predawn.vim'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'mattn/emmet-vim'
+Plug 'cakebaker/scss-syntax.vim'
+call plug#end()
+
+"Configure Status Line
+if has('statusline')
+      set laststatus=2
+      set statusline=%<%f\    
+      set statusline+=%w%h%m%r 
+      set statusline+=%{fugitive#statusline()} 
+      set statusline+=\ [%{&ff}/%Y]            
+      set statusline+=\ [%{getcwd()}]          
+      set statusline+=%#warningmsg#
+      set statusline+=%{SyntasticStatuslineFlag()}
+      set statusline+=%*
+      let g:syntastic_enable_signs=1
+      set statusline+=%=%-14.(%l,%c%V%)\ %p%%  
+endif
+
+colorscheme predawn
+
+" Maximize the screen
+autocmd GUIEnter * simalt ~x
+
+
+
