@@ -16,11 +16,8 @@ nnoremap <space> za
 call plug#begin('~/.vim/plugged')
 Plug 'junegunn/vim-easy-align'
 Plug 'https://github.com/pangloss/vim-javascript'
-Plug 'https://github.com/junegunn/vim-github-dashboard.git'
 Plug 'https://github.com/junegunn/vim-plug.git'
 Plug 'https://github.com/tpope/vim-fugitive.git'
-Plug 'SirVer/ultisnips' 
-Plug 'honza/vim-snippets'
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 Plug 'vim-scripts/indentpython.vim'
 Plug 'scrooloose/syntastic'
@@ -53,5 +50,5 @@ if has('statusline')
       set statusline+=%=%-14.(%l,%c%V%)\ %p%%  
 endif
 
-colorscheme desert
+colorscheme predawn
 
