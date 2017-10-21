@@ -53,5 +53,6 @@ if has('statusline')
       set statusline+=%=%-14.(%l,%c%V%)\ %p%%  
 endif
 
-colorscheme desert
+colorscheme elflord
+
 
