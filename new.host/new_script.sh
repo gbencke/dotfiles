@@ -2,7 +2,7 @@
 
 sudo apt-get update;
 
-sudo apt-get install net-tools git build-essential gitk gdb tcl8.5 arandr curl tmux vim mc tig openssh* p7zip-full htop vim mc tig git make gcc build-essential curl tmux wget python-pip
+sudo apt-get install net-tools git build-essential gitk gdb tcl8.5 arandr curl tmux vim mc tig openssh* p7zip-full htop vim mc tig git make gcc build-essential curl tmux wget python-pip tree
 sudo apt-get install language-pack-en-base 
 sudo dpkg-reconfigure locales
 
@@ -25,9 +25,10 @@ npm install -g bower gulp webpack angcli grunt sass
 mkdir git
 cd git
 git clone https://github.com/gbencke/dotfiles.git
+cp dotfiles/vimrc ~/.vimrc
+#enter vim and type :PlugInstall
 
-
-
+sudo systemctl disable lightdm.service
 
 
 
