@@ -20,7 +20,7 @@ curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
 nvm install v4.6.0
 nvm use v4.6.0
 
-npm install -g bower gulp webpack angcli grunt sass 
+npm install -g bower gulp webpack angcli grunt sass js-beautify typescript-formatter 
 
 mkdir git
 cd git
