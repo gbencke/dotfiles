@@ -9,6 +9,8 @@ set guifont=Courier_New:h8
 
 " No text wrapping
 set nowrap
+set autoread
+let $PATH .= ';C:\cygwin64\bin'
 
 "My plugins
 call plug#begin('~/vimfiles/plugged')
