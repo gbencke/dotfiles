@@ -54,4 +54,5 @@ endif
 
 colorscheme elflord
 
+let g:NERDTreeQuitOnOpen = 1
 
