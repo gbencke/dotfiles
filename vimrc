@@ -5,6 +5,7 @@ set foldlevel=99
 set clipboard=unnamedplus
 " No text wrapping
 set nowrap
+set autoread
 
 "setting tabs and so on...
 autocmd Filetype javascript setlocal ts=4 sts=4 sw=4
@@ -28,6 +29,7 @@ Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'mattn/emmet-vim'
 Plug 'cakebaker/scss-syntax.vim'
+Plug 'Chiel92/vim-autoformat'
 call plug#end()
 
 
@@ -52,4 +54,5 @@ endif
 
 colorscheme elflord
 
+let g:NERDTreeQuitOnOpen = 1
 
