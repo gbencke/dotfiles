@@ -1,0 +1,56 @@
+set foldmethod=indent
+set foldlevel=99
+
+" Shared Clipboard with Ubuntu 
+set clipboard=unnamedplus
+" No text wrapping
+set nowrap
+set autoread
+
+"My plugins
+call plug#begin('~/.vim/plugged')
+	Plug 'tmhedberg/SimpylFold' 
+	Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
+	Plug 'vim-scripts/indentpython.vim'
+	Plug 'https://github.com/Yggdroot/indentLine'
+	Plug 'vim-airline/vim-airline'
+	Plug 'vim-airline/vim-airline-themes'
+	Plug 'Chiel92/vim-autoformat'
+	Plug 'vim-syntastic/syntastic'
+call plug#end()
+
+set encoding=utf-8
+set nu
+set mouse=a
+
+"Configure Status Line
+if has('statusline')
+      set laststatus=2
+      set statusline=%<%f\    
+      set statusline+=%w%h%m%r 
+      set statusline+=%{fugitive#statusline()} 
+      set statusline+=\ [%{&ff}/%Y]            
+      set statusline+=\ [%{getcwd()}]          
+      set statusline+=%#warningmsg#
+      set statusline+=%*
+      set statusline+=%=%-14.(%l,%c%V%)\ %p%%  
+endif
+
+colorscheme elflord
+
+let g:NERDTreeQuitOnOpen = 1
+let g:NERDTreeShowHidden = 1
+
+au BufNewFile,BufRead *.py 
+au BufNewFile,BufRead *.py set tabstop=4
+au BufNewFile,BufRead *.py set softtabstop=4
+au BufNewFile,BufRead *.py set shiftwidth=4
+au BufNewFile,BufRead *.py set textwidth=79
+au BufNewFile,BufRead *.py set expandtab
+au BufNewFile,BufRead *.py set autoindent
+au BufNewFile,BufRead *.py set fileformat=unix
+
+set autochdir
+set tags=./tags;,tags
+
+
