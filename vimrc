@@ -11,25 +11,23 @@ set autoread
 autocmd Filetype javascript setlocal ts=4 sts=4 sw=4
 autocmd Filetype python setlocal ts=4 sts=4 sw=4
 
-nnoremap <space> za
-
 "My plugins
 call plug#begin('~/.vim/plugged')
-Plug 'junegunn/vim-easy-align'
-Plug 'https://github.com/pangloss/vim-javascript'
-Plug 'https://github.com/junegunn/vim-plug.git'
-Plug 'https://github.com/tpope/vim-fugitive.git'
-Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
-Plug 'vim-scripts/indentpython.vim'
-Plug 'scrooloose/syntastic'
-Plug 'https://github.com/Yggdroot/indentLine'
-Plug 'https://github.com/juanedi/predawn.vim'
-Plug 'https://github.com/vim-scripts/repmo.vim/'
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
-Plug 'mattn/emmet-vim'
-Plug 'cakebaker/scss-syntax.vim'
-Plug 'Chiel92/vim-autoformat'
+	Plug 'junegunn/vim-easy-align'
+	Plug 'https://github.com/pangloss/vim-javascript'
+	Plug 'https://github.com/junegunn/vim-plug.git'
+	Plug 'https://github.com/tpope/vim-fugitive.git'
+	Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
+	Plug 'vim-scripts/indentpython.vim'
+	Plug 'scrooloose/syntastic'
+	Plug 'https://github.com/Yggdroot/indentLine'
+	Plug 'https://github.com/juanedi/predawn.vim'
+	Plug 'https://github.com/vim-scripts/repmo.vim/'
+	Plug 'vim-airline/vim-airline'
+	Plug 'vim-airline/vim-airline-themes'
+	Plug 'mattn/emmet-vim'
+	Plug 'cakebaker/scss-syntax.vim'
+	Plug 'Chiel92/vim-autoformat'
 call plug#end()
 
 
