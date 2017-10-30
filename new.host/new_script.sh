@@ -31,6 +31,7 @@ cp dotfiles/vimrc ~/.vimrc
 
 git clone https://github.com/vim/vim.git
 cd vim
+git checkout v7.4.2367
 ./configure --enable-pythoninterp 
 make clean && make && sudo make install
 
@@ -38,7 +39,7 @@ curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 #enter vim and type :PlugInstall
 
-sudo pip install autopep8
+sudo pip install autopep8 pylint
 	
 sudo systemctl disable lightdm.service
 
