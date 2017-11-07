@@ -1,4 +1,6 @@
 set foldmethod=indent
+set expandtab
+set hidden
 set foldlevel=99
 
 " Shared Clipboard with Ubuntu 

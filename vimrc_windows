@@ -1,3 +1,6 @@
+set expandtab
+set hidden
+
 set foldmethod=indent
 set foldlevel=99
 
