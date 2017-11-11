@@ -10,6 +10,8 @@ sudo apt-get install language-pack-en-base
 sudo dpkg-reconfigure locales
 
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash ;
+curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash;
+sudo apt-get install git-lfs
 
 sudo -E add-apt-repository ppa:webupd8team/java
 sudo -E add-apt-repository ppa:webupd8team/sublime-text-3 
