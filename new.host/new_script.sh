@@ -4,7 +4,7 @@ sudo apt-get update;
 
 sudo apt-get install net-tools git build-essential gitk gdb tcl8.5 arandr curl tmux vim mc tig openssh* 
 sudo apt-get install p7zip-full htop vim mc tig git make gcc build-essential curl tmux wget python-pip 
-sudo apt-get install ncurses-dev exuberant-ctags tree python-dev 
+sudo apt-get install ncurses-dev exuberant-ctags tree python-dev nano
 
 sudo apt-get install language-pack-en-base 
 sudo dpkg-reconfigure locales
