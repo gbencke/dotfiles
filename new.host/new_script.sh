@@ -1,5 +1,7 @@
 #!/bin/bash
 
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 sudo add-apt-repository ppa:longsleep/golang-backports 
 sudo add-apt-repository ppa:jonathonf/python-3.6
 sudo apt-get update;
@@ -10,6 +12,7 @@ sudo apt-get install -y ncurses-dev exuberant-ctags tree python-dev nano golang-
 sudo apt-get install -y texlive texlive-xetex
 sudo apt-get install -y python3 python3-pip python3-dev 
 sudo apt-get install -y python3.6
+sudo apt-get install -y docker-ce
 
 sudo apt-get install language-pack-en-base 
 sudo dpkg-reconfigure locales
