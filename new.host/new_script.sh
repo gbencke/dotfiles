@@ -53,6 +53,8 @@ curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
 #enter vim and type :PlugInstall
 
 sudo pip install autopep8 pylint virtualenv pmm
+sudo pip3 install autopep8 pylint virtualenv pmm
+
 	
 sudo systemctl disable lightdm.service
 
