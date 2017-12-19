@@ -10,7 +10,7 @@ sudo apt-get install -y net-tools git build-essential gitk gdb tcl8.5 arandr cur
 sudo apt-get install -y p7zip-full htop vim mc tig git make gcc build-essential curl tmux wget python-pip 
 sudo apt-get install -y ncurses-dev exuberant-ctags tree python-dev nano golang-go dos2unix haskell-platform
 sudo apt-get install -y texlive texlive-xetex
-sudo apt-get install -y python3 python3-pip python3-dev 
+sudo apt-get install -y python3 python3-pip python3-dev cmake
 sudo apt-get install -y python3.6 graphviz
 sudo apt-get install -y docker-ce
 
