@@ -157,7 +157,7 @@ bar {
 }
 
 
-** Personal modifications for gbencke
+## Personal modifications for gbencke ##
 
 bindsym $mod+Control+p exec "~/start_pycharm.sh"
 bindsym $mod+Control+n exec "~/start_netbeans.sh"
