@@ -1,8 +1,0 @@
-#!/bin/sh
-
-xsetroot -solid grey
-export XKL_XMODMAP_DISABLE=1
-openbox &
-/usr/bin/lxsession -s Lubuntu &
-
-
