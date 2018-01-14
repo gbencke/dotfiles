@@ -19,6 +19,7 @@ call plug#begin('~/.vim/plugged')
 	Plug 'vim-airline/vim-airline-themes'
 	Plug 'Chiel92/vim-autoformat'
 	Plug 'vim-syntastic/syntastic'
+        Plug 'https://github.com/Valloric/YouCompleteMe'
 call plug#end()
 
 set encoding=utf-8
