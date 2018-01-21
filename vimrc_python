@@ -64,3 +64,5 @@ highlight Pmenu ctermfg=15 ctermbg=0
 "No Syntax Highlighting
 syntax off
 
+set noswapfile
+
