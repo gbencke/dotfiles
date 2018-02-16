@@ -1,0 +1,7 @@
+set expandtab
+set hidden
+
+set nowrap
+set autoread
+set ignorecase 
+
