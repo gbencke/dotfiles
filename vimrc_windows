@@ -54,3 +54,6 @@ autocmd GUIEnter * simalt ~x
 let g:NERDTreeQuitOnOpen = 1
 let g:NERDTreeShowHidden = 1
 
+set noswapfile
+set expandtab
+set ignorecase

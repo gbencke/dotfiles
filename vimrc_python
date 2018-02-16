@@ -65,4 +65,5 @@ highlight Pmenu ctermfg=15 ctermbg=0
 syntax off
 
 set noswapfile
+set ignorecase
 
