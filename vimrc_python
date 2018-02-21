@@ -1,3 +1,4 @@
+set number
 set foldmethod=indent
 set expandtab
 set hidden
