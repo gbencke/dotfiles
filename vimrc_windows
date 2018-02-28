@@ -1,14 +1,14 @@
-set expandtab
-set hidden
-set number
-
+set hlsearch
 set foldmethod=indent
+set number
+set relativenumber
 set foldlevel=99
 
 set guioptions-=m  "remove menu bar
 set guioptions-=T  "remove toolbar
 set guioptions-=r  "remove right-hand scroll bar
 set guioptions-=L  "remove left-hand scroll bar
+set guicursor+=a:blinkon0
 set guifont=Courier_New:h8
 
 " No text wrapping
@@ -18,6 +18,7 @@ let $PATH .= ';C:\cygwin64\bin'
 
 "My plugins
 call plug#begin('~/vimfiles/plugged')
+Plug 'https://github.com/majutsushi/tagbar'
 Plug 'junegunn/vim-easy-align'
 Plug 'https://github.com/pangloss/vim-javascript'
 Plug 'https://github.com/junegunn/vim-plug.git'
