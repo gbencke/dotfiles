@@ -1,26 +1,30 @@
-set number
-set foldmethod=indent
-set expandtab
 set hidden
+set noswapfile
+set expandtab
+set ignorecase
+set nowrap
+set autoread
+set hlsearch
+set foldmethod=indent
+set number
+set relativenumber
 set foldlevel=99
 
 " Shared Clipboard with Ubuntu 
 set clipboard=unnamedplus
-" No text wrapping
-set nowrap
-set autoread
 
 "My plugins
 call plug#begin('~/.vim/plugged')
-	Plug 'tmhedberg/SimpylFold' 
-	Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
-	Plug 'vim-scripts/indentpython.vim'
-	Plug 'https://github.com/Yggdroot/indentLine'
-	Plug 'vim-airline/vim-airline'
-	Plug 'vim-airline/vim-airline-themes'
-	Plug 'Chiel92/vim-autoformat'
-	Plug 'vim-syntastic/syntastic'
-        Plug 'https://github.com/Valloric/YouCompleteMe'
+Plug 'https://github.com/majutsushi/tagbar'
+Plug 'tmhedberg/SimpylFold' 
+Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
+Plug 'vim-scripts/indentpython.vim'
+Plug 'https://github.com/Yggdroot/indentLine'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'Chiel92/vim-autoformat'
+Plug 'vim-syntastic/syntastic'
+Plug 'https://github.com/Valloric/YouCompleteMe'
 call plug#end()
 
 set encoding=utf-8
@@ -55,16 +59,10 @@ au BufNewFile,BufRead *.py set expandtab
 au BufNewFile,BufRead *.py set autoindent
 au BufNewFile,BufRead *.py set fileformat=unix
 
-set autochdir
 set tags=./tags;,tags
-
 
 "Color for the YCM popup
 highlight Pmenu ctermfg=15 ctermbg=0
 
 "No Syntax Highlighting
 syntax off
-
-set noswapfile
-set ignorecase
-

@@ -1,8 +1,15 @@
+set hidden
+set noswapfile
+set expandtab
+set ignorecase
+set nowrap
+set autoread
 set hlsearch
 set foldmethod=indent
 set number
 set relativenumber
 set foldlevel=99
+
 
 set guioptions-=m  "remove menu bar
 set guioptions-=T  "remove toolbar
@@ -12,8 +19,6 @@ set guicursor+=a:blinkon0
 set guifont=Courier_New:h8
 
 " No text wrapping
-set nowrap
-set autoread
 let $PATH .= ';C:\cygwin64\bin'
 
 "My plugins
@@ -50,12 +55,11 @@ endif
 
 colorscheme predawn
 
+let g:NERDTreeQuitOnOpen = 1
+let g:NERDTreeShowHidden = 1
+let g:airline_theme='monochrome'
+
 " Maximize the screen
 autocmd GUIEnter * simalt ~x
 
-let g:NERDTreeQuitOnOpen = 1
-let g:NERDTreeShowHidden = 1
 
-set noswapfile
-set expandtab
-set ignorecase
