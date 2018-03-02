@@ -23,9 +23,10 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'Chiel92/vim-autoformat'
 Plug 'vim-syntastic/syntastic'
 Plug 'https://github.com/Valloric/YouCompleteMe'
-" Python Specifics...
-Plug 'tmhedberg/SimpylFold' 
-Plug 'vim-scripts/indentpython.vim'
+" HTML,CSS, JS Specifics...
+Plug 'mattn/emmet-vim'
+Plug 'cakebaker/scss-syntax.vim'
+Plug 'https://github.com/pangloss/vim-javascript'
 call plug#end()
 
 set encoding=utf-8
@@ -51,15 +52,15 @@ let g:NERDTreeQuitOnOpen = 1
 let g:NERDTreeShowHidden = 1
 let g:airline_theme='monochrome'
 
-au BufNewFile,BufRead *.py 
-au BufNewFile,BufRead *.py set tabstop=4
-au BufNewFile,BufRead *.py set softtabstop=4
-au BufNewFile,BufRead *.py set shiftwidth=4
-au BufNewFile,BufRead *.py set textwidth=79
-au BufNewFile,BufRead *.py set expandtab
-au BufNewFile,BufRead *.py set autoindent
-au BufNewFile,BufRead *.py set fileformat=unix
-au BufNewFile,BufRead *.py TagbarToggle
+au BufNewFile,BufRead *.js 
+au BufNewFile,BufRead *.js set tabstop=4
+au BufNewFile,BufRead *.js set softtabstop=4
+au BufNewFile,BufRead *.js set shiftwidth=4
+au BufNewFile,BufRead *.js set textwidth=79
+au BufNewFile,BufRead *.js set expandtab
+au BufNewFile,BufRead *.js set autoindent
+au BufNewFile,BufRead *.js set fileformat=unix
+au BufNewFile,BufRead *.js TagbarToggle
 
 set tags=./tags;,tags
 
