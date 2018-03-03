@@ -7,7 +7,6 @@ set autoread
 set hlsearch
 set foldmethod=indent
 set number
-set relativenumber
 set foldlevel=99
 
 " Shared Clipboard with Ubuntu 
