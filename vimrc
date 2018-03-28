@@ -53,3 +53,6 @@ set noswapfile
 
 set expandtab
 set ignorecase
+
+"No Syntax Highlighting
+syntax off
