@@ -51,6 +51,9 @@ let g:NERDTreeQuitOnOpen = 1
 let g:NERDTreeShowHidden = 1
 let g:airline_theme='monochrome'
 let g:ycm_auto_trigger = 0
+let g:ycm_keep_logfiles = 1
+let g:ycm_log_level = 'debug'
+
 
 au BufNewFile,BufRead *.py 
 au BufNewFile,BufRead *.py set tabstop=4
