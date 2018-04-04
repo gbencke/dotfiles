@@ -6,7 +6,7 @@ sudo apt-get install -y net-tools git build-essential curl tmux vim mc tig opens
 sudo apt-get install -y p7zip-full htop vim mc tig git make gcc curl tmux wget python-pip 
 sudo apt-get install -y ncurses-dev tree python-dev nano dos2unix bc libhdf5-dev    
 sudo apt-get install -y python3 python3-pip python3-dev cmake graphviz python-h5py
-sudo apt-get install -y exuberant-ctags
+sudo apt-get install -y exuberant-ctags python3-tk
 
 
 sudo apt-get install -y language-pack-en-base 
