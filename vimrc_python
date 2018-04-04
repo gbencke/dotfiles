@@ -53,7 +53,7 @@ let g:airline_theme='monochrome'
 let g:ycm_auto_trigger = 0
 let g:ycm_keep_logfiles = 1
 let g:ycm_log_level = 'debug'
-
+let g:syntastic_python_checkers = ['pylint']
 
 au BufNewFile,BufRead *.py 
 au BufNewFile,BufRead *.py set tabstop=4
