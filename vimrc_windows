@@ -7,8 +7,9 @@ set autoread
 set hlsearch
 set foldmethod=indent
 set number
+set relativenumber
+set showcmd
 set foldlevel=99
-
 
 set guioptions-=m  "remove menu bar
 set guioptions-=T  "remove toolbar
