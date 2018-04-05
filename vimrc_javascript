@@ -6,6 +6,8 @@ set nowrap
 set autoread
 set hlsearch
 set foldmethod=indent
+set relativenumber
+set showcmd
 set number
 set foldlevel=99
 
@@ -50,16 +52,20 @@ colorscheme elflord
 let g:NERDTreeQuitOnOpen = 1
 let g:NERDTreeShowHidden = 1
 let g:airline_theme='monochrome'
+let g:ycm_auto_trigger = 0
+let g:ycm_keep_logfiles = 1
+let g:ycm_log_level = 'debug'
+let g:syntastic_python_checkers=['pylint']
 
-au BufNewFile,BufRead *.js 
-au BufNewFile,BufRead *.js set tabstop=4
-au BufNewFile,BufRead *.js set softtabstop=4
-au BufNewFile,BufRead *.js set shiftwidth=4
-au BufNewFile,BufRead *.js set textwidth=79
-au BufNewFile,BufRead *.js set expandtab
-au BufNewFile,BufRead *.js set autoindent
-au BufNewFile,BufRead *.js set fileformat=unix
-au BufNewFile,BufRead *.js TagbarToggle
+
+au BufNewFile,BufRead *.js *.html 
+au BufNewFile,BufRead *.js *.html set tabstop=4
+au BufNewFile,BufRead *.js *.html set softtabstop=4
+au BufNewFile,BufRead *.js *.html set shiftwidth=4
+au BufNewFile,BufRead *.js *.html set textwidth=79
+au BufNewFile,BufRead *.js *.html set expandtab
+au BufNewFile,BufRead *.js *.html set autoindent
+au BufNewFile,BufRead *.js *.html set fileformat=unix
 
 set tags=./tags;,tags
 
