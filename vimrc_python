@@ -9,6 +9,7 @@ set foldmethod=indent
 set number
 set relativenumber
 set foldlevel=99
+set showcmd
 
 " Shared Clipboard with Ubuntu 
 set clipboard=unnamedplus
