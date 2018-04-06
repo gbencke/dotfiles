@@ -8,8 +8,10 @@ set hlsearch
 set foldmethod=indent
 set number
 set relativenumber
-set showcmd
 set foldlevel=99
+set showcmd
+set splitbelow
+set previewheight=30
 
 set guioptions-=m  "remove menu bar
 set guioptions-=T  "remove toolbar
@@ -53,7 +55,11 @@ if has('statusline')
       set statusline+=%=%-14.(%l,%c%V%)\ %p%%  
 endif
 
-colorscheme predawn
+if has("gui_running")
+        colorscheme predawn
+else
+        colorscheme elflord
+endif
 
 let g:NERDTreeQuitOnOpen = 1
 let g:NERDTreeShowHidden = 1
@@ -62,4 +68,7 @@ let g:airline_theme='monochrome'
 " Maximize the screen
 autocmd GUIEnter * simalt ~x
 
-
+noremap <Up> <NOP>
+noremap <Down> <NOP>
+noremap <Left> <NOP>
+noremap <Right> <NOP>
