@@ -71,3 +71,9 @@ highlight Pmenu ctermfg=15 ctermbg=0
 
 "No Syntax Highlighting
 syntax off
+
+noremap <Up> <NOP>
+noremap <Down> <NOP>
+noremap <Left> <NOP>
+noremap <Right> <NOP>
+
