@@ -16,8 +16,6 @@ set clipboard=unnamedplus
 
 "My plugins
 call plug#begin('~/.vim/plugged')
-Plug 'https://github.com/majutsushi/tagbar'
-Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 Plug 'https://github.com/Yggdroot/indentLine'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
