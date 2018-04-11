@@ -49,6 +49,8 @@ let g:NERDTreeQuitOnOpen = 1
 let g:NERDTreeShowHidden = 1
 let g:airline_theme='monochrome'
 
+autocmd VimEnter * SyntasticToggleMode
+
 set noswapfile
 
 set expandtab
