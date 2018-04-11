@@ -6,18 +6,18 @@ set nowrap
 set autoread
 set hlsearch
 set foldmethod=indent
-set relativenumber
-set showcmd
 set number
+set relativenumber
 set foldlevel=99
+set showcmd
+set splitbelow
+set previewheight=30
 
 " Shared Clipboard with Ubuntu 
 set clipboard=unnamedplus
 
 "My plugins
 call plug#begin('~/.vim/plugged')
-Plug 'https://github.com/majutsushi/tagbar'
-Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 Plug 'https://github.com/Yggdroot/indentLine'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
@@ -49,8 +49,6 @@ endif
 
 colorscheme elflord
 
-let g:NERDTreeQuitOnOpen = 1
-let g:NERDTreeShowHidden = 1
 let g:airline_theme='monochrome'
 let g:ycm_auto_trigger = 0
 let g:ycm_keep_logfiles = 1
@@ -70,8 +68,11 @@ au BufNewFile,BufRead *.js *.html set fileformat=unix
 
 set tags=./tags;,tags
 
-"Color for the YCM popup
-highlight Pmenu ctermfg=15 ctermbg=0
-
 "No Syntax Highlighting
 syntax off
+
+noremap <Up> <NOP>
+noremap <Down> <NOP>
+noremap <Left> <NOP>
+noremap <Right> <NOP>
+
