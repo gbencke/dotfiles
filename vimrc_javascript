@@ -76,3 +76,6 @@ noremap <Down> <NOP>
 noremap <Left> <NOP>
 noremap <Right> <NOP>
 
+noremap <F2> :Autoformat<CR>:w<CR>:echo "Formatado"
+noremap <F3> :SyntasticCheck
+
