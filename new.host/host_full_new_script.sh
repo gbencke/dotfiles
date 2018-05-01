@@ -1,3 +1,5 @@
+#Script for the creating of a full development environment based on Ubuntu 16.04
+
 #!/bin/bash
 
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -

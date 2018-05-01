@@ -1,3 +1,6 @@
+# Script for the configuration of a generic terminal only VM on AWS
+# Uses Ubuntu 16.04 and is mostly used for jupyter notebooks servers
+
 #!/bin/bash
 
 sudo apt-get update;

@@ -1,3 +1,6 @@
+"
+" Tested on VIM 7.4.2362
+"
 set number
 set foldmethod=indent
 set expandtab

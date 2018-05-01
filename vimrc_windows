@@ -1,3 +1,7 @@
+"
+" Tested on VIM 7.4.2362
+"
+
 set hidden
 set noswapfile
 set expandtab

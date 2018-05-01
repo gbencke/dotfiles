@@ -1,4 +1,8 @@
-#/bin/sh
+# Minimal Script for the creating of a VNC-based AWS Instance accessible with VNC
+# Make sure to enable all ports used by VNC on AWS Console
+# Ubuntu 16.04 based
+
+#!/bin/sh
 
 sudo systemctl enable lightdm.service
 sudo service lightdm.service start
