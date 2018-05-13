@@ -84,3 +84,6 @@ after that specific task, to be shutdown
 * **vm_minimal_gui_script.sh**: Same as above, but with GUI and VNC
 * **host_full_new_script.sh**: A Full development environment to be used on new
 hosts.
+* **start scripts**: Collection of simple start scripts to be placed on the home 
+folder of each user
+
