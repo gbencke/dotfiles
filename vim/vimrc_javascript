@@ -60,14 +60,13 @@ let g:syntastic_python_checkers=['pylint']
 
 autocmd VimEnter * SyntasticToggleMode
 
-au BufNewFile,BufRead *.js *.html 
-au BufNewFile,BufRead *.js *.html set tabstop=4
-au BufNewFile,BufRead *.js *.html set softtabstop=4
-au BufNewFile,BufRead *.js *.html set shiftwidth=4
-au BufNewFile,BufRead *.js *.html set textwidth=79
-au BufNewFile,BufRead *.js *.html set expandtab
-au BufNewFile,BufRead *.js *.html set autoindent
-au BufNewFile,BufRead *.js *.html set fileformat=unix
+au BufNewFile,BufRead *.js,*.html set tabstop=4
+au BufNewFile,BufRead *.js,*.html set softtabstop=4
+au BufNewFile,BufRead *.js,*.html set shiftwidth=4
+au BufNewFile,BufRead *.js,*.html set textwidth=79
+au BufNewFile,BufRead *.js,*.html set expandtab
+au BufNewFile,BufRead *.js,*.html set autoindent
+au BufNewFile,BufRead *.js,*.html set fileformat=unix
 
 set tags=./tags;,tags
 

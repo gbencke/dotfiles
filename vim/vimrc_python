@@ -59,7 +59,7 @@ let g:syntastic_python_checkers = ['pylint']
 
 autocmd VimEnter * SyntasticToggleMode
 
-au BufNewFile,BufRead *.py 
+"au BufNewFile,BufRead *.py 
 au BufNewFile,BufRead *.py set tabstop=4
 au BufNewFile,BufRead *.py set softtabstop=4
 au BufNewFile,BufRead *.py set shiftwidth=4
