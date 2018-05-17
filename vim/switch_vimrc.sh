@@ -7,15 +7,15 @@ fi
 
 VIMRC_FILE=''
 if test "$1" == 'regular';
-then VIMRC_FILE=~/git/dotfiles/vimrc
+then VIMRC_FILE=~/git/dotfiles/vim/vimrc
 fi
 
 if test "$1" == 'js';
-then VIMRC_FILE=~/git/dotfiles/vimrc_javascript
+then VIMRC_FILE=~/git/dotfiles/vim/vimrc_javascript
 fi
 
 if test "$1" == 'python';
-then VIMRC_FILE=~/git/dotfiles/vimrc_python
+then VIMRC_FILE=~/git/dotfiles/vim/vimrc_python
 fi
 
 if test "$VIMRC_FILE" == '';
