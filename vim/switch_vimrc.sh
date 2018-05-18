@@ -33,8 +33,15 @@ curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
 
 vim +PlugInstall +qall
 
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 if test "$1" == 'python';
 then cd ~/.vim/plugged/YouCompleteMe; ./install.sh
+fi
+
+if test "$1" == 'js';
+then nvm install stable && nvm alias default stable && npm install -g js-beautify gulp grunt && cd ~/.vim/plugged/YouCompleteMe; ./install.py --js-completer
 fi
 
