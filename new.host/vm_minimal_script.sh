@@ -11,6 +11,8 @@ sudo apt-get install -y ncurses-dev tree python-dev nano dos2unix bc libhdf5-dev
 sudo apt-get install -y python3 python3-pip python3-dev cmake graphviz python-h5py
 sudo apt-get install -y exuberant-ctags python3-tk rsync
 
+#optional packages:
+#tokei, grv-git, prettier
 
 sudo apt-get install -y language-pack-en-base 
 sudo dpkg-reconfigure locales
