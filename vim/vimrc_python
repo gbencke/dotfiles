@@ -30,6 +30,9 @@ Plug 'https://github.com/Valloric/YouCompleteMe'
 " Python Specifics...
 Plug 'tmhedberg/SimpylFold' 
 Plug 'vim-scripts/indentpython.vim'
+Plug 'mileszs/ack.vim'
+Plug 'https://github.com/tpope/vim-dadbod'
+Plug 'https://github.com/kristijanhusak/vim-carbon-now-sh'
 call plug#end()
 
 set encoding=utf-8
