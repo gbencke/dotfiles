@@ -32,7 +32,7 @@ sudo -E apt-get install oracle-java8-set-default
 nvm install v4.6.0
 nvm use v4.6.0
 
-npm install -g bower gulp webpack angcli grunt sass js-beautify typescript-formatter 
+npm install -g bower gulp webpack angcli grunt sass js-beautify typescript-formatter prettier
 
 cabal update
 cabal install pandoc
