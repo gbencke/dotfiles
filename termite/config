@@ -1,5 +1,5 @@
 [options]
-font = Consolas 10 
+font = Inconsolata 12
 
 [colors]
 # Base16 Spacemacs
