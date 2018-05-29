@@ -45,3 +45,4 @@ if test "$1" == 'js';
 then nvm install stable && nvm alias default stable && npm install -g js-beautify gulp grunt && cd ~/.vim/plugged/YouCompleteMe; ./install.py --js-completer
 fi
 
+echo '{ "plugins" : { "node": {} } } ' > ~/.tern-config
