@@ -82,3 +82,9 @@ noremap <Right> <NOP>
 noremap <F2> :Autoformat<CR>:w<CR>:echo "Formatado"<CR>
 noremap <F3> :SyntasticCheck<CR>
 
+
+nmap <c-c> <esc>
+imap <c-c> <esc>
+vmap <c-c> <esc>
+omap <c-c> <esc>
+
