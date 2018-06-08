@@ -21,6 +21,7 @@ sudo dpkg-reconfigure locales
 git config --global user.email "gbencke@benckesoftware.com.br"  
 git config --global user.name "Guilherme Bencke"  
 git config --global push.default simple
+git config --global core.editor vim
 
 sudo pip install autopep8 pylint virtualenv pmm
 sudo pip3 install autopep8 pylint virtualenv pmm
@@ -33,3 +34,10 @@ else
         # CUDA RUNTIME FOR GPU VMs - Cuda Devel - unzip and run the .deb files with dpkg -i 
         wget https://s3.amazonaws.com/gbencke.kaggle/backup.7z   
 fi
+
+mkdir ~/git
+cd ~/git
+git clone https://github.com/gbencke/dotfiles.git
+
+cd 
+
