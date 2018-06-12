@@ -30,7 +30,7 @@ font pango:monospace 10
 floating_modifier $mod
 
 # start a terminal
-bindsym $mod+Return exec i3-sensible-terminal
+bindsym $mod+Return exec termite
 
 # kill focused window
 bindsym $mod+Shift+q kill
@@ -163,11 +163,6 @@ bindsym $mod+Control+p exec "~/start_pycharm.sh"
 bindsym $mod+Control+n exec "~/start_netbeans.sh"
 bindsym $mod+Control+f exec "~/start_firefox.sh"
 bindsym $mod+Control+c exec "~/start_chromium.sh"
-
-
-exec compton -b
-
-exec --no-startup-id feh --bg-fill ~/Wallpapers/zazen.jpg
 
 for_window[class="Termite"] border pixel 0
 

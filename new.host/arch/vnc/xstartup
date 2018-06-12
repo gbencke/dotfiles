@@ -22,5 +22,6 @@ fi
 [ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
 xsetroot -solid grey
 #xterm -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
-compton -b
-exec vglrun i3 
+#compton -b
+exec i3 
+#exec vglrun i3 
