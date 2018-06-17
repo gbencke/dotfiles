@@ -2,21 +2,16 @@
 
 # Tested with Base AMI: ami-4b17a034	
 
-sudo pacman -Sy --noconfirm git curl tmux vim mc tig 
-sudo pacman -Sy --noconfirm python2 python2-pip 
-sudo pacman -Sy --noconfirm p7zip htop mc wget 
-sudo pacman -Sy --noconfirm tree nano dos2unix bc 
-sudo pacman -Sy --noconfirm python python-pip cmake graphviz python-h5py
-sudo pacman -Sy --noconfirm ctags rsync ranger go 
+sudo pacman -Sy --noconfirm git curl tmux vim mc tig python2 python2-pip p7zip htop mc wget 
+sudo pacman -Sy --noconfirm tree nano dos2unix bc python python-pip cmake graphviz python-h5py ctags rsync ranger go compton virtualgl termite i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
 
-sudo pacman -Sy --noconfirm compton
-sudo pacman -Sy --noconfirm virtualgl
-sudo pacman -Sy --noconfirm i3 i3status i3blocks
-sudo pacman -Sy --noconfirm termite
-sudo pacman -Sy --noconfirm sddm
-sudo pacman -Sy --noconfirm feh
-sudo pacman -Sy --noconfirm tigervnc
-sudo pacman -Sy --noconfirm ttf-inconsolata
+git config --global user.email "gbencke@benckesoftware.com.br"  
+git config --global user.name "Guilherme Bencke"  
+git config --global push.default simple
+git config --global core.editor vim
+
+pip2 install autopep8 pylint virtualenv pmm
+pip install autopep8 pylint virtualenv pmm
 
 vncserver
 
@@ -33,4 +28,6 @@ cp ~/git/000.INFRA/dotfiles/new.host/arch/vnc/config ~/.vnc/config
 mkdir -p ~/.config/i3/
 cp ~/git/000.INFRA/dotfiles/new.host/arch/vnc/i3config ~/.config/i3/config
 
+vncserver -kill :1
+vncserver
 
