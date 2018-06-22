@@ -16,7 +16,7 @@ set showcmd
 set splitbelow
 set previewheight=30
 
-" Shared Clipboard with Ubuntu 
+" Shared Clipboard with Ubuntu
 set clipboard=unnamedplus
 
 "My plugins
@@ -31,6 +31,8 @@ Plug 'https://github.com/Valloric/YouCompleteMe'
 Plug 'mattn/emmet-vim'
 Plug 'cakebaker/scss-syntax.vim'
 Plug 'https://github.com/pangloss/vim-javascript'
+Plug 'https://github.com/Shougo/vimproc.vim'
+Plug 'https://github.com/Quramy/tsuquyomi'
 call plug#end()
 
 set encoding=utf-8
@@ -39,15 +41,15 @@ set mouse=a
 
 "Configure Status Line
 if has('statusline')
-      set laststatus=2
-      set statusline=%<%f\    
-      set statusline+=%w%h%m%r 
-      set statusline+=%{fugitive#statusline()} 
-      set statusline+=\ [%{&ff}/%Y]            
-      set statusline+=\ [%{getcwd()}]          
-      set statusline+=%#warningmsg#
-      set statusline+=%*
-      set statusline+=%=%-14.(%l,%c%V%)\ %p%%  
+        set laststatus=2
+        set statusline=%<%f\
+        set statusline+=%w%h%m%r
+        set statusline+=%{fugitive#statusline()}
+        set statusline+=\ [%{&ff}/%Y]
+        set statusline+=\ [%{getcwd()}]
+        set statusline+=%#warningmsg#
+        set statusline+=%*
+        set statusline+=%=%-14.(%l,%c%V%)\ %p%%
 endif
 
 colorscheme elflord

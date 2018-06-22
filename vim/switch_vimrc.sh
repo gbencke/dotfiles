@@ -42,7 +42,12 @@ then cd ~/.vim/plugged/YouCompleteMe; ./install.sh
 fi
 
 if test "$1" == 'js';
-then nvm install v8.11.2 && npm install -g typescript js-beautify gulp grunt && cd ~/.vim/plugged/YouCompleteMe; ./install.py --js-completer
+then nvm install v8.11.2 && \ 
+        npm install -g typescript js-beautify gulp grunt && \
+                cd ~/.vim/plugged/YouCompleteMe; \
+                ./install.py --js-completer; \
+                cd ~/.vim/plugged/vimproc.vim; \
+                make 
 fi
 
 echo '{ "plugins" : { "node": {} } } ' > ~/.tern-config
