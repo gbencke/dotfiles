@@ -74,17 +74,24 @@ autocmd VimEnter * SyntasticToggleMode
 " Maximize the screen
 autocmd GUIEnter * simalt ~x
 
+"No Syntax Highlighting
+syntax off
+
+"Control-C is the same as esc
+nmap <c-c> <esc>
+imap <c-c> <esc>
+vmap <c-c> <esc>
+omap <c-c> <esc>
+
+"No arrow keys in normal mode
 noremap <Up> <NOP>
 noremap <Down> <NOP>
 noremap <Left> <NOP>
 noremap <Right> <NOP>
 
-noremap <F2> :Autoformat<CR>:w<CR>:echo "Formatado"<CR>
+"Format, remove tabs and trailing spaces from file
+noremap <F2> gg=G:retab<CR>:RemoveTrailingSpaces<CR>:Autoformat<CR>:w<CR>:echo "Formatado"<CR>
+"Check syntax errors
 noremap <F3> :SyntasticCheck<CR>
 
-
-nmap <c-c> <esc>
-imap <c-c> <esc>
-vmap <c-c> <esc>
-omap <c-c> <esc>
 
