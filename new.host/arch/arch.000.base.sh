@@ -29,6 +29,7 @@ cp ~/git/000.INFRA/dotfiles/new.host/arch/vnc/xstartup ~/.vnc/xstartup
 cp ~/git/000.INFRA/dotfiles/new.host/arch/vnc/config ~/.vnc/config
 mkdir -p ~/.config/i3/
 cp ~/git/000.INFRA/dotfiles/new.host/arch/vnc/i3config ~/.config/i3/config
+cat ~/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
 
 vncserver -kill :1
 vncserver
@@ -36,4 +37,4 @@ vncserver
 passwd gbencke
 su gbencke
 cd
-
+cat ~/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
