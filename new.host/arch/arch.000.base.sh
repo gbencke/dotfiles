@@ -17,9 +17,12 @@ git config --global core.editor vim
 pip2 install autopep8 pylint virtualenv pmm
 pip install autopep8 pylint virtualenv pmm
 
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
+
 vncserver
 
 mkdir -p git/000.INFRA
+chmod 755 -R git 
 cd git/000.INFRA
 git clone http://github.com/gbencke/dotfiles/
 mkdir -p ~/.config/termite
@@ -37,4 +40,6 @@ vncserver
 passwd gbencke
 su gbencke
 cd
+ln -s /root/git ~/git 
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
 cat ~/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
