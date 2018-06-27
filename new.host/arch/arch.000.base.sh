@@ -34,7 +34,6 @@ cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/config ~/.vnc/config
 mkdir -p ~/.config/i3/
 cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/i3config ~/.config/i3/config
 cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
-chmod 755 -R ~/git 
 
 vncserver -kill :1
 vncserver
