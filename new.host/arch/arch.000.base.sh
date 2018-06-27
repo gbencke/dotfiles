@@ -21,19 +21,19 @@ curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | 
 
 vncserver
 
-mkdir -p git/000.INFRA
-chmod 755 -R git 
-chmod 755 -R /root
-cd git/000.INFRA
+mkdir -p /var/git/000.INFRA
+chmod 755 -R /var/git 
+chmod 755 /root
+cd /var/git/000.INFRA
 git clone http://github.com/gbencke/dotfiles/
 mkdir -p ~/.config/termite
-cp ~/git/000.INFRA/dotfiles/new.host/arch/termite/config ~/.config/termite/config
-cp -r ~/git/000.INFRA/dotfiles/new.host/wallpaper ~/Wallpapers
-cp ~/git/000.INFRA/dotfiles/new.host/arch/vnc/xstartup ~/.vnc/xstartup
-cp ~/git/000.INFRA/dotfiles/new.host/arch/vnc/config ~/.vnc/config
+cp /var/git/000.INFRA/dotfiles/new.host/arch/termite/config ~/.config/termite/config
+cp -r /var/git/000.INFRA/dotfiles/new.host/wallpaper ~/Wallpapers
+cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/xstartup ~/.vnc/xstartup
+cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/config ~/.vnc/config
 mkdir -p ~/.config/i3/
-cp ~/git/000.INFRA/dotfiles/new.host/arch/vnc/i3config ~/.config/i3/config
-cat ~/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
+cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/i3config ~/.config/i3/config
+cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
 chmod 755 -R ~/git 
 
 vncserver -kill :1
@@ -42,11 +42,11 @@ vncserver
 passwd gbencke
 su gbencke
 cd
-ln -s /root/git ~/git 
+ln -s /var/git ~/git 
 unset NVM_DIR 2>/dev/null
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
 git config --global user.email "gbencke@benckesoftware.com.br"  
 git config --global user.name "Guilherme Bencke"  
 git config --global push.default simple
 git config --global core.editor vim
-cat ~/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
+cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
