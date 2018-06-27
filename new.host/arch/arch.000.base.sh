@@ -1,7 +1,7 @@
 #!/bin/bash
 # Tested with Base AMI: ami-4b17a034
 
-sudo pacman -Sy --noconfirm sudo git curl tmux vim mc tig python2 python2-pip p7zip htop mc wget 
+sudo pacman -Sy --noconfirm sudo git curl tmux vim mc tig python2 python2-pip p7zip htop mc wget unzip
 sudo pacman -Sy --noconfirm tree nano dos2unix bc python python-pip cmake graphviz python-h5py ctags 
 sudo pacman -Sy --noconfirm rsync ranger go compton virtualgl termite i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
 
@@ -43,7 +43,7 @@ passwd gbencke
 su gbencke
 cd
 ln -s /root/git ~/git 
-unset NVM_DIR
+unset NVM_DIR 2>/dev/null
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
 git config --global user.email "gbencke@benckesoftware.com.br"  
 git config --global user.name "Guilherme Bencke"  
