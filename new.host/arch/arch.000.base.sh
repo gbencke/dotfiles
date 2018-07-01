@@ -1,7 +1,7 @@
 #!/bin/bash
 # Tested with Base AMI: ami-4b17a034
 
-sudo pacman -Sy --noconfirm sudo git curl tmux vim mc tig python2 python2-pip p7zip htop mc wget unzip
+sudo pacman -Sy --noconfirm sudo git curl tmux vim mc tig python2 python2-pip p7zip htop mc wget unzip zsh
 sudo pacman -Sy --noconfirm tree nano dos2unix bc python python-pip cmake graphviz python-h5py ctags 
 sudo pacman -Sy --noconfirm rsync ranger go compton virtualgl termite i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
 
@@ -48,4 +48,8 @@ git config --global user.email "gbencke@benckesoftware.com.br"
 git config --global user.name "Guilherme Bencke"  
 git config --global push.default simple
 git config --global core.editor vim
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
+cat /var/git/000.INFRA/dotfiles/shells/zshrc >> ~/.zshrc
+
+

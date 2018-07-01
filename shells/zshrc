@@ -9,5 +9,9 @@ export _JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=on -Dswing.aatext=true'
 nvm install v8.11.2
 nvm use v8.11.2
 
-unalias grv
+unalias grv 2>/dev/null
+
+export PATH=$PATH:~/.local/bin
+
+ZSH_THEME="clean"
 
