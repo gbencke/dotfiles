@@ -51,5 +51,6 @@ git config --global core.editor vim
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
 cat /var/git/000.INFRA/dotfiles/shells/zshrc >> ~/.zshrc
+cp /var/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
 
 
