@@ -49,3 +49,5 @@ git config --global user.name "Guilherme Bencke"
 git config --global push.default simple
 git config --global core.editor vim
 cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
+cp /var/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
+
