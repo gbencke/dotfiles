@@ -1,7 +1,7 @@
 #!/bin/bash
 # Tested with Base AMI: ami-4b17a034
 
-sudo pacman -Sy --noconfirm sudo git curl tmux vim mc tig python2 python2-pip p7zip htop mc wget unzip zsh
+sudo pacman -Sy --noconfirm sudo git curl tmux vim mc tig python2 python2-pip p7zip htop mc wget unzip zsh protobuf
 sudo pacman -Sy --noconfirm tree nano dos2unix bc python python-pip cmake graphviz python-h5py ctags 
 sudo pacman -Sy --noconfirm rsync ranger go compton virtualgl termite i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
 
@@ -14,8 +14,8 @@ git config --global user.name "Guilherme Bencke"
 git config --global push.default simple
 git config --global core.editor vim
 
-pip2 install autopep8 pylint virtualenv pmm
-pip install autopep8 pylint virtualenv pmm
+pip2 install autopep8 pylint virtualenv pmm cython pillow lxml
+pip install autopep8 pylint virtualenv pmm cython pillow lxml
 
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
 
