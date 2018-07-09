@@ -1,5 +1,5 @@
 #!/bin/bash
-# Tested with Base AMI: ami-4b17a034
+# Tested with Base AMI: ami-9b0228e4
 
 sudo pacman -Sy --noconfirm sudo git curl tmux vim mc tig python2 python2-pip p7zip htop mc wget unzip zsh protobuf
 sudo pacman -Sy --noconfirm tree nano dos2unix bc python python-pip cmake graphviz python-h5py ctags 
