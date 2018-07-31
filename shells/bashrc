@@ -16,3 +16,5 @@ unalias grv 2>/dev/null
 
 export PATH=$PATH:~/.local/bin
 
+cd
+
