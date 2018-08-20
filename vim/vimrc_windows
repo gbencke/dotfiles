@@ -16,6 +16,8 @@ set foldlevel=99
 set showcmd
 set splitbelow
 set previewheight=30
+set encoding=utf-8
+set fileencoding=utf-8
 
 set guioptions-=m  "remove menu bar
 set guioptions-=T  "remove toolbar
