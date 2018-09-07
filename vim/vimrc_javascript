@@ -15,8 +15,10 @@ set foldlevel=99
 set showcmd
 set splitbelow
 set previewheight=30
+set encoding=utf-8
+set fileencoding=utf-8
 
-" Shared Clipboard with Ubuntu
+" Shared Clipboard with Ubuntu, windows this is handled natively
 set clipboard=unnamedplus
 
 "My plugins
@@ -33,10 +35,6 @@ Plug 'mattn/emmet-vim'
 Plug 'https://github.com/pangloss/vim-javascript'
 Plug 'https://github.com/Quramy/tsuquyomi'
 call plug#end()
-
-set encoding=utf-8
-set nu
-set mouse=a
 
 "Configure Status Line
 if has('statusline')
