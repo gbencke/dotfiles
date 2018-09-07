@@ -23,30 +23,30 @@ set clipboard=unnamedplus
 
 "My plugins
 call plug#begin('~/.vim/plugged')
-Plug 'https://github.com/Yggdroot/indentLine'
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
-Plug 'mhinz/vim-startify'
-"
-" HTML,CSS, JS Specifics...
-"
-Plug 'w0rp/ale'
-Plug 'mattn/emmet-vim'
-Plug 'https://github.com/pangloss/vim-javascript'
-Plug 'https://github.com/Quramy/tsuquyomi'
+        Plug 'https://github.com/Yggdroot/indentLine'
+        Plug 'vim-airline/vim-airline'
+        Plug 'vim-airline/vim-airline-themes'
+        Plug 'mhinz/vim-startify'
+        "
+        " HTML,CSS, JS Specifics...
+        "
+        Plug 'w0rp/ale'
+        Plug 'mattn/emmet-vim'
+        Plug 'https://github.com/pangloss/vim-javascript'
+        Plug 'https://github.com/Quramy/tsuquyomi'
 call plug#end()
 
 "Configure Status Line
 if has('statusline')
-        set laststatus=2
-        set statusline=%<%f\
-        set statusline+=%w%h%m%r
-        set statusline+=%{fugitive#statusline()}
-        set statusline+=\ [%{&ff}/%Y]
-        set statusline+=\ [%{getcwd()}]
-        set statusline+=%#warningmsg#
-        set statusline+=%*
-        set statusline+=%=%-14.(%l,%c%V%)\ %p%%
+      set laststatus=2
+      set statusline=%<%f\    
+      set statusline+=%w%h%m%r 
+      set statusline+=%{fugitive#statusline()} 
+      set statusline+=\ [%{&ff}/%Y]            
+      set statusline+=\ [%{getcwd()}]          
+      set statusline+=%#warningmsg#
+      set statusline+=%*
+      set statusline+=%=%-14.(%l,%c%V%)\ %p%%  
 endif
 
 colorscheme elflord
@@ -59,12 +59,6 @@ let g:airline#extensions#ale#enabled = 1
 highlight Pmenu ctermbg=gray guibg=gray
 highlight clear ALEErrorSign
 highlight clear ALEWarningSign
-
-autocmd FileType javascript set formatprg=prettier\ --stdin
-autocmd FileType typescript set formatprg=prettier\ --stdin
-autocmd FileType html set formatprg=prettier\ --stdin
-autocmd FileType css set formatprg=prettier\ --stdin
-
 
 au BufNewFile,BufRead *.js,*.html set tabstop=4
 au BufNewFile,BufRead *.js,*.html set softtabstop=4
