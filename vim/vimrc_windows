@@ -1,7 +1,6 @@
 "
-" Tested on VIM 7.4.2362
+" Tested on VIM 8.1
 "
-
 set hidden
 set noswapfile
 set expandtab
@@ -31,34 +30,31 @@ let $PATH .= ';C:\cygwin64\bin'
 
 "My plugins
 call plug#begin('~/vimfiles/plugged')
-Plug 'https://github.com/majutsushi/tagbar'
-Plug 'junegunn/vim-easy-align'
-Plug 'https://github.com/pangloss/vim-javascript'
-Plug 'https://github.com/junegunn/vim-plug.git'
-Plug 'https://github.com/tpope/vim-fugitive.git' " Git Plugin
-Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
-Plug 'scrooloose/syntastic'
 Plug 'https://github.com/Yggdroot/indentLine'
 Plug 'https://github.com/juanedi/predawn.vim'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
+Plug 'mhinz/vim-startify'
+"
+" HTML,CSS, JS Specifics...
+"
+Plug 'w0rp/ale'
 Plug 'mattn/emmet-vim'
-Plug 'cakebaker/scss-syntax.vim'
+Plug 'https://github.com/pangloss/vim-javascript'
+Plug 'https://github.com/Quramy/tsuquyomi'
 call plug#end()
 
 "Configure Status Line
 if has('statusline')
-      set laststatus=2
-      set statusline=%<%f\    
-      set statusline+=%w%h%m%r 
-      set statusline+=%{fugitive#statusline()} 
-      set statusline+=\ [%{&ff}/%Y]            
-      set statusline+=\ [%{getcwd()}]          
-      set statusline+=%#warningmsg#
-      set statusline+=%{SyntasticStatuslineFlag()}
-      set statusline+=%*
-      let g:syntastic_enable_signs=1
-      set statusline+=%=%-14.(%l,%c%V%)\ %p%%  
+        set laststatus=2
+        set statusline=%<%f\
+        set statusline+=%w%h%m%r
+        set statusline+=%{fugitive#statusline()}
+        set statusline+=\ [%{&ff}/%Y]
+        set statusline+=\ [%{getcwd()}]
+        set statusline+=%#warningmsg#
+        set statusline+=%*
+        set statusline+=%=%-14.(%l,%c%V%)\ %p%%
 endif
 
 if has("gui_running")
@@ -67,14 +63,31 @@ else
         colorscheme elflord
 endif
 
-let g:NERDTreeQuitOnOpen = 1
-let g:NERDTreeShowHidden = 1
 let g:airline_theme='monochrome'
+let g:ale_fixers = ['prettier']
+let g:ale_completion_enabled = 1
+let g:airline#extensions#ale#enabled = 1
 
-autocmd VimEnter * SyntasticToggleMode
+highlight Pmenu ctermbg=gray guibg=gray
+highlight clear ALEErrorSign
+highlight clear ALEWarningSign
+
+autocmd FileType javascript set formatprg=prettier\ --stdin
+autocmd FileType typescript set formatprg=prettier\ --stdin
+autocmd FileType html set formatprg=prettier\ --stdin
+autocmd FileType css set formatprg=prettier\ --stdin
 
 " Maximize the screen
 autocmd GUIEnter * simalt ~x
+au BufNewFile,BufRead *.js,*.html set tabstop=4
+au BufNewFile,BufRead *.js,*.html set softtabstop=4
+au BufNewFile,BufRead *.js,*.html set shiftwidth=4
+au BufNewFile,BufRead *.js,*.html set textwidth=79
+au BufNewFile,BufRead *.js,*.html set expandtab
+au BufNewFile,BufRead *.js,*.html set autoindent
+au BufNewFile,BufRead *.js,*.html set fileformat=unix
+
+set tags=./tags;,tags
 
 "No Syntax Highlighting
 syntax off
@@ -91,9 +104,11 @@ noremap <Down> <NOP>
 noremap <Left> <NOP>
 noremap <Right> <NOP>
 
-"Format, remove tabs and trailing spaces from file
-noremap <F2> gg=G:retab<CR>:RemoveTrailingSpaces<CR>:Autoformat<CR>:w<CR>:echo "Formatado"<CR>
-"Check syntax errors
-noremap <F3> :SyntasticCheck<CR>
-
+set previewheight=10
+au BufEnter ?* call PreviewHeightWorkAround()
+func PreviewHeightWorkAround()
+    if &previewwindow
+        exec 'setlocal winheight='.&previewheight
+    endif
+endfunc
 
