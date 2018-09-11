@@ -86,6 +86,8 @@ noremap <Down> <NOP>
 noremap <Left> <NOP>
 noremap <Right> <NOP>
 
+inoremap <C-@> <C-x><C-o>
+
 set previewheight=10
 au BufEnter ?* call PreviewHeightWorkAround()
 func PreviewHeightWorkAround()
