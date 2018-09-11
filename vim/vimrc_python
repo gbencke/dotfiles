@@ -52,7 +52,7 @@ endif
 colorscheme elflord
 
 let g:airline_theme='monochrome'
-let g:ale_fixers = ['prettier']
+let g:ale_fixers = ['yapf']
 let g:ale_completion_enabled = 1
 let g:airline#extensions#ale#enabled = 1
 
