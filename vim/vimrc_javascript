@@ -23,38 +23,42 @@ set clipboard=unnamedplus
 
 "My plugins
 call plug#begin('~/.vim/plugged')
-        Plug 'https://github.com/Yggdroot/indentLine'
-        Plug 'vim-airline/vim-airline'
-        Plug 'vim-airline/vim-airline-themes'
-        Plug 'mhinz/vim-startify'
-        "
-        " HTML,CSS, JS Specifics...
-        "
-        Plug 'w0rp/ale'
-        Plug 'mattn/emmet-vim'
-        Plug 'https://github.com/pangloss/vim-javascript'
-        Plug 'https://github.com/Quramy/tsuquyomi'
+Plug 'https://github.com/Yggdroot/indentLine'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'mhinz/vim-startify'
+"
+" HTML,CSS, JS Specifics...
+"
+Plug 'w0rp/ale'
+Plug 'mattn/emmet-vim'
+Plug 'https://github.com/pangloss/vim-javascript'
+Plug 'https://github.com/Quramy/tsuquyomi'
 call plug#end()
 
 "Configure Status Line
 if has('statusline')
-      set laststatus=2
-      set statusline=%<%f\    
-      set statusline+=%w%h%m%r 
-      set statusline+=%{fugitive#statusline()} 
-      set statusline+=\ [%{&ff}/%Y]            
-      set statusline+=\ [%{getcwd()}]          
-      set statusline+=%#warningmsg#
-      set statusline+=%*
-      set statusline+=%=%-14.(%l,%c%V%)\ %p%%  
+        set laststatus=2
+        set statusline=%<%f\
+        set statusline+=%w%h%m%r
+        set statusline+=%{fugitive#statusline()}
+        set statusline+=\ [%{&ff}/%Y]
+        set statusline+=\ [%{getcwd()}]
+        set statusline+=%#warningmsg#
+        set statusline+=%*
+        set statusline+=%=%-14.(%l,%c%V%)\ %p%%
 endif
 
 colorscheme elflord
 
 let g:airline_theme='monochrome'
-let g:ale_fixers = ['prettier']
 let g:ale_completion_enabled = 1
 let g:airline#extensions#ale#enabled = 1
+let g:ale_fixers = ['standard']
+let g:ale_lint_on_text_changed = 'never'
+let g:ale_lint_on_save = 0
+let g:ale_lint_on_enter = 0
+let g:ale_linters = { 'javascript': ['standard']}
 
 highlight Pmenu ctermbg=gray guibg=gray
 highlight clear ALEErrorSign
@@ -92,4 +96,10 @@ func PreviewHeightWorkAround()
         exec 'setlocal winheight='.&previewheight
     endif
 endfunc
+
+noremap <F2> :ALELint<CR>
+noremap <F3> :ALEFix<CR>
+noremap <F4> :ALEFindReferences<CR>
+noremap <F5> :ALEGoToDefinition<CR>
+noremap <F6> :ALEHover<CR>
 
