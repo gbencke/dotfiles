@@ -35,10 +35,15 @@ Plug 'https://github.com/juanedi/predawn.vim'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'mhinz/vim-startify'
+Plug 'w0rp/ale'
+" 
+" Python Specifics...
+" 
+Plug 'tmhedberg/SimpylFold' 
+Plug 'vim-scripts/indentpython.vim'
 "
 " HTML,CSS, JS Specifics...
 "
-Plug 'w0rp/ale'
 Plug 'mattn/emmet-vim'
 Plug 'https://github.com/pangloss/vim-javascript'
 Plug 'https://github.com/Quramy/tsuquyomi'
@@ -46,15 +51,15 @@ call plug#end()
 
 "Configure Status Line
 if has('statusline')
-        set laststatus=2
-        set statusline=%<%f\
-        set statusline+=%w%h%m%r
-        set statusline+=%{fugitive#statusline()}
-        set statusline+=\ [%{&ff}/%Y]
-        set statusline+=\ [%{getcwd()}]
-        set statusline+=%#warningmsg#
-        set statusline+=%*
-        set statusline+=%=%-14.(%l,%c%V%)\ %p%%
+      set laststatus=2
+      set statusline=%<%f\
+      set statusline+=%w%h%m%r
+      set statusline+=%{fugitive#statusline()}
+      set statusline+=\ [%{&ff}/%Y]
+      set statusline+=\ [%{getcwd()}]
+      set statusline+=%#warningmsg#
+      set statusline+=%*
+      set statusline+=%=%-14.(%l,%c%V%)\ %p%%
 endif
 
 if has("gui_running")
@@ -64,18 +69,18 @@ else
 endif
 
 let g:airline_theme='monochrome'
-let g:ale_fixers = ['prettier']
 let g:ale_completion_enabled = 1
 let g:airline#extensions#ale#enabled = 1
+let g:ale_fixers = {'javascript': ['standard'], 'python': ['yapf']}
+let g:ale_lint_on_text_changed = 'never'
+let g:ale_lint_on_save = 0
+let g:ale_lint_on_enter = 0
+let g:ale_linters = { 'javascript': ['standard'], 'python': ['flake8']}
+
 
 highlight Pmenu ctermbg=gray guibg=gray
 highlight clear ALEErrorSign
 highlight clear ALEWarningSign
-
-autocmd FileType javascript set formatprg=prettier\ --stdin
-autocmd FileType typescript set formatprg=prettier\ --stdin
-autocmd FileType html set formatprg=prettier\ --stdin
-autocmd FileType css set formatprg=prettier\ --stdin
 
 " Maximize the screen
 autocmd GUIEnter * simalt ~x
@@ -104,6 +109,8 @@ noremap <Down> <NOP>
 noremap <Left> <NOP>
 noremap <Right> <NOP>
 
+inoremap <C-@> <C-x><C-o>
+
 set previewheight=10
 au BufEnter ?* call PreviewHeightWorkAround()
 func PreviewHeightWorkAround()
@@ -111,4 +118,10 @@ func PreviewHeightWorkAround()
         exec 'setlocal winheight='.&previewheight
     endif
 endfunc
+
+noremap <F2> :ALELint<CR>
+noremap <F3> :ALEFix<CR>
+noremap <F4> :ALEFindReferences<CR>
+noremap <F5> :ALEGoToDefinition<CR>
+noremap <F6> :ALEHover<CR>
 
