@@ -27,6 +27,7 @@ Plug 'https://github.com/Yggdroot/indentLine'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'mhinz/vim-startify'
+Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 "
 " HTML,CSS, JS Specifics...
 "
@@ -59,6 +60,12 @@ let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_save = 0
 let g:ale_lint_on_enter = 0
 let g:ale_linters = { 'javascript': ['standard'], 'python': ['flake8']}
+let g:NERDTreeIgnore= ['node_modules']
+let g:NERDTreeQuitOnOpen = 1
+let g:NERDTreeShowHidden = 1
+
+set list
+set listchars=tab:>-
 
 highlight Pmenu ctermbg=gray guibg=gray
 highlight clear ALEErrorSign
@@ -102,4 +109,5 @@ noremap <F3> :ALEFix<CR>
 noremap <F4> :ALEFindReferences<CR>
 noremap <F5> :ALEGoToDefinition<CR>
 noremap <F6> :ALEHover<CR>
+noremap <F10> :NERDTreeToggle<CR>
 
