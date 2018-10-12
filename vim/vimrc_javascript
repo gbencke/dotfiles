@@ -104,10 +104,12 @@ func PreviewHeightWorkAround()
     endif
 endfunc
 
-noremap <F2> :ALELint<CR>
-noremap <F3> :ALEFix<CR>
-noremap <F4> :ALEFindReferences<CR>
-noremap <F5> :ALEGoToDefinition<CR>
-noremap <F6> :ALEHover<CR>
-noremap <F10> :NERDTreeToggle<CR>
+noremap <F2>   :ALELint<CR>:echo "ALELint!Ok!"<CR>
+noremap <F3>   :ALEFix<CR>:echo "ALEFix!Ok!"<CR>
+noremap <F4>   :ALEFindReferences<CR>:echo "ALEFindReferences!Ok!"<CR>
+noremap <F5>   :ALEGoToDefinition<CR>:echo "ALEGoToDefinition!Ok!"<CR>
+noremap <F6>   :ALEHover<CR>:echo "ALEHover!Ok!"<CR>
+noremap <F10>  :NERDTreeToggle<CR>:echo "NERDTree!Ok!"<CR>
+noremap <F12>  :ALEInfo<CR>:echo "ALEInfo!Ok!"<CR>
+
 
