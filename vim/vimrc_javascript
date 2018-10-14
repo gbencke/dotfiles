@@ -63,6 +63,7 @@ let g:ale_linters = { 'python': ['flake8'], 'json': ['jsonlint'], 'javascript': 
 let g:NERDTreeIgnore= ['node_modules']
 let g:NERDTreeQuitOnOpen = 1
 let g:NERDTreeShowHidden = 1
+let g:NERDTreeWinSize = 80
 
 set list
 set listchars=tab:>-
