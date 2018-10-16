@@ -97,6 +97,8 @@ noremap <Down> <NOP>
 noremap <Left> <NOP>
 noremap <Right> <NOP>
 
+inoremap <C-@> <C-x><C-o>
+
 set previewheight=10
 au BufEnter ?* call PreviewHeightWorkAround()
 func PreviewHeightWorkAround()
@@ -110,7 +112,7 @@ noremap <F3>   :ALEFix<CR>:echo "ALEFix!Ok!"<CR>
 noremap <F4>   :ALEFindReferences<CR>:echo "ALEFindReferences!Ok!"<CR>
 noremap <F5>   :ALEGoToDefinition<CR>:echo "ALEGoToDefinition!Ok!"<CR>
 noremap <F6>   :ALEHover<CR>:echo "ALEHover!Ok!"<CR>
-noremap <F10>  :NERDTreeToggle<CR>:echo "NERDTree!Ok!"<CR>
+noremap <F11>  :tab ball<CR>:echo "Tab Ball!Ok!"<CR>
+noremap <F10>  :NERDTreeToggle %<CR>:echo "NERDTree!Ok!"<CR>
 noremap <F12>  :ALEInfo<CR>:echo "ALEInfo!Ok!"<CR>
-
 
