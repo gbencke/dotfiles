@@ -16,8 +16,8 @@
     git config --global push.default simple
     git config --global core.editor vim
 
-    pip2 install autopep8 pylint virtualenv pmm cython pillow lxml pdftotext chardet vim-vint
-    pip install autopep8 pylint virtualenv pmm cython pillow lxml pdftotext chardet vim-vint
+    pip2 install flake8 autopep8 pylint virtualenv pmm cython pillow lxml pdftotext chardet vim-vint
+    pip install flake8 autopep8 pylint virtualenv pmm cython pillow lxml pdftotext chardet vim-vint
 
     curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
 

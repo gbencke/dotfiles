@@ -35,6 +35,7 @@ Plug 'https://github.com/juanedi/predawn.vim'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'mhinz/vim-startify'
+Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 Plug 'w0rp/ale'
 " 
 " Python Specifics...
@@ -51,15 +52,15 @@ call plug#end()
 
 "Configure Status Line
 if has('statusline')
-      set laststatus=2
-      set statusline=%<%f\
-      set statusline+=%w%h%m%r
-      set statusline+=%{fugitive#statusline()}
-      set statusline+=\ [%{&ff}/%Y]
-      set statusline+=\ [%{getcwd()}]
-      set statusline+=%#warningmsg#
-      set statusline+=%*
-      set statusline+=%=%-14.(%l,%c%V%)\ %p%%
+        set laststatus=2
+        set statusline=%<%f\
+        set statusline+=%w%h%m%r
+        set statusline+=%{fugitive#statusline()}
+        set statusline+=\ [%{&ff}/%Y]
+        set statusline+=\ [%{getcwd()}]
+        set statusline+=%#warningmsg#
+        set statusline+=%*
+        set statusline+=%=%-14.(%l,%c%V%)\ %p%%
 endif
 
 if has("gui_running")
@@ -71,12 +72,18 @@ endif
 let g:airline_theme='monochrome'
 let g:ale_completion_enabled = 1
 let g:airline#extensions#ale#enabled = 1
-let g:ale_fixers = {'javascript': ['standard'], 'python': ['yapf']}
+let g:ale_fixers = { 'typescript':['tslint'], 'javascript': ['standard'], 'python': ['yapf']}
 let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_save = 0
 let g:ale_lint_on_enter = 0
-let g:ale_linters = { 'javascript': ['standard'], 'python': ['flake8']}
+let g:ale_linters = { 'python': ['flake8'], 'json': ['jsonlint'], 'javascript': ['eslint'], 'typescript': ['tslint']}
+let g:NERDTreeIgnore= ['node_modules']
+let g:NERDTreeQuitOnOpen = 1
+let g:NERDTreeShowHidden = 1
+let g:NERDTreeWinSize = 80
 
+set list
+set listchars=tab:>-
 
 highlight Pmenu ctermbg=gray guibg=gray
 highlight clear ALEErrorSign
@@ -119,11 +126,14 @@ func PreviewHeightWorkAround()
     endif
 endfunc
 
-noremap <F2> :ALELint<CR>
-noremap <F3> :ALEFix<CR>
-noremap <F4> :ALEFindReferences<CR>
-noremap <F5> :ALEGoToDefinition<CR>
-noremap <F6> :ALEHover<CR>
+noremap <F2>   :ALELint<CR>:echo "ALELint!Ok!"<CR>
+noremap <F3>   :ALEFix<CR>:echo "ALEFix!Ok!"<CR>
+noremap <F4>   :ALEFindReferences<CR>:echo "ALEFindReferences!Ok!"<CR>
+noremap <F5>   :ALEGoToDefinition<CR>:echo "ALEGoToDefinition!Ok!"<CR>
+noremap <F6>   :ALEHover<CR>:echo "ALEHover!Ok!"<CR>
+noremap <F11>  :tab ball<CR>:echo "Tab Ball!Ok!"<CR>
+noremap <F10>  :NERDTreeToggle %<CR>:echo "NERDTree!Ok!"<CR>
+noremap <F12>  :ALEInfo<CR>:echo "ALEInfo!Ok!"<CR>
 
 hi Visual term=reverse cterm=reverse guibg=Grey
 
