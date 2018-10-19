@@ -113,4 +113,5 @@ noremap <F6>   :ALEHover<CR>:echo "ALEHover!Ok!"<CR>
 noremap <F10>  :NERDTreeToggle<CR>:echo "NERDTree!Ok!"<CR>
 noremap <F12>  :ALEInfo<CR>:echo "ALEInfo!Ok!"<CR>
 
+hi Visual term=reverse cterm=reverse guibg=Grey
 

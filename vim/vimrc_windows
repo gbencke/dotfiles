@@ -125,3 +125,5 @@ noremap <F4> :ALEFindReferences<CR>
 noremap <F5> :ALEGoToDefinition<CR>
 noremap <F6> :ALEHover<CR>
 
+hi Visual term=reverse cterm=reverse guibg=Grey
+

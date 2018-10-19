@@ -67,3 +67,5 @@ imap <c-c> <esc>
 vmap <c-c> <esc>
 omap <c-c> <esc>
 
+hi Visual term=reverse cterm=reverse guibg=Grey
+
