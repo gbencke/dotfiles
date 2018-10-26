@@ -20,6 +20,7 @@ ZSH_THEME="clean"
 
 alias grep_ts='grep -ir --exclude-dir=node_modules  --include=*.ts --exclude-dir=dist '
 alias grep_html='grep -ir --exclude-dir=node_modules  --include=*.html --exclude-dir=dist '
+alias grep_css='grep -ir --exclude-dir=node_modules  --include=*.css --include=*.scss --exclude-dir=dist '
 alias grep_package_json='grep -ir --exclude-dir=000.INFRA --exclude-dir=node_modules  --include=package.json '
 
 cd
