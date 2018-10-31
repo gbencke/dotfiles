@@ -5,7 +5,7 @@
     sudo pacman -Syu glibc
     sudo pacman -Sy --noconfirm sudo git curl tmux vim mc tig python2 python2-pip p7zip htop mc wget unzip zsh protobuf
     sudo pacman -Sy --noconfirm tree nano dos2unix bc python python-pip cmake graphviz python-h5py ctags 
-    sudo pacman -Sy --noconfirm rsync ranger go scrot
+    sudo pacman -Sy --noconfirm rsync ranger go scrot tidy
     sudo pacman -Sy --noconfirm w3m mediainfo libcaca highlight poppler unrar
 
     groupadd gbencke
