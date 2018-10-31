@@ -63,7 +63,7 @@ if has('statusline')
         set statusline+=%=%-14.(%l,%c%V%)\ %p%%
 endif
 
-if has("gui_running")
+if has('gui_running')
         colorscheme predawn
 else
         colorscheme elflord
@@ -72,11 +72,11 @@ endif
 let g:airline_theme='monochrome'
 let g:ale_completion_enabled = 1
 let g:airline#extensions#ale#enabled = 1
-let g:ale_fixers = { 'typescript':['tslint'], 'javascript': ['standard'], 'python': ['yapf']}
+let g:ale_fixers = { 'html': ['tidy'], 'typescript': ['tslint'], 'javascript': ['standard'], 'python': ['yapf']}
+let g:ale_linters = { 'html':['htmlhint'], 'python': ['flake8'], 'json': ['jsonlint'], 'javascript': ['eslint'], 'typescript': ['tslint']}
 let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_save = 0
 let g:ale_lint_on_enter = 0
-let g:ale_linters = { 'python': ['flake8'], 'json': ['jsonlint'], 'javascript': ['eslint'], 'typescript': ['tslint']}
 let g:NERDTreeIgnore= ['node_modules']
 let g:NERDTreeQuitOnOpen = 1
 let g:NERDTreeShowHidden = 1
