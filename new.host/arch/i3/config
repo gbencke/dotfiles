@@ -172,5 +172,4 @@ exec --no-startup-id feh --bg-fill ~/Wallpapers/zazen.jpg
 for_window [class="termite"] border pixel 0
 for_window [class="Termite"] border pixel 0
 
-
-
+bindsym --release Print exec scrot 
