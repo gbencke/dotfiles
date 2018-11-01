@@ -119,3 +119,4 @@ noremap <F12>  :ALEInfo<CR>:echo "ALEInfo!Ok!"<CR>
 
 hi Visual term=reverse cterm=reverse guibg=Grey
 
+au BufReadPost,BufNewFile *.* tab ball
