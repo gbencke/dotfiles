@@ -51,11 +51,20 @@ if has('statusline')
 endif
 
 colorscheme elflord
+if has('gui_running')
+        set guioptions-=m  "remove menu bar
+        set guioptions-=T  "remove toolbar
+        set guioptions-=r  "remove right-hand scroll bar
+        set guioptions-=L  "remove left-hand scroll bar
+        set guicursor+=a:blinkon0
+        set guifont=Inconsolata:h11
+        colorscheme desert
+endif
 
 let g:airline_theme='monochrome'
 let g:ale_completion_enabled = 1
 let g:airline#extensions#ale#enabled = 1
-let g:ale_fixers = { 'html': ['tidy'], 'typescript':['tslint'], 'javascript': ['standard'], 'python': ['yapf']}
+let g:ale_fixers = { 'html': ['tidy'], 'typescript': ['tslint'], 'javascript': ['standard'], 'python': ['yapf']}
 let g:ale_linters = { 'html':['htmlhint'], 'python': ['flake8'], 'json': ['jsonlint'], 'javascript': ['eslint'], 'typescript': ['tslint']}
 let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_save = 0

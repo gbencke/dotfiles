@@ -51,6 +51,15 @@ if has('statusline')
 endif
 
 colorscheme elflord
+if has('gui_running')
+        set guioptions-=m  "remove menu bar
+        set guioptions-=T  "remove toolbar
+        set guioptions-=r  "remove right-hand scroll bar
+        set guioptions-=L  "remove left-hand scroll bar
+        set guicursor+=a:blinkon0
+        set guifont=Inconsolata:h11
+        colorscheme desert
+endif
 
 let g:airline_theme='monochrome'
 let g:ale_completion_enabled = 1
