@@ -57,7 +57,7 @@ if has('gui_running')
         set guioptions-=r  "remove right-hand scroll bar
         set guioptions-=L  "remove left-hand scroll bar
         set guicursor+=a:blinkon0
-        set guifont=Inconsolata:h11
+        set guifont=Inconsolata
         colorscheme desert
 endif
 
