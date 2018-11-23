@@ -6,7 +6,7 @@
     sudo pacman -Sy --noconfirm sudo git curl tmux vim mc tig python2 python2-pip p7zip htop mc wget unzip zsh protobuf
     sudo pacman -Sy --noconfirm tree nano dos2unix bc python python-pip cmake graphviz python-h5py ctags 
     sudo pacman -Sy --noconfirm rsync ranger go compton virtualgl termite i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
-    sudo pacman -Sy --noconfirm w3m mediainfo libcaca highlight poppler unrar scrot tidy
+    sudo pacman -Sy --noconfirm w3m mediainfo libcaca highlight poppler unrar scrot tidy shellcheck
 
     groupadd gbencke
     useradd -m -g gbencke  -s /bin/bash gbencke
