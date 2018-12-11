@@ -7,5 +7,8 @@ export NVM_DIR="$HOME/.nvm"
 nvm install v8.11.2
 nvm use v8.11.2
 
-npm install -g bower gulp webpack angcli grunt sass js-beautify typescript-formatter prettier markserv standard jsonlint fixjson htmlhint
+npm install -g bower gulp webpack angcli grunt sass js-beautify 
+npm install -g typescript-formatter prettier markserv standard 
+npm install -g jsonlint fixjson htmlhint scss-lint sass-lint 
+npm install -g sass scss-lint stylelint stylelint-config-standard
 
