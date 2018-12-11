@@ -23,6 +23,7 @@ alias grep_html='grep -ir --exclude-dir=node_modules  --include=*.html --exclude
 alias grep_css='grep -ir --exclude-dir=node_modules  --include=*.css --include=*.scss --exclude-dir=dist '
 alias grep_package_json='grep -ir --exclude-dir=000.INFRA --exclude-dir=node_modules  --include=package.json '
 
+alias homebrew='HOMEBREW_NO_AUTO_UPDATE=1 brew install '
 alias move_gitea='git remote remove origin; git remote add origin http://gitea:3000/gbencke/$(basename $(pwd)).git ; git push origin --all'
 
 cd
