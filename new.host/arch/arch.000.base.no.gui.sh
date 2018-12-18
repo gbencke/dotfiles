@@ -1,5 +1,5 @@
 #!/bin/bash
-# Tested with Base AMI: ami-a9051fd6
+# Tested with Base AMI: ami-0f5bb9b38ff51f079
 
 #NONINTERACTIVE
     sudo pacman -Syu glibc
