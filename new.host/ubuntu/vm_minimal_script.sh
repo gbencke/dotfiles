@@ -52,6 +52,7 @@ $SHELL
 
 
 ~/git/000.INFRA/dotfiles/npm/frontend.sh
-~/git/000.INFRA/dotfiles/vim/switch_vim.sh python
+cd ~/git/000.INFRA/dotfiles/vim
+~/git/000.INFRA/dotfiles/vim/switch_vimrc.sh python
 
 cd
