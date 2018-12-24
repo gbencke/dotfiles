@@ -1,21 +1,21 @@
 # Script for the configuration of a generic terminal only VM on AWS
-# Uses Ubuntu 16.04 and is mostly used for jupyter notebooks servers
+# Uses Ubuntu 18.04 and is great for any environment
 
 #!/bin/bash
 
 sudo apt-get update;
 
 sudo apt-get install -y net-tools git build-essential curl tmux vim mc tig openssh* 
-sudo apt-get install -y p7zip-full htop vim mc tig git make gcc curl tmux wget python-pip 
-sudo apt-get install -y ncurses-dev tree python-dev nano dos2unix bc libhdf5-dev    
+sudo apt-get install -y p7zip-full htop vim mc tig git make gcc curl tmux wget 
+sudo apt-get install -y ncurses-dev tree nano dos2unix bc libhdf5-dev    
 sudo apt-get install -y python3 python3-pip python3-dev cmake graphviz python-h5py
 sudo apt-get install -y exuberant-ctags python3-tk rsync
-sudo apt-get install -y xfce4 xfce4-goodies tightvncserver
+sudo apt-get install -y xfce4 xfce4-goodies tightvncserver zsh
 
 sudo apt-get install -y language-pack-en-base 
 sudo dpkg-reconfigure locales
 
-pip3 install flake8 autopep8 pylint virtualenv pmm cython pillow lxml pdftotext chardet vim-vint
+sudo pip3 install flake8 autopep8 pylint virtualenv pmm cython pillow lxml chardet vim-vint
 
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
 
@@ -34,16 +34,13 @@ else
         wget https://s3.amazonaws.com/gbencke.kaggle/backup.7z   
 fi
 
-mkdir -p ~/000.INFRA/git
-cd ~/000.INFRA/git
-git clone https://github.com/gbencke/dotfiles.git
-mkdir -p ~/.config/termite
-cp ~/000.INFRA/dotfiles/new.host/arch/termite/config ~/.config/termite/config
-cp -r ~/000.INFRA/dotfiles/new.host/wallpaper ~/Wallpapers
-cp ~/000.INFRA/dotfiles/new.host/arch/vnc/xstartup ~/.vnc/xstartup
-cp ~/000.INFRA/dotfiles/new.host/arch/vnc/config ~/.vnc/config
-vncserver -kill :1
 vncserver
+vncserver -kill :1
+mkdir -p ~/git/000.INFRA
+cd ~/git/000.INFRA
+git clone https://github.com/gbencke/dotfiles.git
+cp ~/git/000.INFRA/dotfiles/new.host/ubuntu/vnc/xstartup ~/.vnc/xstartup
+cp ~/git/000.INFRA/dotfiles/new.host/ubuntu/vnc/config ~/.vnc/config
 
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 
@@ -54,8 +51,7 @@ sed -i -e 's/robbyrussell/clean/g' /home/gbencke/.zshrc
 $SHELL
 
 
-~/000.INFRA/git/npm/frontend.sh
-~/000.INFRA/git/vim/switch_vim.sh python
-
+~/git/000.INFRA/dotfiles/npm/frontend.sh
+~/git/000.INFRA/dotfiles/vim/switch_vim.sh python
 
 cd
