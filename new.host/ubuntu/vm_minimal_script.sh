@@ -10,21 +10,20 @@ sudo apt-get install -y p7zip-full htop vim mc tig git make gcc curl tmux wget p
 sudo apt-get install -y ncurses-dev tree python-dev nano dos2unix bc libhdf5-dev    
 sudo apt-get install -y python3 python3-pip python3-dev cmake graphviz python-h5py
 sudo apt-get install -y exuberant-ctags python3-tk rsync
-
-#optional packages:
-#tokei, grv-git, prettier
+sudo apt-get install -y xfce4 xfce4-goodies tightvncserver
 
 sudo apt-get install -y language-pack-en-base 
 sudo dpkg-reconfigure locales
 
+pip3 install flake8 autopep8 pylint virtualenv pmm cython pillow lxml pdftotext chardet vim-vint
+
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
 
 git config --global user.email "gbencke@benckesoftware.com.br"  
 git config --global user.name "Guilherme Bencke"  
 git config --global push.default simple
 git config --global core.editor vim
 
-sudo pip install autopep8 pylint virtualenv pmm
-sudo pip3 install autopep8 pylint virtualenv pmm
 
 if [[ -z "${USE_CUDA}" ]]; then
         echo "not using cuda..."
@@ -35,9 +34,28 @@ else
         wget https://s3.amazonaws.com/gbencke.kaggle/backup.7z   
 fi
 
-mkdir ~/git
-cd ~/git
+mkdir -p ~/000.INFRA/git
+cd ~/000.INFRA/git
 git clone https://github.com/gbencke/dotfiles.git
+mkdir -p ~/.config/termite
+cp ~/000.INFRA/dotfiles/new.host/arch/termite/config ~/.config/termite/config
+cp -r ~/000.INFRA/dotfiles/new.host/wallpaper ~/Wallpapers
+cp ~/000.INFRA/dotfiles/new.host/arch/vnc/xstartup ~/.vnc/xstartup
+cp ~/000.INFRA/dotfiles/new.host/arch/vnc/config ~/.vnc/config
+vncserver -kill :1
+vncserver
 
-cd 
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 
+cat ~/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
+cat ~/git/000.INFRA/dotfiles/shells/zshrc >> ~/.zshrc
+cp ~/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
+sed -i -e 's/robbyrussell/clean/g' /home/gbencke/.zshrc
+$SHELL
+
+
+~/000.INFRA/git/npm/frontend.sh
+~/000.INFRA/git/vim/switch_vim.sh python
+
+
+cd
