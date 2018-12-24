@@ -47,9 +47,8 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/mas
 cat ~/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
 cat ~/git/000.INFRA/dotfiles/shells/zshrc >> ~/.zshrc
 cp ~/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
-sed -i -e 's/robbyrussell/clean/g' /home/gbencke/.zshrc
-$SHELL
-
+sed -i -e 's/robbyrussell/clean/g' ~/.zshrc
+sudo usermod --shell /bin/zsh ubuntu
 
 ~/git/000.INFRA/dotfiles/npm/frontend.sh
 cd ~/git/000.INFRA/dotfiles/vim
