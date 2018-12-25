@@ -23,7 +23,8 @@ set guioptions-=T  "remove toolbar
 set guioptions-=r  "remove right-hand scroll bar
 set guioptions-=L  "remove left-hand scroll bar
 set guicursor+=a:blinkon0
-set guifont=Courier_New:h8
+"set guifont=Courier_New:h8
+set guifont=Inconsolata:h12:cANSI:qDRAFT
 
 " No text wrapping
 let $PATH .= ';C:\cygwin64\bin'
