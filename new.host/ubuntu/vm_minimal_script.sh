@@ -10,7 +10,7 @@ sudo apt-get install -y p7zip-full htop vim mc tig git make gcc curl tmux wget
 sudo apt-get install -y ncurses-dev tree nano dos2unix bc libhdf5-dev    
 sudo apt-get install -y python3 python3-pip python3-dev cmake graphviz python-h5py
 sudo apt-get install -y exuberant-ctags python3-tk rsync
-sudo apt-get install -y xfce4 xfce4-goodies tightvncserver zsh
+sudo apt-get install -y xfce4 xfce4-goodies tigervnc zsh
 
 sudo apt-get install -y language-pack-en-base 
 sudo dpkg-reconfigure locales
