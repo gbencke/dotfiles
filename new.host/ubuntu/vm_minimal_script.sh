@@ -41,6 +41,7 @@ cd ~/git/000.INFRA
 git clone https://github.com/gbencke/dotfiles.git
 cp ~/git/000.INFRA/dotfiles/new.host/ubuntu/vnc/xstartup ~/.vnc/xstartup
 cp ~/git/000.INFRA/dotfiles/new.host/ubuntu/vnc/config ~/.vnc/config
+vncserver -geometry 1440x900
 
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 
