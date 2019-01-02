@@ -1,8 +1,8 @@
 # Scripts for VM Configuration
 
 ```
-** All scripts are based on standard UBUNTU 16.04 **
-** Vim Recommended version for plugins: 7.4.2367 **
+** All scripts are based on standard UBUNTU 18.04 **
+** Vim Recommended version for plugins: 8.1.* **
 ** Tested on all AWS instance-types **
 ```
 
