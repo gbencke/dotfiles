@@ -18,6 +18,7 @@ export PATH=$PATH:~/.local/bin
 
 ZSH_THEME="clean"
 
+alias grep_js='grep -ir --exclude-dir=node_modules  --include=*.js --exclude-dir=dist '
 alias grep_ts='grep -ir --exclude-dir=node_modules  --include=*.ts --exclude-dir=dist '
 alias grep_html='grep -ir --exclude-dir=node_modules  --include=*.html --exclude-dir=dist '
 alias grep_css='grep -ir --exclude-dir=node_modules  --include=*.css --include=*.scss --exclude-dir=dist '
