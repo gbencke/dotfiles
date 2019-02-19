@@ -35,6 +35,7 @@ Plug 'w0rp/ale'
 Plug 'tmhedberg/SimpylFold' 
 Plug 'vim-scripts/indentpython.vim'
 Plug 'mileszs/ack.vim'
+Plug 'https://github.com/majutsushi/tagbar'
 call plug#end()
 
 "Configure Status Line
@@ -129,6 +130,7 @@ noremap <F3>   :ALEFix<CR>:echo "ALEFix!Ok!"<CR>
 noremap <F4>   :ALEFindReferences<CR>:echo "ALEFindReferences!Ok!"<CR>
 noremap <F5>   :ALEGoToDefinition<CR>:echo "ALEGoToDefinition!Ok!"<CR>
 noremap <F6>   :ALEHover<CR>:echo "ALEHover!Ok!"<CR>
+noremap <F8>   :TagbarToggle<CR>
 noremap <F9>   :Startify<CR>
 noremap <F10>  :NERDTreeToggle %<CR>:echo "NERDTree!Ok!"<CR>
 noremap <F11>  :tab ball<CR>:echo "Tab Ball!Ok!"<CR>
@@ -141,5 +143,5 @@ function OpenAllTab()
         normal gt
 endfunction
 
-au BufReadPost,BufNewFile *.* call OpenAllTab()
+au BufReadPost,BufNewFile *.py call OpenAllTab()
 
