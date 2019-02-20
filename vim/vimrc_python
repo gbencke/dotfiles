@@ -29,6 +29,7 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'mhinz/vim-startify'
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 Plug 'w0rp/ale'
+Plug 'airblade/vim-gitgutter'
 " 
 " Python Specifics...
 " 

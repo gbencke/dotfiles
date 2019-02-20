@@ -28,10 +28,11 @@ Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'mhinz/vim-startify'
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
+Plug 'w0rp/ale'
+Plug 'airblade/vim-gitgutter'
 "
 " HTML,CSS, JS Specifics...
 "
-Plug 'w0rp/ale'
 Plug 'mattn/emmet-vim'
 Plug 'https://github.com/pangloss/vim-javascript'
 Plug 'https://github.com/Quramy/tsuquyomi'
