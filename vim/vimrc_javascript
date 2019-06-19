@@ -87,9 +87,9 @@ highlight Pmenu ctermbg=gray guibg=gray
 highlight clear ALEErrorSign
 highlight clear ALEWarningSign
 
-au BufNewFile,BufRead *.js,*.html set tabstop=4
-au BufNewFile,BufRead *.js,*.html set softtabstop=4
-au BufNewFile,BufRead *.js,*.html set shiftwidth=4
+au BufNewFile,BufRead *.js,*.html set tabstop=2
+au BufNewFile,BufRead *.js,*.html set softtabstop=2
+au BufNewFile,BufRead *.js,*.html set shiftwidth=2
 au BufNewFile,BufRead *.js,*.html set textwidth=79
 au BufNewFile,BufRead *.js,*.html set expandtab
 au BufNewFile,BufRead *.js,*.html set autoindent
