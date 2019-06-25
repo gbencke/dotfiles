@@ -44,6 +44,8 @@ Plug 'Shougo/deoplete.nvim'
 Plug 'roxma/nvim-yarp'
 Plug 'roxma/vim-hug-neovim-rpc'
 
+Plug 'ryanoasis/vim-devicons'
+
 call plug#end()
 
 let g:deoplete#enable_at_startup=1
@@ -74,6 +76,8 @@ endif
 
 let g:airline_theme='silver'
 let g:airline#extensions#ale#enabled = 1
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
 
 let g:ale_open_list=1
 let g:ale_set_quickfix=1
@@ -121,6 +125,9 @@ noremap <Left> <NOP>
 noremap <Right> <NOP>
 
 inoremap <C-@> <C-x><C-o>
+
+nmap <c-Left> :bp<CR>
+nmap <c-Right> :bp<CR>
 
 set previewheight=10
 "au BufEnter ?* call PreviewHeightWorkAround()
