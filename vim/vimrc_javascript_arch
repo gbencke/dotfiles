@@ -30,6 +30,7 @@ Plug 'mhinz/vim-startify'
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 Plug 'w0rp/ale'
 Plug 'airblade/vim-gitgutter'
+Plug 'https://github.com/ctrlpvim/ctrlp.vim'
 "
 " HTML,CSS, JS Specifics...
 "
@@ -85,14 +86,16 @@ let g:ale_completion_enabled = 1
 let g:ale_fixers = { 'html': ['tidy'], 'typescript': ['tslint'], 'javascript': ['eslint'], 'python': ['yapf'], 'css':['stylelint'], 'scss': ['stylelint']}
 let g:ale_linters = { 'html':['htmlhint'], 'python': ['flake8'], 'json': ['jsonlint'], 'javascript': ['eslint'], 'typescript': ['tslint']}
 let g:ale_lint_on_text_changed = 'never'
-let g:ale_lint_on_save = 0
+let g:ale_lint_on_save = 1
 let g:ale_lint_on_enter = 0
 let g:ale_lint_on_insert_leave = 0
+
+let g:ctrlp_map = '<c-p>'
 
 let g:NERDTreeIgnore= ['node_modules']
 let g:NERDTreeQuitOnOpen = 1
 let g:NERDTreeShowHidden = 1
-let g:NERDTreeWinSize = 80
+let g:NERDTreeWinSize = 60
 
 set list
 set listchars=tab:>-
