@@ -32,6 +32,7 @@ Plug 'w0rp/ale'
 Plug 'airblade/vim-gitgutter'
 Plug 'https://github.com/ctrlpvim/ctrlp.vim'
 Plug 'ryanoasis/vim-devicons'
+Plug 'https://github.com/mhartington/oceanic-next'
 "
 " HTML,CSS, JS Specifics...
 "
@@ -41,7 +42,6 @@ Plug 'https://github.com/othree/yajs.vim'
 Plug 'https://github.com/Quramy/tsuquyomi'
 Plug 'https://github.com/leafgarland/typescript-vim'
 Plug 'https://github.com/mxw/vim-jsx'
-Plug 'https://github.com/mhartington/oceanic-next'
 Plug 'Shougo/deoplete.nvim'
 Plug 'roxma/nvim-yarp'
 Plug 'roxma/vim-hug-neovim-rpc'

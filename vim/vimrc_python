@@ -32,6 +32,7 @@ Plug 'w0rp/ale'
 Plug 'airblade/vim-gitgutter'
 Plug 'https://github.com/ctrlpvim/ctrlp.vim'
 Plug 'ryanoasis/vim-devicons'
+Plug 'https://github.com/mhartington/oceanic-next'
 " 
 " Python Specifics...
 " 
