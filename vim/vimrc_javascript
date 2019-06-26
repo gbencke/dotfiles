@@ -31,6 +31,7 @@ Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 Plug 'w0rp/ale'
 Plug 'airblade/vim-gitgutter'
 Plug 'https://github.com/ctrlpvim/ctrlp.vim'
+Plug 'ryanoasis/vim-devicons'
 "
 " HTML,CSS, JS Specifics...
 "
@@ -44,9 +45,6 @@ Plug 'https://github.com/mhartington/oceanic-next'
 Plug 'Shougo/deoplete.nvim'
 Plug 'roxma/nvim-yarp'
 Plug 'roxma/vim-hug-neovim-rpc'
-
-Plug 'ryanoasis/vim-devicons'
-
 call plug#end()
 
 let g:deoplete#enable_at_startup=1
@@ -112,8 +110,6 @@ au BufNewFile,BufRead *.js,*.html set autoindent
 au BufNewFile,BufRead *.js,*.html set fileformat=unix
 
 set tags=./tags;,tags
-
-"No Syntax Highlighting
 
 "Control-C is the same as esc
 nmap <c-c> <esc>
