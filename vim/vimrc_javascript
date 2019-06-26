@@ -30,14 +30,26 @@ Plug 'mhinz/vim-startify'
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 Plug 'w0rp/ale'
 Plug 'airblade/vim-gitgutter'
+Plug 'https://github.com/ctrlpvim/ctrlp.vim'
 "
 " HTML,CSS, JS Specifics...
 "
 Plug 'mattn/emmet-vim'
 Plug 'https://github.com/pangloss/vim-javascript'
+Plug 'https://github.com/othree/yajs.vim'
 Plug 'https://github.com/Quramy/tsuquyomi'
 Plug 'https://github.com/leafgarland/typescript-vim'
+Plug 'https://github.com/mxw/vim-jsx'
+Plug 'https://github.com/mhartington/oceanic-next'
+Plug 'Shougo/deoplete.nvim'
+Plug 'roxma/nvim-yarp'
+Plug 'roxma/vim-hug-neovim-rpc'
+
+Plug 'ryanoasis/vim-devicons'
+
 call plug#end()
+
+let g:deoplete#enable_at_startup=1
 
 "Configure Status Line
 if has('statusline')
@@ -60,11 +72,13 @@ if has('gui_running')
         set guioptions-=L  "remove left-hand scroll bar
         set guicursor+=a:blinkon0
         set guifont=Inconsolata
-        colorscheme desert
+        colorscheme OceanicNext
 endif
 
-let g:airline_theme='monochrome'
+let g:airline_theme='silver'
 let g:airline#extensions#ale#enabled = 1
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
 
 let g:ale_open_list=1
 let g:ale_set_quickfix=1
@@ -72,18 +86,20 @@ let g:ale_completion_enabled = 1
 let g:ale_fixers = { 'html': ['tidy'], 'typescript': ['tslint'], 'javascript': ['eslint'], 'python': ['yapf'], 'css':['stylelint'], 'scss': ['stylelint']}
 let g:ale_linters = { 'html':['htmlhint'], 'python': ['flake8'], 'json': ['jsonlint'], 'javascript': ['eslint'], 'typescript': ['tslint']}
 let g:ale_lint_on_text_changed = 'never'
-let g:ale_lint_on_save = 0
+let g:ale_lint_on_save = 1
 let g:ale_lint_on_enter = 0
+let g:ale_lint_on_insert_leave = 0
+
+let g:ctrlp_map = '<c-p>'
 
 let g:NERDTreeIgnore= ['node_modules']
 let g:NERDTreeQuitOnOpen = 1
 let g:NERDTreeShowHidden = 1
-let g:NERDTreeWinSize = 80
+let g:NERDTreeWinSize = 60
 
 set list
 set listchars=tab:>-
 
-highlight Pmenu ctermbg=gray guibg=gray
 highlight clear ALEErrorSign
 highlight clear ALEWarningSign
 
@@ -98,7 +114,6 @@ au BufNewFile,BufRead *.js,*.html set fileformat=unix
 set tags=./tags;,tags
 
 "No Syntax Highlighting
-syntax off
 
 "Control-C is the same as esc
 nmap <c-c> <esc>
@@ -114,13 +129,10 @@ noremap <Right> <NOP>
 
 inoremap <C-@> <C-x><C-o>
 
+nmap <c-Left> :bp<CR>
+nmap <c-Right> :bp<CR>
+
 set previewheight=10
-au BufEnter ?* call PreviewHeightWorkAround()
-func PreviewHeightWorkAround()
-    if &previewwindow
-        exec 'setlocal winheight='.&previewheight
-    endif
-endfunc
 
 noremap <F2>   :ALELint<CR>:echo "ALELint!Ok!"<CR>
 noremap <F3>   :ALEFix<CR>:echo "ALEFix!Ok!"<CR>
@@ -133,11 +145,4 @@ noremap <F11>  :tab ball<CR>:echo "Tab Ball!Ok!"<CR>
 noremap <F12>  :ALEInfo<CR>:echo "ALEInfo!Ok!"<CR>
 
 hi Visual term=reverse cterm=reverse guibg=Grey
-
-function OpenAllTab()
-        tab ball
-        normal gt
-endfunction
-
-au BufReadPost,BufNewFile *.* call OpenAllTab()
 
