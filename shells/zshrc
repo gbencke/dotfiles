@@ -14,7 +14,13 @@ fi
 
 unalias grv 2>/dev/null
 
-export PATH=$PATH:~/.local/bin
+export DEFAULT_AVD=Teste
+export ANDROID_HOME=~/Android/Sdk
+export QT_QPA_PLATFORMTHEME='qt5ct'
+
+export PATH=$PATH:~/.local/bin:/usr/local/lib/libreoffice/program:/home/gbencke/Android/Sdk/tools/bin
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+export PATH=$PATH:$ANDROID_HOME/emulator
 
 ZSH_THEME="clean"
 
