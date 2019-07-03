@@ -127,6 +127,7 @@ inoremap <C-@> <C-x><C-o>
 
 nmap <c-Left> :bp<CR>
 nmap <c-Right> :bp<CR>
+nmap <c-B> :bd<CR>
 
 set previewheight=10
 
