@@ -42,7 +42,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 if test "$1" == 'js' || test "$1" == "arch";
-then nvm install v8.11.2 &&  npm install -g prettier typescript js-beautify gulp grunt 
+then nvm install v8.11.2 &&  npm install -g prettier typescript js-beautify gulp grunt jsonlint
 fi
 
 echo '{ "plugins" : { "node": {} } } ' > ~/.tern-config
