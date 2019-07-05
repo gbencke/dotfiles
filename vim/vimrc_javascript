@@ -33,7 +33,6 @@ Plug 'airblade/vim-gitgutter'
 Plug 'https://github.com/ctrlpvim/ctrlp.vim'
 Plug 'ryanoasis/vim-devicons'
 Plug 'https://github.com/mhartington/oceanic-next'
-Plug 'https://github.com/ludovicchabant/vim-gutentags'
 Plug 'mileszs/ack.vim'
 "
 " HTML,CSS, JS Specifics...
