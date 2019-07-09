@@ -82,7 +82,7 @@ let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
 let g:ale_open_list=1
 let g:ale_set_quickfix=1
 let g:ale_completion_enabled = 1
-let g:ale_fixers = { 'html': ['tidy'], 'typescript': ['tslint'], 'javascript': ['eslint'], 'python': ['yapf'], 'css':['stylelint'], 'scss': ['stylelint']}
+let g:ale_fixers = { 'html': ['tidy'], 'typescript': ['tslint'], 'javascript': ['prettier'], 'python': ['yapf'], 'css':['stylelint'], 'scss': ['stylelint']}
 let g:ale_linters = { 'html':['htmlhint'], 'python': ['flake8'], 'json': ['jsonlint'], 'javascript': ['eslint'], 'typescript': ['tslint']}
 let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_save = 1
@@ -126,7 +126,7 @@ noremap <Right> <NOP>
 
 inoremap <C-@> <C-x><C-o>
 
-nmap <c-Left> :bp<CR>
+nmap <c-Left> :bn<CR>
 nmap <c-Right> :bp<CR>
 
 nmap <c-B> :bd<CR>
