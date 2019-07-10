@@ -126,8 +126,8 @@ noremap <Right> <NOP>
 
 inoremap <C-@> <C-x><C-o>
 
-nmap <c-Left> :bn<CR>
-nmap <c-Right> :bp<CR>
+nmap <c-Left> :bp<CR>
+nmap <c-Right> :bn<CR>
 
 nmap <c-B> :bd<CR>
 nmap <c-a> :Ack<CR>
