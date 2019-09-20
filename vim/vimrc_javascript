@@ -34,6 +34,8 @@ Plug 'https://github.com/ctrlpvim/ctrlp.vim'
 Plug 'ryanoasis/vim-devicons'
 Plug 'https://github.com/mhartington/oceanic-next'
 Plug 'mileszs/ack.vim'
+Plug 'https://github.com/rafi/awesome-vim-colorschemes'
+Plug 'NLKNguyen/papercolor-theme'
 "
 " HTML,CSS, JS Specifics...
 "
@@ -63,7 +65,9 @@ if has('statusline')
         set statusline+=%=%-14.(%l,%c%V%)\ %p%%
 endif
 
-colorscheme elflord
+set background=dark
+colorscheme PaperColor
+let g:airline_theme='luna'
 if has('gui_running')
         set guioptions-=m  "remove menu bar
         set guioptions-=T  "remove toolbar
@@ -72,9 +76,9 @@ if has('gui_running')
         set guicursor+=a:blinkon0
         set guifont=Inconsolata
         colorscheme OceanicNext
+        let g:airline_theme='silver'
 endif
 
-let g:airline_theme='silver'
 let g:airline#extensions#ale#enabled = 1
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
