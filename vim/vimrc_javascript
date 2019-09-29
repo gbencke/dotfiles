@@ -140,7 +140,7 @@ nmap <c-a> :Ack<CR>
 set previewheight=10
 
 noremap <F2>   :ALELint<CR>:echo "ALELint!Ok!"<CR>
-noremap <F3>   :ALEFix<CR>:echo "ALEFix!Ok!"<CR>
+noremap <F3>   :!run_fix.sh<CR>
 noremap <F4>   :ALEFindReferences<CR>:echo "ALEFindReferences!Ok!"<CR>
 noremap <F5>   :ALEGoToDefinition<CR>:echo "ALEGoToDefinition!Ok!"<CR>
 noremap <F6>   :ALEHover<CR>:echo "ALEHover!Ok!"<CR>
