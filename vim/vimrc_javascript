@@ -85,11 +85,11 @@ let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
 
 let g:ale_open_list=1
 let g:ale_set_quickfix=1
-let g:ale_completion_enabled = 1
+let g:ale_completion_enabled = 0
 let g:ale_fixers = { 'svg': ['prettier'], 'html': ['prettier'], 'typescript': ['tslint'], 'javascript': ['prettier'], 'python': ['yapf'], 'css':['stylelint'], 'scss': ['stylelint']}
 let g:ale_linters = { 'svg': ['prettier'], 'html':['htmlhint'], 'python': ['flake8'], 'json': ['jsonlint'], 'javascript': ['eslint'], 'typescript': ['tslint'], 'css':['stylelint'], 'scss':['stylelint']}
 let g:ale_lint_on_text_changed = 'never'
-let g:ale_lint_on_save = 1
+let g:ale_lint_on_save = 0
 let g:ale_lint_on_enter = 0
 let g:ale_lint_on_insert_leave = 0
 let g:ale_javascript_prettier_options = '--single-quote --trailing-comma es5'
@@ -107,13 +107,13 @@ set listchars=tab:>-
 highlight clear ALEErrorSign
 highlight clear ALEWarningSign
 
-au BufNewFile,BufRead *.js,*.html set tabstop=2
-au BufNewFile,BufRead *.js,*.html set softtabstop=2
-au BufNewFile,BufRead *.js,*.html set shiftwidth=2
-au BufNewFile,BufRead *.js,*.html set textwidth=79
-au BufNewFile,BufRead *.js,*.html set expandtab
-au BufNewFile,BufRead *.js,*.html set autoindent
-au BufNewFile,BufRead *.js,*.html set fileformat=unix
+au BufNewFile,BufRead *.jsx,*.js,*.html set tabstop=2
+au BufNewFile,BufRead *.jsx,*.js,*.html set softtabstop=2
+au BufNewFile,BufRead *.jsx,*.js,*.html set shiftwidth=2
+au BufNewFile,BufRead *.jsx,*.js,*.html set textwidth=79
+au BufNewFile,BufRead *.jsx,*.js,*.html set expandtab
+au BufNewFile,BufRead *.jsx,*.js,*.html set autoindent
+au BufNewFile,BufRead *.jsx,*.js,*.html set fileformat=unix
 
 set tags=./tags;,tags
 
