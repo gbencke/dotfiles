@@ -139,13 +139,27 @@ nmap <c-a> :Ack<CR>
 
 set previewheight=10
 
+function! GetNERDTreeRoot()
+        if !empty($NERD_TREE_ROOT) 
+                return $NERD_TREE_ROOT
+        else
+                return "~/git"
+        endif
+endfunction
+
+function CallNERDTree()
+        let dir_nerd = GetNERDTreeRoot()
+        echo dir_nerd
+        exe 'NERDTreeToggle' dir_nerd
+endfunction
+
 noremap <F2>   :ALELint<CR>:echo "ALELint!Ok!"<CR>
 noremap <F3>   :!run_fix.sh<CR>
 noremap <F4>   :ALEFindReferences<CR>:echo "ALEFindReferences!Ok!"<CR>
 noremap <F5>   :ALEGoToDefinition<CR>:echo "ALEGoToDefinition!Ok!"<CR>
 noremap <F6>   :ALEHover<CR>:echo "ALEHover!Ok!"<CR>
 noremap <F9>   :Startify<CR>
-noremap <F10>  :NERDTreeToggle %<CR>:echo "NERDTree!Ok!"<CR>
+noremap <F10>  :call CallNERDTree()<CR>:echo "NERDTree!Ok!"<CR>
 noremap <F11>  :tab ball<CR>:echo "Tab Ball!Ok!"<CR>
 noremap <F12>  :ALEInfo<CR>:echo "ALEInfo!Ok!"<CR>
 
