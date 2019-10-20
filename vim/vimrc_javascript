@@ -153,8 +153,18 @@ function CallNERDTree()
         exe 'NERDTreeToggle' dir_nerd
 endfunction
 
+function ExecPrettier()
+        let fileName = expand('%:p')
+        let commandToRun = 'prettier --write ''' . fileName . ''''
+        call system(commandToRun)
+        let commandToRun = 'eslint --fix ''' . fileName . ''''
+        call system(commandToRun)
+endfunction
+
+
 noremap <F2>   :ALELint<CR>:echo "ALELint!Ok!"<CR>
-noremap <F3>   :!run_fix.sh<CR>
+noremap <F3>   :w<CR>:call ExecPrettier()<CR>:e<CR>
+noremap <C-F3> :!run_fix.sh<CR>
 noremap <F4>   :ALEFindReferences<CR>:echo "ALEFindReferences!Ok!"<CR>
 noremap <F5>   :ALEGoToDefinition<CR>:echo "ALEGoToDefinition!Ok!"<CR>
 noremap <F6>   :ALEHover<CR>:echo "ALEHover!Ok!"<CR>
