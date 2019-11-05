@@ -1,0 +1,173 @@
+"
+" Tested on VIM 8.1
+"
+set hidden
+set noswapfile
+set expandtab
+set ignorecase
+set nowrap
+set autoread
+set hlsearch
+set foldmethod=indent
+set number
+set relativenumber
+set foldlevel=99
+set showcmd
+set splitbelow
+set previewheight=30
+set encoding=utf-8
+set fileencoding=utf-8
+
+" Shared Clipboard with Ubuntu, windows this is handled natively
+set clipboard=unnamedplus
+
+"My plugins
+call plug#begin('~/.vim/plugged')
+Plug 'https://github.com/Yggdroot/indentLine'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'mhinz/vim-startify'
+Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
+Plug 'w0rp/ale'
+Plug 'airblade/vim-gitgutter'
+Plug 'https://github.com/ctrlpvim/ctrlp.vim'
+Plug 'ryanoasis/vim-devicons'
+Plug 'https://github.com/mhartington/oceanic-next'
+Plug 'mileszs/ack.vim'
+" 
+" Python Specifics...
+" 
+Plug 'tmhedberg/SimpylFold' 
+Plug 'vim-scripts/indentpython.vim'
+Plug 'mileszs/ack.vim'
+Plug 'https://github.com/majutsushi/tagbar'
+call plug#end()
+
+let g:deoplete#enable_at_startup=1
+
+"Configure Status Line
+if has('statusline')
+        set laststatus=2
+        set statusline=%<%f\
+        set statusline+=%w%h%m%r
+        set statusline+=%{fugitive#statusline()}
+        set statusline+=\ [%{&ff}/%Y]
+        set statusline+=\ [%{getcwd()}]
+        set statusline+=%#warningmsg#
+        set statusline+=%*
+        set statusline+=%=%-14.(%l,%c%V%)\ %p%%
+endif
+
+set background=dark
+colorscheme PaperColor
+let g:airline_theme='luna'
+if has('gui_running')
+        set guioptions-=m  "remove menu bar
+        set guioptions-=T  "remove toolbar
+        set guioptions-=r  "remove right-hand scroll bar
+        set guioptions-=L  "remove left-hand scroll bar
+        set guicursor+=a:blinkon0
+        set guifont=Inconsolata
+        colorscheme OceanicNext
+        let g:airline_theme='silver'
+endif
+
+let g:airline#extensions#ale#enabled = 1
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
+
+let g:ale_python_flake8_executable='python3'
+let g:ale_python_flake8_options='-m flake8'
+let g:ale_python_auto_pipenv=1
+let g:ale_open_list=1
+let g:ale_set_quickfix=1
+let g:ale_completion_enabled = 0
+let g:ale_fixers = { 'svg': ['prettier'], 'html': ['prettier'], 'typescript': ['tslint'], 'javascript': ['prettier'], 'python': ['yapf'], 'css':['stylelint'], 'scss': ['stylelint']}
+let g:ale_linters = { 'svg': ['prettier'], 'html':['htmlhint'], 'python': ['flake8'], 'json': ['jsonlint'], 'javascript': ['eslint'], 'typescript': ['tslint'], 'css':['stylelint'], 'scss':['stylelint']}
+let g:ale_lint_on_text_changed = 'never'
+let g:ale_lint_on_save = 0
+let g:ale_lint_on_enter = 0
+let g:ale_lint_on_insert_leave = 0
+
+let g:ctrlp_map = '<c-p>'
+
+let g:NERDTreeIgnore= ['node_modules']
+let g:NERDTreeQuitOnOpen = 1
+let g:NERDTreeShowHidden = 1
+let g:NERDTreeWinSize = 60
+
+set list
+set listchars=tab:>-
+
+highlight clear ALEErrorSign
+highlight clear ALEWarningSign
+
+
+au BufNewFile,BufRead *.py set tabstop=4
+au BufNewFile,BufRead *.py set softtabstop=4
+au BufNewFile,BufRead *.py set shiftwidth=4
+au BufNewFile,BufRead *.py set textwidth=79
+au BufNewFile,BufRead *.py set expandtab
+au BufNewFile,BufRead *.py set autoindent
+au BufNewFile,BufRead *.py set fileformat=unix
+
+set tags=./tags;,tags
+
+"Control-C is the same as esc
+nmap <c-c> <esc>
+imap <c-c> <esc>
+vmap <c-c> <esc>
+omap <c-c> <esc>
+
+"No arrow keys in normal mode
+noremap <Up> <NOP>
+noremap <Down> <NOP>
+noremap <Left> <NOP>
+noremap <Right> <NOP>
+
+inoremap <C-@> <C-x><C-o>
+
+nmap <c-Left> :bp<CR>
+nmap <c-Right> :bn<CR>
+
+nmap <c-B> :bd<CR>
+nmap <c-a> :Ack<CR>
+
+set previewheight=10
+
+function! GetNERDTreeRoot()
+        if !empty($NERD_TREE_ROOT) 
+                return $NERD_TREE_ROOT
+        else
+                return "~/git"
+        endif
+endfunction
+
+function CallNERDTree()
+        let dir_nerd = GetNERDTreeRoot()
+        echo dir_nerd
+        exe 'NERDTreeToggle' dir_nerd
+endfunction
+
+function ExecPrettier()
+        let fileName = expand('%:p')
+        let commandToRun = 'prettier --write ''' . fileName . ''''
+        call system(commandToRun)
+        let commandToRun = 'eslint --fix ''' . fileName . ''''
+        call system(commandToRun)
+endfunction
+
+
+noremap <F2>   :ALELint<CR>:echo "ALELint!Ok!"<CR>
+noremap <F3>   :ALEFix<CR>:echo "ALEFix!Ok!"<CR>
+noremap <F4>   :ALEFindReferences<CR>:echo "ALEFindReferences!Ok!"<CR>
+noremap <F5>   :ALEGoToDefinition<CR>:echo "ALEGoToDefinition!Ok!"<CR>
+noremap <F6>   :ALEHover<CR>:echo "ALEHover!Ok!"<CR>
+noremap <F7>   :TagbarToggle<CR>
+noremap <F9>   :Startify<CR>
+noremap <F10>  :call CallNERDTree()<CR>:echo "NERDTree!Ok!"<CR>
+noremap <F11>  :tab ball<CR>:echo "Tab Ball!Ok!"<CR>
+noremap <F12>  :ALEInfo<CR>:echo "ALEInfo!Ok!"<CR>
+
+hi Visual term=reverse cterm=reverse guibg=Grey
+
