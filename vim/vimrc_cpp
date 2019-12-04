@@ -1,6 +1,8 @@
 "
 " Tested on VIM 8.1
 "
+set ruler
+set showmatch
 set hidden
 set noswapfile
 set expandtab
@@ -35,15 +37,10 @@ Plug 'ryanoasis/vim-devicons'
 Plug 'https://github.com/mhartington/oceanic-next'
 Plug 'mileszs/ack.vim'
 " 
-" Python Specifics...
+" C++ Specifics...
 " 
-Plug 'tmhedberg/SimpylFold' 
-Plug 'vim-scripts/indentpython.vim'
 Plug 'mileszs/ack.vim'
-Plug 'https://github.com/majutsushi/tagbar'
 call plug#end()
-
-let g:deoplete#enable_at_startup=1
 
 "Configure Status Line
 if has('statusline')
@@ -58,9 +55,7 @@ if has('statusline')
         set statusline+=%=%-14.(%l,%c%V%)\ %p%%
 endif
 
-set background=dark
-colorscheme PaperColor
-let g:airline_theme='luna'
+colorscheme elflord
 if has('gui_running')
         set guioptions-=m  "remove menu bar
         set guioptions-=T  "remove toolbar
@@ -69,9 +64,9 @@ if has('gui_running')
         set guicursor+=a:blinkon0
         set guifont=Inconsolata
         colorscheme OceanicNext
-        let g:airline_theme='silver'
 endif
 
+let g:airline_theme='silver'
 let g:airline#extensions#ale#enabled = 1
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
@@ -81,11 +76,11 @@ let g:ale_python_flake8_options='-m flake8'
 let g:ale_python_auto_pipenv=1
 let g:ale_open_list=1
 let g:ale_set_quickfix=1
-let g:ale_completion_enabled = 0
-let g:ale_fixers = { 'svg': ['prettier'], 'html': ['prettier'], 'typescript': ['tslint'], 'javascript': ['prettier'], 'python': ['yapf'], 'css':['stylelint'], 'scss': ['stylelint']}
-let g:ale_linters = { 'svg': ['prettier'], 'html':['htmlhint'], 'python': ['flake8'], 'json': ['jsonlint'], 'javascript': ['eslint'], 'typescript': ['tslint'], 'css':['stylelint'], 'scss':['stylelint']}
+let g:ale_completion_enabled = 1
+let g:ale_fixers = { 'cpp': ['clang-format'], 'html': ['prettier'], 'typescript': ['tslint'], 'javascript': ['prettier'], 'python': ['yapf'], 'css':['stylelint'], 'scss': ['stylelint']}
+let g:ale_linters = { 'cpp': ['clang'], 'html':['htmlhint'], 'python': ['flake8'], 'json': ['jsonlint'], 'javascript': ['eslint'], 'typescript': ['tslint']}
 let g:ale_lint_on_text_changed = 'never'
-let g:ale_lint_on_save = 0
+let g:ale_lint_on_save = 1
 let g:ale_lint_on_enter = 0
 let g:ale_lint_on_insert_leave = 0
 
@@ -99,17 +94,20 @@ let g:NERDTreeWinSize = 60
 set list
 set listchars=tab:>-
 
+ca gdb ConqueGdb
+
 highlight clear ALEErrorSign
 highlight clear ALEWarningSign
 
 
-au BufNewFile,BufRead *.py set tabstop=4
-au BufNewFile,BufRead *.py set softtabstop=4
-au BufNewFile,BufRead *.py set shiftwidth=4
-au BufNewFile,BufRead *.py set textwidth=79
-au BufNewFile,BufRead *.py set expandtab
-au BufNewFile,BufRead *.py set autoindent
-au BufNewFile,BufRead *.py set fileformat=unix
+au BufNewFile,BufRead *.cpp,*.h set tabstop=4
+au BufNewFile,BufRead *.cpp,*.h  set softtabstop=4
+au BufNewFile,BufRead *.cpp.*.h set shiftwidth=4
+au BufNewFile,BufRead *.cpp.*.h set textwidth=120
+au BufNewFile,BufRead *.cpp.*.h set expandtab
+au BufNewFile,BufRead *.cpp.*.h set autoindent
+au BufNewFile,BufRead *.cpp.*.h set smartindent
+au BufNewFile,BufRead *.cpp.*.h set fileformat=unix
 
 set tags=./tags;,tags
 
@@ -135,37 +133,14 @@ nmap <c-a> :Ack<CR>
 
 set previewheight=10
 
-function! GetNERDTreeRoot()
-        if !empty($NERD_TREE_ROOT) 
-                return $NERD_TREE_ROOT
-        else
-                return "~/git"
-        endif
-endfunction
-
-function CallNERDTree()
-        let dir_nerd = GetNERDTreeRoot()
-        echo dir_nerd
-        exe 'NERDTreeToggle' dir_nerd
-endfunction
-
-function ExecPrettier()
-        let fileName = expand('%:p')
-        let commandToRun = 'prettier --write ''' . fileName . ''''
-        call system(commandToRun)
-        let commandToRun = 'eslint --fix ''' . fileName . ''''
-        call system(commandToRun)
-endfunction
-
-
 noremap <F2>   :ALELint<CR>:echo "ALELint!Ok!"<CR>
 noremap <F3>   :ALEFix<CR>:echo "ALEFix!Ok!"<CR>
 noremap <F4>   :ALEFindReferences<CR>:echo "ALEFindReferences!Ok!"<CR>
-noremap <F5>   :ALEGoToDefinition<CR>:echo "ALEGoToDefinition!Ok!"<CR>
+noremap <F5>   :make<CR>
 noremap <F6>   :ALEHover<CR>:echo "ALEHover!Ok!"<CR>
 noremap <F7>   :TagbarToggle<CR>
 noremap <F9>   :Startify<CR>
-noremap <F10>  :call CallNERDTree()<CR>:echo "NERDTree!Ok!"<CR>
+noremap <F10>  :NERDTreeToggle %<CR>:echo "NERDTree!Ok!"<CR>
 noremap <F11>  :tab ball<CR>:echo "Tab Ball!Ok!"<CR>
 noremap <F12>  :ALEInfo<CR>:echo "ALEInfo!Ok!"<CR>
 

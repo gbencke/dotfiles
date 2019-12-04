@@ -22,6 +22,10 @@ if test "$1" == 'python';
 then VIMRC_FILE=./vimrc_python
 fi
 
+if test "$1" == 'cpp';
+then VIMRC_FILE=./vimrc_cpp
+fi
+
 if test "$VIMRC_FILE" == '';
 then echo 'This vimrc was not recognized...'; exit -1;
 fi
