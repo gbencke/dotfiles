@@ -1,5 +1,5 @@
 #!/bin/bash
-# Tested with Base AMI: ami-099e7b22978deabf8
+# Tested with Base AMI: ami-0f040c7d22aedeb27
 
 #NONINTERACTIVE
     sudo pacman -Q archlinux-keyring
