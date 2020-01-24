@@ -10,7 +10,7 @@
     sudo pacman -Sy --noconfirm tree nano dos2unix bc graphviz ctags 
     sudo pacman -Sy --noconfirm rsync ranger compton virtualgl termite i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
     sudo pacman -Sy --noconfirm w3m mediainfo libcaca highlight unrar scrot tidy shellcheck 
-    sudo pacman -Sy --noconfirm gtk2 xorg-xhost dmenu
+    sudo pacman -Sy --noconfirm gtk2 xorg-xhost dmenu pyenv
 
     groupadd gbencke
     useradd -m -g gbencke  -s /bin/bash gbencke
