@@ -77,8 +77,11 @@
     cp ~/git.work/000.INFRA/dotfiles/vim/build_vim.sh ~/git.work/000.INFRA/vim/
     cd ~/git.work/000.INFRA/vim
     ./build_vim.sh
-    cd ~/git.work/000.INFRA/vim/
+    cd ~/git.work/000.INFRA/dotfiles/vim/
     ./switch_vimrc js
+    sudo cp ~/git.work/000.INFRA/dotfiles/new.host/vnc/vncserver*.service /etc/systemd/vncserver/system
+    sudo systemctl enable vncserver@:1.service
+
 
 
 
