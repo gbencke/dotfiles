@@ -1,8 +1,6 @@
-#!/bin/bash
 
 if [ "$EUID" -eq 0 ]
   then xhost + || true
-  exit
 fi
 
 export NVM_DIR="$HOME/.nvm"
