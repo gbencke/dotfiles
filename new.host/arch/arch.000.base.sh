@@ -1,5 +1,5 @@
 #!/bin/bash
-# Tested with Base AMI: ami-0f040c7d22aedeb27
+# Tested with Base AMI: ami-0d086d189e4c07fa2
 
 #NONINTERACTIVE
     sudo su
