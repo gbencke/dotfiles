@@ -100,14 +100,14 @@ highlight clear ALEErrorSign
 highlight clear ALEWarningSign
 
 
-au BufNewFile,BufRead *.cpp,*.h set tabstop=4
-au BufNewFile,BufRead *.cpp,*.h  set softtabstop=4
-au BufNewFile,BufRead *.cpp.*.h set shiftwidth=4
-au BufNewFile,BufRead *.cpp.*.h set textwidth=120
-au BufNewFile,BufRead *.cpp.*.h set expandtab
-au BufNewFile,BufRead *.cpp.*.h set autoindent
-au BufNewFile,BufRead *.cpp.*.h set smartindent
-au BufNewFile,BufRead *.cpp.*.h set fileformat=unix
+au BufNewFile,BufRead *.c,*.cpp,*.h set tabstop=4
+au BufNewFile,BufRead *.c,*.cpp,*.h  set softtabstop=4
+au BufNewFile,BufRead *.c,*.cpp,*.h set shiftwidth=4
+au BufNewFile,BufRead *.c,*.cpp,*.h set textwidth=120
+au BufNewFile,BufRead *.c,*.cpp,*.h set expandtab
+au BufNewFile,BufRead *.c,*.cpp,*.h set autoindent
+au BufNewFile,BufRead *.c,*.cpp,*.h set smartindent
+au BufNewFile,BufRead *.c,*.cpp,*.h set fileformat=unix
 
 set tags=./tags;,tags
 
