@@ -1,5 +1,5 @@
 #!/bin/bash
-# Tested with Base AMI: ami-0d086d189e4c07fa2
+# Tested with Base AMI: ami-024bd986c63802352
 
 #NONINTERACTIVE
     sudo su
@@ -10,7 +10,7 @@
     sudo pacman -Sy --noconfirm tree nano dos2unix bc graphviz ctags 
     sudo pacman -Sy --noconfirm rsync ranger compton virtualgl termite i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
     sudo pacman -Sy --noconfirm w3m mediainfo libcaca highlight unrar scrot tidy shellcheck 
-    sudo pacman -Sy --noconfirm gtk2 xorg-xhost dmenu pyenv python-pip perl
+    sudo pacman -Sy --noconfirm gtk2 xorg-xhost dmenu pyenv python-pip perl vscode
 
     groupadd gbencke
     useradd -m -g gbencke  -s /bin/bash gbencke
@@ -21,16 +21,11 @@
     git config --global push.default simple
     git config --global core.editor vim
 
-    #pip2 install flake8 autopep8 pylint virtualenv pmm cython pillow lxml pdftotext chardet vim-vint
-    #pip install flake8 autopep8 pylint virtualenv pmm cython pillow lxml pdftotext chardet vim-vint
-
     curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
-
-#INTERACTIVE
-    vncserver
 
 #NONINTERACTIVE
     mkdir -p /var/git/000.INFRA
+    mkdir ~/.vnc
     chmod 755 -R /var/git 
     chmod 755 /root
     cd /var/git/000.INFRA
@@ -43,8 +38,10 @@
     mkdir -p ~/.config/i3/
     cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/i3config ~/.config/i3/config
     cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
-    vncserver -kill :1
-    vncserver
+    cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/vncserver.users /etc/tigervnc/vncserver.users
+
+#INTERACTIVE
+    vncpasswd ~/.vnc/passwd
 
 #INTERACTIVE
     unset ZSH
@@ -76,6 +73,14 @@
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 
 #NONINTERACTIVE 
+    mkdir ~/.vnc
+
+#INTERACTIVE
+    vncpasswd ~/.vnc/passwd
+
+#NONINTERACTIVE 
+    cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/xstartup ~/.vnc/xstartup
+    cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/config ~/.vnc/config
     cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
     cat /var/git/000.INFRA/dotfiles/shells/zshrc >> ~/.zshrc
     cp /var/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
@@ -92,9 +97,10 @@
     ./build_vim.sh
     cd ~/git.work/000.INFRA/dotfiles/vim/
     ./switch_vimrc.sh js
-    sudo cp ~/git.work/000.INFRA/dotfiles/new.host/arch/vnc/vncserver.service /etc/systemd/system/vncserver@:1.service
-    sudo systemctl enable vncserver@:1.service
     sudo systemctl start vncserver@:1.service
+    sudo systemctl start vncserver@:2.service
+    sudo systemctl enable vncserver@:1.service
+    sudo systemctl enable vncserver@:2.service
 
 
 
