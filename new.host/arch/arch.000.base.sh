@@ -30,8 +30,6 @@
     chmod 755 /root
     cd /var/git/000.INFRA
     git clone http://github.com/gbencke/dotfiles/
-    mkdir -p ~/.config/termite
-    cp /var/git/000.INFRA/dotfiles/new.host/arch/termite/config ~/.config/termite/config
     cp -r /var/git/000.INFRA/dotfiles/new.host/wallpaper ~/Wallpapers
     cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/xstartup ~/.vnc/xstartup
     cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/config ~/.vnc/config
