@@ -1,5 +1,5 @@
 #!/bin/bash
-# Tested with Base AMI: ami-024bd986c63802352
+# Tested with Base AMI: ami-0857dde146952200b
 
 #NONINTERACTIVE
     sudo su
@@ -8,8 +8,8 @@
     sudo pacman -Sy --noconfirm archlinux-keyring 
     sudo pacman -Sy --noconfirm sudo git curl tmux vim mc tig p7zip htop mc wget unzip zsh protobuf
     sudo pacman -Sy --noconfirm tree nano dos2unix bc graphviz ctags 
-    sudo pacman -Sy --noconfirm rsync ranger compton virtualgl termite i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
-    sudo pacman -Sy --noconfirm w3m mediainfo libcaca highlight unrar scrot tidy shellcheck 
+    sudo pacman -Sy --noconfirm rsync ranger compton virtualgl  i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
+    sudo pacman -Sy --noconfirm w3m mediainfo libcaca highlight unrar scrot tidy shellcheck alacritty
     sudo pacman -Sy --noconfirm gtk2 xorg-xhost dmenu pyenv python-pip perl vscode
 
     groupadd gbencke
@@ -86,6 +86,8 @@
     cp /var/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
     sed -i -e 's/robbyrussell/clean/g' /home/gbencke/.zshrc
     $SHELL
+
+#NONINTERACTIVE 
     mkdir -p ~/git.work/000.INFRA
     cd ~/git.work/000.INFRA
     git clone https://github.com/gbencke/dotfiles.git
@@ -97,6 +99,8 @@
     ./build_vim.sh
     cd ~/git.work/000.INFRA/dotfiles/vim/
     ./switch_vimrc.sh js
+    mkdir -p ~/.config/i3/
+    cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/i3config ~/.config/i3/config
     sudo systemctl start vncserver@:1.service
     sudo systemctl start vncserver@:2.service
     sudo systemctl enable vncserver@:1.service
