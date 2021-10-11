@@ -25,7 +25,7 @@
     pip2 install flake8 autopep8 pylint virtualenv pmm cython pillow lxml pdftotext chardet vim-vint
     pip install flake8 autopep8 pylint virtualenv pmm cython pillow lxml pdftotext chardet vim-vint
 
-    curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 
 #NONINTERACTIVE
     mkdir -p /var/git/000.INFRA
@@ -50,7 +50,7 @@
     cd
     ln -s /var/git ~/git 
     unset NVM_DIR 2>/dev/null
-    curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
     git config --global user.email "gbencke@benckesoftware.com.br"  
     git config --global user.name "Guilherme Bencke"  
     git config --global push.default simple
