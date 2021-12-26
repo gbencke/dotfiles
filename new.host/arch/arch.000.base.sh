@@ -6,11 +6,12 @@
     sudo pacman -Q archlinux-keyring
     sudo pacman-key --populate archlinux
     sudo pacman -Sy --noconfirm archlinux-keyring 
+    sudo pacman -Syu
     sudo pacman -Sy --noconfirm sudo git curl tmux vim mc tig p7zip htop mc wget unzip zsh protobuf
     sudo pacman -Sy --noconfirm tree nano dos2unix bc graphviz ctags 
     sudo pacman -Sy --noconfirm rsync ranger compton virtualgl  i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
     sudo pacman -Sy --noconfirm w3m mediainfo libcaca highlight unrar scrot tidy shellcheck alacritty
-    sudo pacman -Sy --noconfirm gtk2 xorg-xhost dmenu pyenv python-pip perl vscode
+    sudo pacman -Sy --noconfirm gtk2 xorg-xhost dmenu pyenv python-pip perl lsof libnotify libxss
 
     groupadd gbencke
     useradd -m -g gbencke  -s /bin/bash gbencke
@@ -82,6 +83,8 @@
     cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
     cat /var/git/000.INFRA/dotfiles/shells/zshrc >> ~/.zshrc
     cp /var/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
+    cp /var/git/000.INFRA/dotfiles/new.host/xterm/Xresources ~/.Xresources
+
     sed -i -e 's/robbyrussell/clean/g' /home/gbencke/.zshrc
     $SHELL
 
@@ -92,7 +95,6 @@
     git clone https://github.com/vim/vim.git
     git clone https://aur.archlinux.org/nerd-fonts-complete.git
     cp ~/git.work/000.INFRA/dotfiles/vim/build_vim.sh ~/git.work/000.INFRA/vim/
-    sudo pip install neovim
     cd ~/git.work/000.INFRA/vim
     ./build_vim.sh
     cd ~/git.work/000.INFRA/dotfiles/vim/
@@ -103,6 +105,9 @@
     sudo systemctl start vncserver@:2.service
     sudo systemctl enable vncserver@:1.service
     sudo systemctl enable vncserver@:2.service
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+    sudo python get-pip.py
+    sudo pip install neovim
 
 
 
