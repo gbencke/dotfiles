@@ -4,14 +4,14 @@
 #NONINTERACTIVE
     sudo su
     sudo pacman -Q archlinux-keyring
-    sudo pacman-key --populate archlinux
     sudo pacman -Sy --noconfirm archlinux-keyring 
+    sudo pacman-key --populate archlinux
     sudo pacman -Syu
     sudo pacman -Sy --noconfirm sudo git curl tmux vim mc tig p7zip htop mc wget unzip zsh protobuf
     sudo pacman -Sy --noconfirm tree nano dos2unix bc graphviz ctags 
     sudo pacman -Sy --noconfirm rsync ranger compton virtualgl  i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
-    sudo pacman -Sy --noconfirm w3m mediainfo libcaca highlight unrar scrot tidy shellcheck alacritty
-    sudo pacman -Sy --noconfirm gtk2 xorg-xhost dmenu pyenv python-pip perl lsof libnotify libxss
+    sudo pacman -Sy --noconfirm w3m mediainfo libcaca highlight unrar scrot tidy shellcheck alacritty ttf-liberation
+    sudo pacman -Sy --noconfirm gtk2 xorg-xhost dmenu pyenv python-pip perl lsof libnotify libxss gtk3 nss
 
     groupadd gbencke
     useradd -m -g gbencke  -s /bin/bash gbencke
@@ -94,6 +94,8 @@
     git clone https://github.com/gbencke/dotfiles.git
     git clone https://github.com/vim/vim.git
     git clone https://aur.archlinux.org/nerd-fonts-complete.git
+    git clone https://aur.archlinux.org/visual-studio-code-bin.git
+    git clone https://aur.archlinux.org/google-chrome.git
     cp ~/git.work/000.INFRA/dotfiles/vim/build_vim.sh ~/git.work/000.INFRA/vim/
     cd ~/git.work/000.INFRA/vim
     ./build_vim.sh
@@ -108,7 +110,11 @@
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
     sudo python get-pip.py
     sudo pip install neovim
-
-
-
+    cd ~/git.work/000.INFRA/visual-studio-code-bin
+    makepkg
+    sudo pacman -U *.zst
+    sudo chown -R gbencke  /run/user/0
+    cd ~/git.work/000.INFRA/google-chrome
+    makepkg
+    sudo pacman -U *.zst
 
