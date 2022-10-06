@@ -22,8 +22,6 @@
     git config --global push.default simple
     git config --global core.editor vim
 
-    pip install flake8 autopep8 pylint virtualenv pmm cython pillow lxml pdftotext chardet vim-vint pyenv
-
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 
 #NONINTERACTIVE
