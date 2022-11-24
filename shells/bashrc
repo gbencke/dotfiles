@@ -9,9 +9,9 @@ export NVM_DIR="$HOME/.nvm"
 
 export _JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=on -Dswing.aatext=true'
 
-if ! [[ $(which npm) = *"12.18.0"* ]]; then
-        nvm install v12.18.0
-        nvm alias default v12.18.0
+if ! [[ $(which npm) = *"16.16.0"* ]]; then
+        nvm install v16.16.0
+        nvm alias default v16.16.0
 fi
 
 unalias grv 2>/dev/null
