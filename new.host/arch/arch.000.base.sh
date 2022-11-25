@@ -9,9 +9,10 @@
     sudo pacman -Syu
     sudo pacman -Sy --noconfirm sudo git curl tmux vim mc tig p7zip htop mc wget unzip zsh protobuf
     sudo pacman -Sy --noconfirm tree nano dos2unix bc graphviz ctags 
-    sudo pacman -Sy --noconfirm rsync ranger compton virtualgl  i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
+    sudo pacman -Sy --noconfirm rsync ranger virtualgl  i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
     sudo pacman -Sy --noconfirm w3m mediainfo libcaca highlight unrar scrot tidy shellcheck alacritty ttf-liberation
     sudo pacman -Sy --noconfirm gtk2 xorg-xhost dmenu pyenv python-pip perl lsof libnotify libxss gtk3 nss
+	sudo pacman -Sy --noconfirm cmake make fakeroot
 
     groupadd gbencke
     useradd -m -g gbencke  -s /bin/bash gbencke
