@@ -1,0 +1,138 @@
+#!/bin/bash
+# Tested with Base AMI: ami-0857dde146952200b
+
+#NONINTERACTIVE
+    sudo su
+    pacman-key --init 
+    pacman-key --populate 
+    pacman -Sy --noconfirm archlinux-keyring 
+    pacman -Syyu --noconfirm
+    pacman -R --noconfirm vim
+    pacman -Sy --noconfirm sudo git curl tmux gvim mc tig p7zip htop mc wget unzip zsh protobuf
+    pacman -Sy --noconfirm tree nano dos2unix bc graphviz ctags 
+    pacman -Sy --noconfirm rsync ranger virtualgl  i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
+    pacman -Sy --noconfirm w3m mediainfo libcaca highlight unrar scrot tidy shellcheck alacritty ttf-liberation
+    pacman -Sy --noconfirm gtk2 xorg-xhost dmenu perl lsof libnotify libxss gtk3 nss
+    pacman -Sy --noconfirm cmake make fuse libxslt jdk17-openjdk pyenv tk
+
+    groupadd gbencke
+    useradd -m -g gbencke  -s /bin/bash gbencke
+    echo "gbencke  ALL=(ALL) ALL" >> /etc/sudoers
+
+    curl https://pyenv.run | bash
+
+    echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
+    echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
+    echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+
+    $SHELL
+
+    pyenv install 3.10.10
+    pyenv global 3.10.10
+
+    git config --global user.email "gbencke@benckesoftware.com.br"  
+    git config --global user.name "Guilherme Bencke"  
+    git config --global push.default simple
+    git config --global core.editor vim
+    git config --global core.fileMode false
+    git config --global credential.helper store
+
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+    python get-pip.py
+    pip install flake8 autopep8 pylint virtualenv pmm cython pillow lxml chardet vim-vint neovim
+
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+
+#NONINTERACTIVE
+    mkdir -p /var/git/000.INFRA
+    mkdir ~/.vnc
+    chmod 755 -R /var/git 
+    chmod 755 /root
+    cd /var/git/000.INFRA
+    git clone http://github.com/gbencke/dotfiles/
+    cp -r /var/git/000.INFRA/dotfiles/new.host/wallpaper ~/Wallpapers
+    cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/xstartup ~/.vnc/xstartup
+    cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/config ~/.vnc/config
+    mkdir -p ~/.config/i3/
+    cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/i3config ~/.config/i3/config
+    cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
+    cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/vncserver.users /etc/tigervnc/vncserver.users
+
+#INTERACTIVE
+    vncpasswd ~/.vnc/passwd
+
+#INTERACTIVE
+    unset ZSH
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+
+#NONINTERACTIVE 
+    cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
+    cat /var/git/000.INFRA/dotfiles/shells/zshrc >> ~/.zshrc
+    cp /var/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
+    sed -i -e 's/robbyrussell/clean/g' /root/.zshrc
+    $SHELL
+
+#INTERACTIVE    
+    passwd gbencke
+    su gbencke
+        
+#NONINTERACTIVE
+    cd
+    ln -s /var/git ~/git 
+    unset NVM_DIR 2>/dev/null
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+    git config --global user.email "gbencke@benckesoftware.com.br"  
+    git config --global user.name "Guilherme Bencke"  
+    git config --global push.default simple
+    git config --global core.editor vim
+    git config --global core.fileMode false
+    git config --global credential.helper store
+        
+#INTERACTIVE
+    unset ZSH
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+
+#NONINTERACTIVE 
+    mkdir ~/.vnc
+
+#INTERACTIVE
+    vncpasswd ~/.vnc/passwd
+
+#NONINTERACTIVE 
+    cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/xstartup ~/.vnc/xstartup
+    cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/config ~/.vnc/config
+    cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
+    cat /var/git/000.INFRA/dotfiles/shells/zshrc >> ~/.zshrc
+    cp /var/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
+    cp /var/git/000.INFRA/dotfiles/new.host/xterm/Xresources ~/.Xresources
+
+    sed -i -e 's/robbyrussell/clean/g' /home/gbencke/.zshrc
+    $SHELL
+
+#NONINTERACTIVE 
+    mkdir -p ~/git.work/000.INFRA
+    cd ~/git.work/000.INFRA
+    git clone https://github.com/gbencke/dotfiles.git
+    git clone https://aur.archlinux.org/nerd-fonts-complete.git
+    git clone https://aur.archlinux.org/jetbrains-toolbox.git
+    git clone https://aur.archlinux.org/google-chrome.git
+
+    cd ~/git.work/000.INFRA/dotfiles/vim/
+    ./switch_vimrc.sh js
+
+    mkdir -p ~/.config/i3/
+    cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/i3config ~/.config/i3/config
+    sudo systemctl start vncserver@:1.service
+    sudo systemctl start vncserver@:2.service
+    sudo systemctl enable vncserver@:1.service
+    sudo systemctl enable vncserver@:2.service
+
+    cd ~/git.work/000.INFRA/google-chrome
+    makepkg
+    sudo pacman -U *.zst
+
+    cd ~/git.work/000.INFRA/jetbrains-toolbox
+    makepkg
+    sudo pacman -U *.zst
+
+
