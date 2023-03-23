@@ -27,11 +27,11 @@ export PATH=$PATH:$ANDROID_HOME/emulator
 
 ZSH_THEME="clean"
 
-alias grep_js='grep -ir --exclude-dir=node_modules  --include=*.js --include=*.jsx --exclude-dir=dist '
-alias grep_jsx='grep -ir --exclude-dir=node_modules  --include=*.js --include=*.jsx --exclude-dir=dist '
-alias grep_ts='grep -ir --exclude-dir=node_modules  --include=*.ts --exclude-dir=dist '
-alias grep_html='grep -ir --exclude-dir=node_modules  --include=*.html --exclude-dir=dist '
-alias grep_css='grep -ir --exclude-dir=node_modules  --include=*.css --include=*.scss --exclude-dir=dist '
+alias grep_js='grep -ir --exclude-dir=node_modules  --include \*.js --include \*.jsx --exclude-dir=dist '
+alias grep_jsx='grep -ir --exclude-dir=node_modules  --include \*.js --include \*.jsx --exclude-dir=dist '
+alias grep_ts='grep -ir --exclude-dir=node_modules  --include \*.ts --exclude-dir=dist '
+alias grep_html='grep -ir --exclude-dir=node_modules  --include \*.html --exclude-dir=dist '
+alias grep_css='grep -ir --exclude-dir=node_modules  --include \*.css --include \*.scss --exclude-dir=dist '
 alias grep_package_json='grep -ir --exclude-dir=000.INFRA --exclude-dir=node_modules  --include=package.json '
 
 alias homebrew='HOMEBREW_NO_AUTO_UPDATE=1 brew install '
