@@ -13,7 +13,8 @@
     pacman -Sy --noconfirm rsync ranger virtualgl  i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
     pacman -Sy --noconfirm w3m mediainfo libcaca highlight unrar scrot tidy shellcheck alacritty ttf-liberation
     pacman -Sy --noconfirm gtk2 xorg-xhost dmenu perl lsof libnotify libxss gtk3 nss
-    pacman -Sy --noconfirm cmake make fuse libxslt jdk17-openjdk tk
+    pacman -Sy --noconfirm cmake make fuse libxslt jdk17-openjdk tk neovide xclip ruby rofi
+	
 
     groupadd gbencke
     useradd -m -g gbencke  -s /bin/bash gbencke
@@ -87,6 +88,10 @@
     git config --global core.editor vim
     git config --global core.fileMode false
     git config --global credential.helper store
+	
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+    python get-pip.py
+    pip install flake8 autopep8 pylint virtualenv pmm cython pillow lxml chardet vim-vint neovim
         
 #INTERACTIVE
     unset ZSH
@@ -134,5 +139,8 @@
     cd ~/git.work/000.INFRA/jetbrains-toolbox
     makepkg
     sudo pacman -U *.zst
+	
+	npm install -g neovim
+	
 
 

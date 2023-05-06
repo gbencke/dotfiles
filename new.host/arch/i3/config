@@ -157,14 +157,6 @@ bar {
 }
 
 
-## Personal modifications for gbencke ##
-
-bindsym $mod+Control+p exec "~/start_pycharm.sh"
-bindsym $mod+Control+n exec "~/start_netbeans.sh"
-bindsym $mod+Control+f exec "~/start_firefox.sh"
-bindsym $mod+Control+c exec "~/start_chromium.sh"
-
-
 exec compton -b
 
 exec --no-startup-id feh --bg-fill ~/Wallpapers/zazen.jpg
@@ -173,3 +165,7 @@ for_window [class="Alacritty"] border pixel 0
 for_window [class="Alacritty"] border pixel 0
 
 bindsym --release Print exec scrot 
+
+for_window [class="Neovide" instance="neovide"] floating enable
+
+
