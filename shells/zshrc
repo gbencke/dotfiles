@@ -40,7 +40,10 @@ alias node_modules_jest='tsc; node --inspect-brk node_modules/jest/bin/jest.js'
 
 alias jt=jetbrains-toolbox
 
-eval "$(pyenv init -)"
+alias vim=neovide
+alias gvim=neovide
+
+# eval "$(pyenv init -)"
 
 cd
 
