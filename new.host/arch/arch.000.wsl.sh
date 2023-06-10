@@ -37,6 +37,7 @@
     git config --global core.editor vim
     git config --global core.fileMode false
     git config --global credential.helper store
+    git config --global core.excludesfile ~/.gitignoreGlobal
 
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
     python get-pip.py
