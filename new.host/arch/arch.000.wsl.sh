@@ -9,7 +9,7 @@
     pacman -Syyu --noconfirm
     pacman -R --noconfirm vim
     pacman -Sy --noconfirm sudo git curl tmux gvim mc tig p7zip htop mc wget unzip zsh protobuf
-    pacman -Sy --noconfirm tree nano dos2unix bc graphviz ctags 
+    pacman -Sy --noconfirm tree nano dos2unix bc graphviz ctags gitui
     pacman -Sy --noconfirm rsync ranger virtualgl  i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
     pacman -Sy --noconfirm w3m mediainfo libcaca highlight unrar scrot tidy shellcheck alacritty ttf-liberation
     pacman -Sy --noconfirm gtk2 xorg-xhost dmenu perl lsof libnotify libxss gtk3 nss
