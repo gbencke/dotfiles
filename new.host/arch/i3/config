@@ -30,7 +30,7 @@ font pango:monospace 10
 floating_modifier $mod
 
 # start a terminal
-bindsym $mod+Return exec alacritty /usr/bin/zsh
+bindsym $mod+Return exec alacritty -o font.size=14 -e /usr/bin/zsh
 
 # kill focused window
 bindsym $mod+Shift+q kill

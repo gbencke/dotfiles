@@ -1,0 +1,183 @@
+# Font config:
+Font:
+    # Normal (roman):
+    normal:
+        family: BigBlue_Terminal_437TT Nerd Font Mono
+        style: Regular
+
+    bold:
+        family: BigBlue_Terminal_437TT Nerd Font Mono
+        style: Bold
+
+    italic:
+        family: BigBlue_Terminal_437TT Nerd Font Mono
+        style: Italic
+
+    bold_italic:
+        family: BigBlue_Terminal_437TT Nerd Font Mono
+        style: Bold Italic
+
+    book:
+        family: BigBlue_Terminal_437TT Nerd Font Mono
+        style: Book
+
+    size: 48.0
+
+schemes:
+
+  one_dark: &one_dark
+
+    primary:
+      background: '#282c34'
+      foreground: '#abb2bf'
+
+    cursor:
+      text: CellBackground
+      cursor: '#528bff'
+
+    selection:
+      text: CellForeground
+      background: '#3e4451'
+
+    normal:
+      black: '#5c6370'
+      red: '#e06c75'
+      green: '#98c379'
+      yellow: '#e5c07b'
+      blue: '#61afef'
+      magenta: '#c678dd'
+      cyan: '#56b6c2'
+      white: '#828997'
+
+  cyberpunk: &cyberpunk
+
+    draw_bold_text_with_bright_colors: true
+
+    primary:
+      background: '0x000b1e'
+      foreground: '0x0abdc6'
+
+    normal:
+      black: '0x123e7c'
+      red: '0xff0000'
+      green: '0xd300c4'
+      yellow: '0xf57800'
+      blue: '0x123e7c'
+      magenta: '0x711c91'
+      cyan: '0x0abdc6'
+      white: '0xd7d7d5' 
+
+    bright:
+      black: '0x1c61c2'
+      red: '0xff0000'
+      green: '0xd300c4'
+      yellow: '0xf57800'
+      blue: '0x00ff00'
+      magenta: '0x711c91'
+      cyan: '0x0abdc6'
+      white: '0xd7d7d5'
+
+    dim:
+      black: '0x1c61c2'
+      red: '0xff0000'
+      green: '0xd300c4'
+      yellow: '0xf57800'
+      blue: '0x123e7c'
+      magenta: '0x711c91'
+      cyan: '0x0abdc6'
+      white: '0xd7d7d5'
+
+  tokyo_night: &tokyo_night
+
+    primary:
+      background: '0x1a1b26'
+      foreground: '0xa9b1d6'
+
+    normal:
+      black: '0x32344a'
+      red: '0xf7768e'
+      green: '0x9ece6a'
+      yellow: '0xe0af68'
+      blue: '0x7aa2f7'
+      magenta: '0xad8ee6'
+      cyan: '0x449dab'
+      white: '0x787c99'
+
+    bright:
+      black: '0x444b6a'
+      red: '0xff7a93'
+      green: '0xb9f27c'
+      yellow: '0xff9e64'
+      blue: '0x7da6ff'
+      magenta: '0xbb9af7'
+      cyan: '0x0db9d7'
+      white: '0xacb0d0'
+
+  dracula: &dracula
+
+    primary:
+      background: '0x282a36'
+      foreground: '0xf8f8f2'
+
+    cursor:
+      text: CellBackground
+      cursor: CellForeground
+
+    vi_mode_cursor:
+      text: CellBackground
+      cursor: CellForeground
+
+    search:
+      matches:
+        foreground: '0x44475a'
+        background: '0x50fa7b'
+      focused_match:
+        foreground: '0x44475a'
+        background: '0xffb86c'
+      bar:
+        background: '0x282a36'
+        foreground: '0xf8f8f2'
+
+    line_indicator:
+      foreground: None
+      background: None
+
+    selection:
+      text: CellForeground
+      background: '0x44475a'
+
+    normal:
+      black: '0x000000'
+      red: '0xff5555'
+      green: '0x50fa7b'
+      yellow: '0xf1fa8c'
+      blue: '0xbd93f9'
+      magenta: '0xff79c6'
+      cyan: '0x8be9fd'
+      white: '0xbfbfbf'
+
+    bright:
+      black: '0x4d4d4d'
+      red: '0xff6e67'
+      green: '0x5af78e'
+      yellow: '0xf4f99d'
+      blue: '0xcaa9fa'
+      magenta: '0xff92d0'
+      cyan: '0x9aedfe'
+      white: '0xe6e6e6'
+
+    dim:
+      black: '0x14151b'
+      red: '0xff2222'
+      green: '0x1ef956'
+      yellow: '0xebf85b'
+      blue: '0x4d5b86'
+      magenta: '0xff46b0'
+      cyan: '0x59dffc'
+      white: '0xe6e6d1'
+
+colors: *one_dark
+
+# hide mouse when typing:
+mouse:
+    hide_when_typing: true
