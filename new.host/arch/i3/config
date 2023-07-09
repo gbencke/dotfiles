@@ -167,5 +167,3 @@ for_window [class="Alacritty"] border pixel 0
 bindsym --release Print exec scrot 
 
 for_window [class="Neovide" instance="neovide"] floating enable
-
-
