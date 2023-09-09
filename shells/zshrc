@@ -42,6 +42,8 @@ alias jt=jetbrains-toolbox
 
 alias vim=neovide
 alias gvim=neovide
+alias switch_bencke=cp ~/.aws/config.bencke ~/.aws/config; cp ~/.aws/credentials.bencke ~/.aws/credentials;unset AWS_PROFILE;
+alias switch_serviceai=cp ~/.aws/config.serviceai ~/.aws/config; cp ~/.aws/credentials.serviceai ~/.aws/credentials;export AWS_PROFILE=serviceai-prod;
 
 # eval "$(pyenv init -)"
 
