@@ -32,6 +32,7 @@
     git config --global core.fileMode false
     git config --global credential.helper store
     git config --global core.excludesfile ~/.gitignoreGlobal
+    git config --global http.sslVerify false 
 
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 
