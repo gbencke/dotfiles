@@ -62,6 +62,10 @@ remove_cdkout(){
     find . -type d -name cdk.out -exec rm -rf {} \;  
 }
 
+remove_node_modules(){
+    find . -type d -name node_modules -exec rm -rf {} \;  
+}
+
 alias switch_bencke=switch_bencke_func
 alias switch_serviceai=switch_serviceai_func
 alias removeHusky=remove_husky
