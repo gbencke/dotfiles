@@ -70,6 +70,7 @@ alias switch_bencke=switch_bencke_func
 alias switch_serviceai=switch_serviceai_func
 alias removeHusky=remove_husky
 alias removeCdkout=remove_cdkout
+alias removeNodeModules=remove_node_modules
 
 
 export PYENV_ROOT="$HOME/.pyenv"
