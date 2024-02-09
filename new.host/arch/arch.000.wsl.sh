@@ -13,7 +13,7 @@
     pacman -Sy --noconfirm rsync ranger virtualgl  i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
     pacman -Sy --noconfirm w3m mediainfo libcaca highlight unrar scrot tidy shellcheck alacritty ttf-liberation
     pacman -Sy --noconfirm gtk2 xorg-xhost dmenu perl lsof libnotify libxss gtk3 nss go fakeroot
-    pacman -Sy --noconfirm cmake make fuse libxslt jdk17-openjdk tk neovide xclip ruby rofi
+    pacman -Sy --noconfirm cmake make fuse libxslt jdk17-openjdk tk neovide xclip ruby rofi diffutils
 	
 
     groupadd gbencke
