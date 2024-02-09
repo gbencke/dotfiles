@@ -1,0 +1,41 @@
+cd ~/storage/downloads/gitjournal
+git pull origin master > /dev/null 2>&1
+
+echo ""
+echo ""
+echo "# Already pulled Obsidians git journal"
+echo "#"
+echo "# Please run:"
+echo "#"
+echo "# jpush  - push local changes"
+echo "# jpull  - pull remote changes"
+echo "# jstash - stash local changes"
+echo ""
+echo ""
+
+j_push(){
+	cd ~/storage/downloads/gitjournal
+	git add .
+	git commit -m "Notes from Cel"
+	git push origin master
+	cd -
+}
+
+j_stash(){
+	cd ~/storage/downloads/gitjournal
+	git stash
+	cd -
+}
+
+j_pull(){
+	cd ~/storage/downloads/gitjournal
+	git pull origin master 
+	cd -
+}
+
+alias jpush=j_push
+alias jstash=j_stash
+alias jpull=j_pull
+
+cd
+
