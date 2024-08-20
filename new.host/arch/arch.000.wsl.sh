@@ -14,7 +14,7 @@
     pacman -Sy --noconfirm w3m mediainfo libcaca highlight unrar scrot tidy shellcheck alacritty ttf-liberation
     pacman -Sy --noconfirm gtk2 xorg-xhost dmenu perl lsof libnotify libxss gtk3 nss go fakeroot
     pacman -Sy --noconfirm cmake make fuse libxslt jdk17-openjdk tk neovide xclip ruby rofi diffutils
-    pacman -Sy --noconfirm fzf dust eza git-delta
+    pacman -Sy --noconfirm fzf dust eza git-delta btop
   
 
     groupadd gbencke
