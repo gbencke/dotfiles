@@ -14,7 +14,8 @@
     pacman -Sy --noconfirm w3m mediainfo libcaca highlight unrar scrot tidy shellcheck alacritty ttf-liberation
     pacman -Sy --noconfirm gtk2 xorg-xhost dmenu perl lsof libnotify libxss gtk3 nss go fakeroot
     pacman -Sy --noconfirm cmake make fuse libxslt jdk17-openjdk tk neovide xclip ruby rofi diffutils
-	
+    pacman -Sy --noconfirm fzf dust eza git-delta
+  
 
     groupadd gbencke
     useradd -m -g gbencke  -s /bin/bash gbencke
@@ -90,7 +91,18 @@
     git config --global core.editor vim
     git config --global core.fileMode false
     git config --global credential.helper store
-	
+    git config set --global core.pager delta
+    git config set --global interactive.diffFilter "delta --color-only --features=interactive"
+    git config set --global delta.features decorations
+    git config set --global delta.interactive.keep-plus-minus-markers false
+    git config set --global delta.decorations.commit-decoration-style "blue ol"
+    git config set --global delta.decorations.commit-style raw
+    git config set --global delta.decorations.file-style omit
+    git config set --global delta.decorations.hunk-header-decoration-style "blue box"
+    git config set --global delta.decorations.hunk-header-file-style red
+    git config set --global delta.decorations.hunk-line-number-style '#067a00'
+    git config set --global delta.decorations.hunk-header-style "file line-number syntax" 
+  
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
     python get-pip.py
     pip install flake8 autopep8 pylint virtualenv pmm cython pillow lxml chardet vim-vint neovim
@@ -141,10 +153,16 @@
     cd ~/git.work/000.INFRA/jetbrains-toolbox
     makepkg
     sudo pacman -U *.zst
-	
-	npm install -g neovim
-	npm install -g @builder.io/ai-shell
+  
+    git clone https://github.com/NvChad/starter ~/.config/nvim && nvim
+    npm install -g neovim
+    npm install -g @builder.io/ai-shell
     ai config set OPENAI_KEY=<your token>
-	
+  
+
+
+#!/bin/zsh
+
+
 
 
