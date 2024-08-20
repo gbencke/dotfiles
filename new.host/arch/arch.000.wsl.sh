@@ -40,6 +40,17 @@
     git config --global credential.helper store
     git config --global core.excludesfile ~/.gitignoreGlobal
     git config --global http.sslVerify false 
+    git config set --global core.pager delta
+    git config set --global interactive.diffFilter "delta --color-only --features=interactive"
+    git config set --global delta.features decorations
+    git config set --global delta.interactive.keep-plus-minus-markers false
+    git config set --global delta.decorations.commit-decoration-style "blue ol"
+    git config set --global delta.decorations.commit-style raw
+    git config set --global delta.decorations.file-style omit
+    git config set --global delta.decorations.hunk-header-decoration-style "blue box"
+    git config set --global delta.decorations.hunk-header-file-style red
+    git config set --global delta.decorations.hunk-line-number-style '#067a00'
+    git config set --global delta.decorations.hunk-header-style "file number syntax" 
 
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
     python get-pip.py
@@ -159,10 +170,5 @@
     npm install -g @builder.io/ai-shell
     ai config set OPENAI_KEY=<your token>
   
-
-
-#!/bin/zsh
-
-
 
 
