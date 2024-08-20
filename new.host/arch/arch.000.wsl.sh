@@ -50,7 +50,7 @@
     git config set --global delta.decorations.hunk-header-decoration-style "blue box"
     git config set --global delta.decorations.hunk-header-file-style red
     git config set --global delta.decorations.hunk-line-number-style '#067a00'
-    git config set --global delta.decorations.hunk-header-style "file number syntax" 
+    git config set --global delta.decorations.hunk-header-style "file line-number syntax" 
 
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
     python get-pip.py
