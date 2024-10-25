@@ -73,7 +73,8 @@ remove_node_modules(){
 }
 
 search_desktop(){
-    nmap -p3389 "192.168.15.*" -oG -
+    # nmap -p3389 "192.168.15.*" -oG -
+    nmap 192.168.15.1-15  -p3389   -Pn
 }
 
 list_remotes(){
