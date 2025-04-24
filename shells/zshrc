@@ -86,7 +86,25 @@ list_remotes(){
   done
 }
 
+eslint_changes(){
+  export FILES_TO_CHECK=$(git diff --name-only  $(git merge-base HEAD master  2> /dev/null || git merge-base HEAD main 2> /dev/null ) | tr '\n' ' ')
+  echo $FILES_TO_CHECK
+  eval "docker run -it --rm -v $(pwd):/data dockerized-eslint -c /config/eslint.config.ts $FILES_TO_CHECK"
+}
 
+flake8_changes(){
+  export FILES_TO_CHECK=$(git diff --name-only  $(git merge-base HEAD master  2> /dev/null || git merge-base HEAD main 2> /dev/null ) | tr '\n' ' ')
+  echo $FILES_TO_CHECK
+  eval "flake8 --select=WPS $FILES_TO_CHECK"
+}
+
+changed_files(){
+  export BASE_COMMIT=$(git merge-base HEAD master 2> /dev/null || git merge-base HEAD main 2> /dev/null)
+  git diff --name-only $BASE_COMMIT | tr '\n' ' '
+}
+
+alias git_changed_files=changed_files
+alias git_eslint_changes=eslint_changes
 alias switch_bencke=switch_bencke_func
 alias switch_serviceai=switch_serviceai_func
 alias removeHusky=remove_husky
