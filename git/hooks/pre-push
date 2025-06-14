@@ -1,0 +1,36 @@
+#!/bin/sh
+# husky
+
+# Created by Husky v4.3.8 (https://github.com/typicode/husky#readme)
+#   At: 10/06/2025, 14:05:34
+#   From: /Volumes/SSD.NVME/git/301.arbitrium-school-api.git/node_modules/husky (undefined)
+
+
+echo "prepush test"
+protected_prefix="working/"
+exception_remote="oracle"
+remote_name="$1"
+
+# Read from stdin to get the list of refs being pushed
+while read local_ref local_sha remote_ref remote_sha
+do
+    # Extract branch name from the remote ref
+    if [[ $remote_ref =~ refs/heads/(.*) ]]; then
+        branch_name="${BASH_REMATCH[1]}"
+
+        # Check if branch name starts with the protected prefix
+        if [[ $branch_name == $protected_prefix* ]]; then
+            echo $remote_name
+            if [[ $remote_name == $exception_remote ]]; then
+                echo "Info: Allowing push to '$branch_name' on remote '$remote_name' (exception rule)"
+                continue
+            fi
+            echo "Error: Push rejected!"
+            echo "Pushes to branches starting with '$protected_prefix' are not allowed."
+            echo "Attempted to push to: $branch_name"
+            exit 1
+        fi
+    fi
+done
+
+exit 0
