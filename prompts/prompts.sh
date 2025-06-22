@@ -127,31 +127,31 @@ echo " **Pull Request Review**
 **End of Template**" >> create_pr_complete.md
 }
 
-
 function _generate_pr_description(){
   # Check if at least one argument is provided
-  if [ $# -eq 0 ]; then
+  if [[ $# -eq 0 ]]; then
     echo "Error: Please provide a pull request description as an argument."
     echo "Usage: create_pr_complete \"Your PR description here\""
     return 1
   fi
-  rm create_pr_complete
+
+  rm -rf create_pr_complete.md
 
   _create_pr_only_description $1
 
   DATE=$(date -u '+%Y%m%d.%H%M%S')
-  IFS=$' ' arr=($PR_MODELS_TO_RUN)
+  arr=(${=PR_MODELS_TO_RUN})
 
-  for ((i=0; i<${#arr[@]}; i+=2)); do
+  for ((i=1; i<=${#arr[@]}; i+=2)); do
       model_name="${arr[i]}"
       model_slug="${arr[i+1]}"
-      if [ -f "./create_pr_complete.md" ]; then
+      if [[ -f "./create_pr_complete.md" ]]; then
         rm -rf .aider.*
         export LANG=en_US.UTF-8
         echo "Pair: $model_name and $model_slug"
         OUTPUT="$DATE.$model_name.md"
         aider --model "$model_slug" --aiderignore package-lock.json --map-tokens 0 --yes -f create_pr_complete.md > $OUTPUT
-        if [[ ! -z "${AI_BACKUP_PR_FOLDER}" ]]; then
+        if [[ -n "${AI_BACKUP_PR_FOLDER}" ]]; then
           cp "$OUTPUT" "$AI_BACKUP_PR_FOLDER"
         fi
       else
