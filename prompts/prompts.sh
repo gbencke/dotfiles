@@ -50,10 +50,10 @@ git diff -U10 --staged  >> create_pr_complete.md
 
 echo " **Pull Request Review**
 
-**Summary:**  
+**Summary:**
 - {{LLM generates a brief summary of the PR’s purpose and scope in markdown format.}}
 
-**Main Changes:**  
+**Main Changes:**
 - {{LLM lists and briefly explains the key changes in markdown format.}}
 
 **Detailed Changes:**
@@ -61,7 +61,7 @@ echo " **Pull Request Review**
 
 ---
 
-**Review Tone:**  
+**Review Tone:**
 - Supportive, clear, and focused on code quality and collaboration in markdown format.
 
 ---
@@ -111,15 +111,15 @@ git diff -U10 --staged  >> create_pr_complete.md
 
 echo " **Pull Request Review**
 
-**Summary:**  
+**Summary:**
 {{LLM generates a brief summary of the PR’s purpose and scope.}}
 
-**Main Changes:**  
+**Main Changes:**
 - {{LLM lists and briefly explains the key changes.}}
 
 ---
 
-**Review Tone:**  
+**Review Tone:**
 - Supportive, clear, and focused on code quality and collaboration.
 
 ---
@@ -135,28 +135,44 @@ function _generate_pr_description(){
     return 1
   fi
 
-  rm -rf create_pr_complete.md
+  rm -rf *create_pr_complete.md
 
   _create_pr_only_description $1
+  if [[ -z "./create_pr_complete.md" ]]; then
+      echo "create_pr_complete.md not found"
+      exit 1
+  fi
 
   DATE=$(date -u '+%Y%m%d.%H%M%S')
   arr=(${=PR_MODELS_TO_RUN})
 
+  INSTRUCTIONS_FILE="$DATE.create_pr_complete.md"
+  mv create_pr_complete.md $INSTRUCTIONS_FILE
+  INPUT=$(cat $INSTRUCTIONS_FILE | jq -sR @json)
+  if [[ -n "${AI_BACKUP_PR_FOLDER}" ]]; then
+      mv $INSTRUCTIONS_FILE "$AI_BACKUP_PR_FOLDER"
+  fi
+
   for ((i=1; i<=${#arr[@]}; i+=2)); do
       model_name="${arr[i]}"
       model_slug="${arr[i+1]}"
-      if [[ -f "./create_pr_complete.md" ]]; then
-        rm -rf .aider.*
-        export LANG=en_US.UTF-8
-        echo "Pair: $model_name and $model_slug"
-        OUTPUT="$DATE.$model_name.md"
-        aider --model "$model_slug" --aiderignore package-lock.json --map-tokens 0 --yes -f create_pr_complete.md > $OUTPUT
-        if [[ -n "${AI_BACKUP_PR_FOLDER}" ]]; then
-          cp "$OUTPUT" "$AI_BACKUP_PR_FOLDER"
-        fi
-      else
-        echo "create_pr_complete.md not found"
-        exit 1
+      export LANG=en_US.UTF-8
+      echo "Pair: $model_name and $model_slug"
+      OUTPUT="$DATE.$model_name.md"
+      curl https://openrouter.ai/api/v1/chat/completions \
+            -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+            \"model\": \"$model_slug\",
+            \"messages\": [
+                { \"role\": \"user\", \"content\": $INPUT }
+            ]
+            }" \
+            -o $OUTPUT.tmp
+      cat $OUTPUT.tmp |jq -r '.choices.[0].message.content' > $OUTPUT
+      rm $OUTPUT.tmp
+      if [[ -n "${AI_BACKUP_PR_FOLDER}" ]]; then
+          mv "$OUTPUT" "$AI_BACKUP_PR_FOLDER"
       fi
   done
 }
@@ -165,5 +181,3 @@ alias create_pr=_create_pr
 alias create_pr_complete=_create_pr_complete
 alias create_pr_only_description=_create_pr_only_description
 alias generate_pr_description=_generate_pr_description
-
-
