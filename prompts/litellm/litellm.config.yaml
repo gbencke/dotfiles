@@ -1,0 +1,60 @@
+# litellm config.yaml
+# This file configures litellm to proxy requests to different model providers.
+# In this example, we are setting up access to a Qwen model via OpenRouter.
+
+# model_list defines the available models.
+# You can define custom names (model_name) and map them to specific provider models (litellm_params.model).
+model_list:
+  - model_name: qwen3-coder-free               # This is the friendly, custom name you'll use in your application code.
+    litellm_params:
+      model: openrouter/qwen/qwen3-coder:free
+      api_base: https://openrouter.ai/api/v1
+      api_key: "os.environ/OPENROUTER_API_KEY"  # This tells litellm to get the API key from an environment variable named OPENROUTER_API_KEY.
+      temperature: 0
+  - model_name: kimi-k2-free               # This is the friendly, custom name you'll use in your application code.
+    litellm_params:
+      model: openrouter/moonshotai/kimi-k2:free
+      api_base: https://openrouter.ai/api/v1
+      api_key: "os.environ/OPENROUTER_API_KEY"  # This tells litellm to get the API key from an environment variable named OPENROUTER_API_KEY.
+      temperature: 0
+  - model_name: qwen3-coder
+    litellm_params:
+      model: openrouter/qwen/qwen3-coder
+      api_base: https://openrouter.ai/api/v1
+      api_key: "os.environ/OPENROUTER_API_KEY"  # This tells litellm to get the API key from an environment variable named OPENROUTER_API_KEY.
+      temperature: 0
+  - model_name: claude.3.7 
+    litellm_params:
+      model: openrouter/anthropic/claude-3.7-sonnet 
+      api_base: https://openrouter.ai/api/v1
+      api_key: "os.environ/OPENROUTER_API_KEY"  # This tells litellm to get the API key from an environment variable named OPENROUTER_API_KEY.
+      temperature: 0
+  - model_name: qwen3_14b 
+    litellm_params: 
+      model: openrouter/qwen/qwen3-14b:free 
+      api_base: https://openrouter.ai/api/v1
+      api_key: "os.environ/OPENROUTER_API_KEY"  # This tells litellm to get the API key from an environment variable named OPENROUTER_API_KEY.
+      temperature: 0
+  - model_name: deepseek-free 
+    litellm_params: 
+      model: openrouter/deepseek/deepseek-r1-0528:free
+      api_base: https://openrouter.ai/api/v1
+      api_key: "os.environ/OPENROUTER_API_KEY"  # This tells litellm to get the API key from an environment variable named OPENROUTER_API_KEY.
+      temperature: 0
+
+# general_settings apply to all calls made through litellm unless overridden.
+general_settings:
+  # It's good practice to set a timeout for API calls to prevent your application from hanging.
+  timeout: 600 # 10 minutes in seconds
+
+  # Set to True to see detailed logs of the requests and responses.
+  # This is very useful for debugging.
+  set_verbose: True                   
+
+# You can optionally define custom cost tracking for models.
+# This helps in monitoring your spending.
+# litellm has built-in pricing for many models, but you can override or add them here.
+# pricing:
+#   openrouter/qwen/qwen2-72b-instruct:
+#     input_cost_per_token: 0.0000009  # Example input cost
+#     output_cost_per_token: 0.0000018 # Example output cost
