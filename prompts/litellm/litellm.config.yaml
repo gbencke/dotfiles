@@ -43,7 +43,7 @@ model_list:
       temperature: 0
   - model_name: qwen3_235b_free 
     litellm_params: 
-      model: openrouter/qwen/qwen/qwen3-235b-a22b:free
+      model: openrouter/qwen/qwen3-235b-a22b:free
       api_base: https://openrouter.ai/api/v1
       api_key: "os.environ/OPENROUTER_API_KEY"  # This tells litellm to get the API key from an environment variable named OPENROUTER_API_KEY.
       temperature: 0
@@ -54,19 +54,7 @@ model_list:
       api_key: "os.environ/OPENROUTER_API_KEY"  # This tells litellm to get the API key from an environment variable named OPENROUTER_API_KEY.
       temperature: 0
 
-# general_settings apply to all calls made through litellm unless overridden.
 general_settings:
-  # It's good practice to set a timeout for API calls to prevent your application from hanging.
   timeout: 60 # 10 minutes in seconds
-
-  # Set to True to see detailed logs of the requests and responses.
-  # This is very useful for debugging.
   set_verbose: True                   
 
-# You can optionally define custom cost tracking for models.
-# This helps in monitoring your spending.
-# litellm has built-in pricing for many models, but you can override or add them here.
-# pricing:
-#   openrouter/qwen/qwen2-72b-instruct:
-#     input_cost_per_token: 0.0000009  # Example input cost
-#     output_cost_per_token: 0.0000018 # Example output cost
