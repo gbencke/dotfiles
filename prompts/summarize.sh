@@ -20,7 +20,7 @@ function _summarize_pdf {
   echo "Generating summary..."
   SUMMARIZATION_PROMPT="Please summarize in maximum detail this pdf: \"@$1\""
   gemini -p $SUMMARIZATION_PROMPT > $FINAL_FILE.md
-  echo "Generated: $FINAL_FILE"
+  echo "Generated: $FINAL_FILE.md"
 }
 
 alias summarize_yt=_summarize_yt
