@@ -177,7 +177,53 @@ function _generate_pr_description(){
   done
 }
 
+function _review_pr_complete_instructions(){
+  SOURCE_PATH="${(%):-%x}"
+  files=$( git diff --name-only --cached)
+  files_=$(echo "$files" | paste -sd ',' -)
+  echo $files_
+  code2prompt -O ./code2prompt.md -i $files_ . 
+  cat ./code2prompt.md > ./review_pr_complete.md
+  cat "$(dirname -- $SOURCE_PATH)/./pr.guides/pr_guidelines_architecture.md" >> ./review_pr_complete.md
+  echo "\n\mPlease review the code above, according to the guidelines.\n"
+
+}
+
+function _review_code_pr(){
+  rm -f ./code2prompt.md
+  rm -f ./review_pr_complete.md
+  _review_pr_complete_instructions 
+  return 1
+
+  # Check if at least one argument is provided
+  if [[ $# -eq 0 ]]; then
+    echo "Error: Please the mode for the code review:"
+    echo 'Usage: create_pr_complete <<stash | stash_dependencies | all >>'
+    return 1
+  fi
+
+  rm -rf *review_pr_complete.md
+
+  _review_pr_complete_instructions $1
+  if [[ -z "./review_pr_complete.md" ]]; then
+      echo "review_pr_complete.md not found"
+      return 1
+  fi
+
+  DATE=$(date -u '+%Y%m%d.%H%M%S')
+  arr=(${=PR_MODELS_TO_RUN})
+
+  INSTRUCTIONS_FILE="$DATE.review_pr_complete.md"
+  mv review_pr_complete.md $INSTRUCTIONS_FILE
+  INPUT=$(cat $INSTRUCTIONS_FILE | jq -sR @json)
+  if [[ -n "${AI_BACKUP_PR_FOLDER}" ]]; then
+      mv $INSTRUCTIONS_FILE "$AI_BACKUP_PR_FOLDER"
+  fi
+
+}
+
 alias create_pr=_create_pr
 alias create_pr_complete=_create_pr_complete
 alias create_pr_only_description=_create_pr_only_description
 alias generate_pr_description=_generate_pr_description
+alias review_code_pr=_review_code_pr
