@@ -181,19 +181,14 @@ function _review_pr_complete_instructions(){
   SOURCE_PATH="${(%):-%x}"
   files=$( git diff --name-only --cached)
   files_=$(echo "$files" | paste -sd ',' -)
-  echo $files_
+  # echo $files_
   code2prompt -O ./code2prompt.md -i $files_ . 
   cat ./code2prompt.md > ./review_pr_complete.md
   cat "$(dirname -- $SOURCE_PATH)/./pr.guides/pr_guidelines_architecture.md" >> ./review_pr_complete.md
-  echo "\n\mPlease review the code above, according to the guidelines.\n"
-
+  echo "\n\nPlease review the code above, according to the guidelines.\n" >> ./review_pr_complete.md
 }
 
 function _review_code_pr(){
-  rm -f ./code2prompt.md
-  rm -f ./review_pr_complete.md
-  _review_pr_complete_instructions 
-  return 1
 
   # Check if at least one argument is provided
   if [[ $# -eq 0 ]]; then
@@ -220,6 +215,8 @@ function _review_code_pr(){
       mv $INSTRUCTIONS_FILE "$AI_BACKUP_PR_FOLDER"
   fi
 
+  rm -f ./code2prompt.md
+  rm -f ./review_pr_complete.md
 }
 
 alias create_pr=_create_pr
