@@ -1,15 +1,3 @@
-function _create_pr(){
-  echo "" > create_pr.md
-  echo "Please create a Pull Request Description from below diff:\n" >> create_pr.md
-  echo "Please use english language and the output needs to be in markdown format.\n" >> create_pr.md
-  echo "Be as concise and technical as possible, indicating the file where each change was made\n" >> create_pr.md
-  echo "There is no need to provide test instructions, please only describe the changes made.\n" > create_pr.md
-  git diff $1 $2 >> create_pr.md
-
-  cat create_pr.md | pbcopy
-  rm create_pr.md
-}
-
 function _create_pr_only_description(){
   # Check if at least one argument is provided
   if [ $# -eq 0 ]; then
@@ -177,7 +165,65 @@ function _generate_pr_description(){
   done
 }
 
-alias create_pr=_create_pr
+function _review_pr_complete_instructions(){
+  case $1 in
+      "stash" )
+        SOURCE_PATH="${(%):-%x}"
+        files=$( git diff --name-only --cached)
+        files_=$(echo "$files" | paste -sd ',' -)
+      ;;
+      "stash_dependencies" | "all" )
+        echo "Not implemented"
+        return 1
+      ;;
+      * )
+        echo "Error please provide the files to be added"
+        return 1
+  esac
+  # echo $files_
+  code2prompt -O ./code2prompt.md -i $files_ . 
+  cat ./code2prompt.md > ./review_pr_complete.md
+  cat "$(dirname -- $SOURCE_PATH)/./pr.guides/$2.md" >> ./review_pr_complete.md
+  echo "\n\nPlease review the code above, according to the guidelines.\n" >> ./review_pr_complete.md
+}
+
+function _clean_intermediate_files(){
+  rm -f ./code2prompt.md 2>/dev/null
+  rm -f ./review_pr_complete.md 2>/dev/null
+}
+
+function _review_code_pr(){
+
+  # Check if exactly 2 arguments are provided: files_to_be_included and template_file
+  if [[ $# -lt 2 ]]; then
+    echo "Error: Please enter the template to use and also the files to be reviewed:"
+    echo "Usage: review_code_pr <<stash | stash_dependencies | all >> << template file >> "
+    return 1
+  fi
+
+  _clean_intermediate_files
+
+  _review_pr_complete_instructions $1 $2
+  if [[ -z "./review_pr_complete.md" ]]; then
+      echo "review_pr_complete.md not found"
+      return 1
+  fi
+
+  DATE=$(date -u '+%Y%m%d.%H%M%S')
+  arr=(${=PR_MODELS_TO_RUN})
+
+  INSTRUCTIONS_FILE="$DATE.review_pr_complete.md"
+  mv review_pr_complete.md $INSTRUCTIONS_FILE
+  INPUT=$(cat $INSTRUCTIONS_FILE | jq -sR @json)
+  if [[ -n "${AI_BACKUP_PR_FOLDER}" ]]; then
+      mv $INSTRUCTIONS_FILE "$AI_BACKUP_PR_FOLDER"
+  fi
+
+  _clean_intermediate_files
+
+}
+
 alias create_pr_complete=_create_pr_complete
 alias create_pr_only_description=_create_pr_only_description
 alias generate_pr_description=_generate_pr_description
+alias review_code_pr=_review_code_pr
