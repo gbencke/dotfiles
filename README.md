@@ -1,99 +1,111 @@
-# DotFiles
+# Dotfiles
 
-Dotfiles are the configuration and preferences files that are used to setup any
-development box according to the developer's preferences and workflow.
+Dotfiles are specialized configuration files used to personalize and automate the setup of development environments across various operating systems and hosts. This repository contains a comprehensive collection of dotfiles, scripts, and configurations tailored for efficient software development, focusing on tools like Vim/Neovim, Git, shells (Bash/Zsh), and setup automation for platforms such as Arch Linux, Ubuntu, and WSL.
 
-In these repo, we have the following sections:
+## Repository Structure
 
-* **NPM Configuration**: Default Node modules to be used on all host installations
-* **Shells**: RC scripts for all used shells
-* **VIM Configuration**: Scripts for the administration of the VIM instalation in a
-  particular host. Plugins, Default Configurations, etc...
-* **GIT Configuration**: Default git configuration files
-* **Window Manager Configuration**: Default configuration of fonts, styles, window
-  borders and many others for the i3 tiling window manager
-* **Host Default Initial Configuration**: Default initial configuration of packages
-  and its instalation, to be run just after the VM is available and its shell is
-accessible. Scripts for both ubuntu and arch distributions.
+The repository is organized into directories based on functionality, tools, and target environments. Below is an overview of the main components, with descriptions and key files.
 
-## VIM Configuration
+### Core Components
 
-Vim is my favorite text editor mainly as it is available on any platform,
-operating system and hardware. As a plugin it is also available on almost all
-modern graphical IDEs.
+#### `git/`
+Git-related configurations and hooks for consistent development workflows across environments.
 
-Such versatility comes with the cost that it is necessary to switch from a
-TTY-based code editing mode to a modal-based code editing. In a TTY-based editor
-we just move around with the cursor, changing and adding characters. In a modal
-editor, we have differente "Editing modes", and each one of those modes has
-"commands" that do the actual editing of the text.
+- **`gitconfig`**: Basic Git configuration file setting user name, email, and push default.
+- **`gitconfig.sh`**: Script to apply Git configuration, including editor and other settings.
+- **`hooks/pre-push`**: Pre-push hook (via Husky) to enforce branch protection rules, such as restricting pushes to branches starting with "working/" except on specific remotes.
 
-The available scripts are:
-* **clean_vim.sh**: Cleans the current vimrc configuration and all the downloaded VIM
-plugins and theirs configurations
-* **switch_vimrc.sh**: Change the current vimrc to the mode specified as parameter to
-the script (Currently: js, python, regular), downloads all necessary plugins and
-update their configuration
+#### `icons/`
+Icon files for desktop environments or applications.
 
-The available configurations are:
-* **vimrc**: The default minimalistic vimrc configuration
-* **vimrc_javascript**: My default vimrc configuration for javascript
-* **vimrc_python**: My default python configuration
-* **vimrc_windows**: My default windows configuration
-* **vsvim**: configuration for VsVim Plugin for visual studio
+- **`Martz90-Circle-Ubuntu.ico`**: Ubuntu-themed icon.
+- **`arch.ico`**: Arch Linux icon.
 
+#### `new.host/`
+Scripts and configurations for initializing new hosts, with breakdowns by operating system and platform.
 
-## GIT Configuration
+- **`android/termux/bashrc`**: Bash configuration for Android's Termux, including Git operations and aliases for pushing/pulling changes to an Obsidian journal.
+- **`arch/`**: Configurations specific to Arch Linux.
+  - **`README.md`**: Brief guide to Arch Linux host creation scripts.
+  - **`alacritty/alacritty.yml`**: Configuration for Alacritty terminal emulator, including themes (e.g., One Dark, Cyberpunk, Tokyo Night, Dracula), font settings, and hide-mouse-on-typing.
+  - **`arch.000.base.minimal.sh`** through **`arch.000.wsl.sh`**: Bootstrapping scripts for installing packages, setting up users, configuring Git/NVM/Pipenv/Pyenv, and initializing i3/VNC/wallpapers. Variants include minimal, no-GUI, base, WSL minimal, and WSL full setups.
+  - **`i3/`**: i3 window manager configurations.
+    - **`config`**: Main i3 config with bindings, floating mods, and personal shortcuts.
+    - **`compton.conf`**: Compositor settings for shadows, opacity, and performance.
+    - **`i3blocks.conf`**: Status bar configurations.
+    - **`i3status.conf`**: Status command settings for CPU, disk, memory, and time.
+    - **`scripts/`**: Utility scripts for moving workspaces, starting applications (e.g., Chromium, PyCharm), and VM tools.
+  - **`pacman/pacman.conf`**: Custom Pacman package manager configuration, including mirrors and SigLevel settings.
+  - **`termite/config`**: Termite terminal emulator colors and settings.
+  - **`vnc/`**: VNC server configurations, including xstartup, service unit, and users.
+- **`grub/grub.exec.sh`**: Script to switch GRUB default boot entry between Windows and Arch.
+- **`swap/drop_swap.sh`**: Script to safely remove dynamic swap files.
+- **`ubuntu/`**: Ubuntu-specific setups.
+  - **`README.md`**: Notes on Ubuntu scripts.
+  - **`old/bootstrap.sh`** through **`vm_minimal_script_no_gui.sh`**: Older and minimal setup scripts for Ubuntu VMs, including package installation, Node/NPM/Python tools, and VNC/Xfce4 setups.
+  - **`start/`**: Startup scripts for applications like Chromium, Firefox, GitExtensions, and NetBeans.
+  - **`vnc/`**: VNC xstartup and config for Ubuntu.
 
-The gitconfig file that contains my default email and name to be used on git
-repositories
+#### `npm/`
+NPM and Node.js configurations.
 
+- **`frontend.sh`**: Script to install global NPM packages for frontend development (e.g., bower, gulp, webpack, TypeScript, Prettier, ESLint).
 
-## Host Default Initial Configuration
+#### `nvim/`
+Neovim configurations, set up with NvChad and lazy loading.
 
-When we start a VM on a PaaS Service like AWS or GoogleCloud, or even when we
-create a local VM, it is normally necessary to download and install dozens of
-packages, each one with its own settings and dependencies, in order to gain time
-and automate such process, I created my default initialization scripts for VMs
-and hosts
-* **Arch**: Arch has quickly become my favorite linux distro, as it thrives for 
-technical excellence and not user-friendliness (a trade-off very appealing to me).
-It is very lightweight and allows fine-tuning of the development environment. I use
-on arch several scripts that need to be run on the indicated order below:
-    * **arch.000.base.sh**: Base files for arch instalattion on AWS
-    * **arch.001.chromium.sh**:  Chromium installation on AWS or Local VM
-    * **arch.002.vim.sh**: Vim instalation scripts (python development default)
-    * **Window Manager Configuration**: The tiling window manager is in my opinion the 
-    best option for GUI for programming professionals, as it has a unsurpassable degree 
-    of customization available for the user. It is not a kind of software to be used by 
-    beginners or non-professionals. As every advanced and highly-customizable software, 
-    its cost is the amount of work that is needed in order to completely configure it. 
-    For that there are the following folders with my default configurations:
-        * **i3**: The configuration for the i3 window manager
-    * **Auxiliary Scripts**: The following scripts are used on the scripts above
-        * **termite**: The configuration for the termite terminal
-        * **pacman**: The configuration for the pacman package manager
-        * **vnc**: The configuration for the vnc remote desktop
+- **`LICENSE`**: Software license (Unlicense).
+- **`init.lua`**: Main Neovim configuration file, loading NvChad plugins, mappings, and theme.
+- **`lazy-lock.json`**: Snapshot of plugin versions for reproducibility.
+- **`lua/`**: Lua scripts for Neovim.
+  - **`chadrc.lua`**: NvChad theme override (One Dark).
+  - **`configs/`**: Configurations for plugins (e.g., Conform for formatting, LSP config).
+  - **`mappings.lua`**: Custom key mappings (e.g., leader "; ", Neovim tree toggle on F9).
+  - **`options.lua`**: Neovim options.
+  - **`plugins/init.lua`**: Plugin definitions (e.g., Neo-tree, Telescope, Indent Blankline, LSP).
+- This setup includes tree-sitter for syntax highlighting, LSP for code intelligence, and web devicon setup.
 
-* **Ubuntu**: Ubuntu is still the workhorse of the linux distros, and the most common to be
-found on linux providers. It has a lot of opiniated towards the end user, so sometimes
-it is a difficult to create the best development environments
-    * **vm_minimal_script.sh**: The Minimal script to be run, useful for data
-  science vms that are normally necessary to perform a certain computation and
-after that specific task, to be shutdown
-    * **vm_minimal_gui_script.sh**: Same as above, but with GUI and VNC
-    * **host_full_new_script.sh**: A Full development environment to be used on new
-hosts.
-    * **start scripts**: Collection of simple start scripts to be placed on the home 
-folder of each user
-* **Dynamic SWAP Memory Allocation**: For some large computations, as a safety measure, 
-it is advisable to allocate some disk space for swap, which adds to the currently 
-available RAM memory. This can avoid many processess being killed by the O.S. 
-due to the lack of available
-memory.
-    * **create_swap.sh**: Creates a region of swap memory using the size passed as parameter
-and the file name also passed as parameter
-    * **drop_swap.sh**: switches off the swap memory file passed by parameter and deallocates
-it from the operation system memory
-* **Wallpaper**: A Nice collection for wallpapers for the GUI linux distributions
+#### `prompts/`
+Prompts and guidelines for AI-assisted development and code reviews.
 
+- **`guidelines/`**: Development principles.
+  - **`bootstrap.prompt.md`**: General development guidelines (incremental progress, learning from code, testing first, etc.).
+  - **`good_general_guideline.md`**: Writing guidelines (brevity, clarity, active voice, Zinsser method).
+- **`litellm/litellm.config.yaml`**: Configuration for LiteLLM to proxy AI model requests via OpenRouter (e.g., Qwen, Claude, DeepSeek models).
+- **`pr.guides/`**: Pull request review templates.
+  - **`pr_guidelines_architecture.md`**: Checklist for code reviews focusing on SOLID principles, naming, clarity, anti-patterns, and architectural concerns.
+  - **`pyramid_refactoring.md`**: Refactoring checklist organized by pyramid levels (micro-refactorings, design/structure, architecture).
+- **`prompts.sh`**: Shell functions for creating PR descriptions and reviewing code using AI models.
+- **`summarize.sh`**: Shell functions for summarizing YouTube videos (via yt-dlp + transcripts) and PDFs (via gemini/OpenRouter).
+
+#### `shells/`
+Shell RC files for Bash and Zsh.
+
+- **`bashrc`**: Extended Bash configuration with NVM loading, aliases for grepping (e.g., JS/TS/HTML), Vim as nvim, and cd to home.
+- **`zshrc`**: Extended Zsh configuration (post-Oh-My-Zsh), including NVM, Java options, aliases, Git functions (e.g., ESLint/Flake8 on changes), and shortcuts (e.g., remove Husky, switch AWS profiles).
+
+#### `vim/`
+Vim configurations for different setups.
+
+- **`build_vim.sh`**: Script to build Vim with specific features (e.g., multibyte, Ruby, Python3, GUI).
+- **`clean_vim.sh`**: Script to clean Vim config and reinstall plugins.
+- **`run_fix.sh`**: Script to run fix tools (e.g., from node_modules).
+- **`switch_vimrc.sh`**: Script to switch Vim RC based on language/profile (e.g., JS, Python, C++).
+- **`vimrc`**: Basic Vim config with syntax off, plugins, and status line.
+- **`vimrc_cpp`**: C++-focused config with ALE for linting, NERDTree, and tagbar.
+- **`vimrc_javascript`**: JS-focused config with Deoplete, ESLint, Prettier, and keyboard shortcuts.
+- **`vimrc_javascript_windows`**: Windows variant of JS config with GUI settings.
+- **`vimrc_python`**: Python config with ALE, NERDTree, and language-specific linters.
+- **`vimrc_windows`**: Windows-specific config with GUI tweaks and syntax off.
+- **`vsvimrc`**: Configuration for VsVim plugin in Visual Studio.
+
+#### `wallpaper/`
+A collection of nature-inspired and Japanese-themed wallpapers (e.g., Zen, Mount Fuji, Cherry Blossoms).
+
+### Usage
+
+1. **Clone the Repository**: `git clone https://github.com/gbencke/dotfiles.git`
+2. **Navigate to Desired Config**: Browse directories and symlink/copy files to your home (e.g., `ln -s ~/dotfiles/npm/frontend.sh ~/.local/bin/`).
+3. **Run Setup Scripts**: For new hosts, execute scripts like `arch.000.base.sh` with appropriate permissions.
+4. **Customize**: Modify configurations (e.g., Neovim themes in `chadrc.lua`) to fit your needs.
+5. **Review with AI**: Use functions in `prompts.sh` to generate code reviews (e.g., `review_code_pr stash pr_guidelines_architecture.md`).
