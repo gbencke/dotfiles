@@ -171,9 +171,14 @@ function _review_pr_complete_instructions(){
         SOURCE_PATH="${(%):-%x}"
         files=$( git diff --name-only --cached)
         files_=$(echo "$files" | paste -sd ',' -)
+        code2prompt -O ./code2prompt.md -i $files_ . 
+        cat ./code2prompt.md > ./review_pr_complete.md
+        cat "$(dirname -- $SOURCE_PATH)/./$2" >> ./review_pr_complete.md
       ;;
       "stash_dependencies" | "all" )
-        echo "Not implemented"
+        code2prompt -O ./code2prompt.md -e review_pr_complete.md . 
+        cat "$(dirname -- $SOURCE_PATH)/./$2" >> ./review_pr_complete.md
+        cat ./code2prompt.md >> ./review_pr_complete.md
         return 1
       ;;
       * )
@@ -181,9 +186,6 @@ function _review_pr_complete_instructions(){
         return 1
   esac
   # echo $files_
-  code2prompt -O ./code2prompt.md -i $files_ . 
-  cat ./code2prompt.md > ./review_pr_complete.md
-  cat "$(dirname -- $SOURCE_PATH)/./pr.guides/$2.md" >> ./review_pr_complete.md
   echo "\n\nPlease review the code above, according to the guidelines.\n" >> ./review_pr_complete.md
 }
 
@@ -192,16 +194,55 @@ function _clean_intermediate_files(){
   rm -f ./review_pr_complete.md 2>/dev/null
 }
 
+function _find_git_root() {
+  # Navigate directory structure upwards to find the Git repository root
+  # Returns only the directory name (basename), not the full path
+  local current_dir
+  current_dir=$(pwd)
+  
+  while [[ "$current_dir" != "" ]]; do
+    if [[ -d "$current_dir/.git" ]]; then
+      # Get just the directory name, not the full path
+      echo "$(basename "$current_dir")"
+      return 0
+    fi
+    
+    # Stop if we've reached the filesystem root
+    if [[ "$current_dir" == "/" ]]; then
+      echo ""
+      return 1
+    fi
+    
+    # Move up one directory
+    current_dir=$(dirname "$current_dir")
+  done
+  
+  # If we get here, no .git directory was found
+  echo ""
+  return 1
+}
+
+
 function _review_code_pr(){
 
   # Check if exactly 2 arguments are provided: files_to_be_included and template_file
-  if [[ $# -lt 2 ]]; then
+  if [[ $# -lt 3 ]]; then
     echo "Error: Please enter the template to use and also the files to be reviewed:"
-    echo "Usage: review_code_pr <<stash | stash_dependencies | all >> << template file >> "
+    echo "Usage: review_code_pr <<Context:[stash|stash_dependencies|all]>> <<Command file>> <<Persona file>>"
+    echo "Where:"
+    echo ""
+    echo "Context:"
+    echo "Command:"
+    echo "Persona:"
+
     return 1
   fi
 
   _clean_intermediate_files
+
+  SOURCE_PATH="${(%):-%x}"
+  echo "" > ./review_pr_complete.md
+  cat "$(dirname -- $SOURCE_PATH)/./$3" >> ./review_pr_complete.md
 
   _review_pr_complete_instructions $1 $2
   if [[ -z "./review_pr_complete.md" ]]; then
@@ -211,8 +252,9 @@ function _review_code_pr(){
 
   DATE=$(date -u '+%Y%m%d.%H%M%S')
   arr=(${=PR_MODELS_TO_RUN})
+  GITROOT=$(_find_git_root)
 
-  INSTRUCTIONS_FILE="$DATE.review_pr_complete.md"
+  INSTRUCTIONS_FILE="$DATE.$GITROOT.review_pr_complete.md"
   mv review_pr_complete.md $INSTRUCTIONS_FILE
   INPUT=$(cat $INSTRUCTIONS_FILE | jq -sR @json)
   if [[ -n "${AI_BACKUP_PR_FOLDER}" ]]; then
@@ -227,3 +269,4 @@ alias create_pr_complete=_create_pr_complete
 alias create_pr_only_description=_create_pr_only_description
 alias generate_pr_description=_generate_pr_description
 alias review_code_pr=_review_code_pr
+alias find_git_root=_find_git_root
