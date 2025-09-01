@@ -1,3 +1,31 @@
+function _find_git_root() {
+  # Navigate directory structure upwards to find the Git repository root
+  # Returns only the directory name (basename), not the full path
+  local current_dir
+  current_dir=$(pwd)
+  
+  while [[ "$current_dir" != "" ]]; do
+    if [[ -d "$current_dir/.git" ]]; then
+      # Get just the directory name, not the full path
+      echo "$(basename "$current_dir")"
+      return 0
+    fi
+    
+    # Stop if we've reached the filesystem root
+    if [[ "$current_dir" == "/" ]]; then
+      echo ""
+      return 1
+    fi
+    
+    # Move up one directory
+    current_dir=$(dirname "$current_dir")
+  done
+  
+  # If we get here, no .git directory was found
+  echo ""
+  return 1
+}
+
 function _create_pr_only_description(){
   # Check if at least one argument is provided
   if [ $# -eq 0 ]; then
@@ -133,15 +161,18 @@ function _generate_pr_description(){
 
   DATE=$(date -u '+%Y%m%d.%H%M%S')
   arr=(${=PR_MODELS_TO_RUN})
+  GITROOT=$(_find_git_root)
 
-  INSTRUCTIONS_FILE="$DATE.create_pr_complete.md"
+  INSTRUCTIONS_FILE="$DATE.$GITROOT.create_pr_complete.md"
   mv create_pr_complete.md $INSTRUCTIONS_FILE
   INPUT=$(cat $INSTRUCTIONS_FILE | jq -sR @json)
   if [[ -n "${AI_BACKUP_PR_FOLDER}" ]]; then
       mv $INSTRUCTIONS_FILE "$AI_BACKUP_PR_FOLDER"
   fi
 
-  for ((i=1; i<=${#arr[@]}; i+=2)); do
+  # Only execute the loop if arr is not empty
+  if [[ ${#arr[@]} -gt 0 ]]; then
+    for ((i=1; i<=${#arr[@]}; i+=2)); do
       model_name="${arr[i]}"
       model_slug="${arr[i+1]}"
       export LANG=en_US.UTF-8
@@ -162,7 +193,8 @@ function _generate_pr_description(){
       if [[ -n "${AI_BACKUP_PR_FOLDER}" ]]; then
           mv "$OUTPUT" "$AI_BACKUP_PR_FOLDER"
       fi
-  done
+    done
+  fi
 }
 
 function _review_pr_complete_instructions(){
@@ -194,33 +226,6 @@ function _clean_intermediate_files(){
   rm -f ./review_pr_complete.md 2>/dev/null
 }
 
-function _find_git_root() {
-  # Navigate directory structure upwards to find the Git repository root
-  # Returns only the directory name (basename), not the full path
-  local current_dir
-  current_dir=$(pwd)
-  
-  while [[ "$current_dir" != "" ]]; do
-    if [[ -d "$current_dir/.git" ]]; then
-      # Get just the directory name, not the full path
-      echo "$(basename "$current_dir")"
-      return 0
-    fi
-    
-    # Stop if we've reached the filesystem root
-    if [[ "$current_dir" == "/" ]]; then
-      echo ""
-      return 1
-    fi
-    
-    # Move up one directory
-    current_dir=$(dirname "$current_dir")
-  done
-  
-  # If we get here, no .git directory was found
-  echo ""
-  return 1
-}
 
 
 function _review_code_pr(){
