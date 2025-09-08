@@ -118,5 +118,10 @@ export PYENV_ROOT="$HOME/.pyenv"
 command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
 
+source ~/git/000.INFRA/dotfiles/prompts/prompts.sh
+source ~/git/000.INFRA/dotfiles/prompts/summarize.sh
+
+alias litellm_proxy="litellm --config ~/git/000.INFRA/dotfiles/prompts/litellm/litellm.config.yaml"
+
 cd
 
