@@ -5,6 +5,12 @@
 # model_list defines the available models.
 # You can define custom names (model_name) and map them to specific provider models (litellm_params.model).
 model_list:
+  - model_name: grok-code-fast-1
+    litellm_params:
+      model: openrouter/x-ai/grok-code-fast-1
+      api_base: https://openrouter.ai/api/v1
+      api_key: "os.environ/OPENROUTER_API_KEY"  # This tells litellm to get the API key from an environment variable named OPENROUTER_API_KEY.
+      temperature: 0
   - model_name: qwen3-coder-free               # This is the friendly, custom name you'll use in your application code.
     litellm_params:
       model: openrouter/qwen/qwen3-coder:free
