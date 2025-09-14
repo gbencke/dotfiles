@@ -181,6 +181,21 @@ function _review_pr_complete_instructions(){
         cat ./code2prompt.md >> ./review_pr_complete.md
         return 1
       ;;
+      "staged_diff" )
+        code2prompt -O ./code2prompt.md -e review_pr_complete.md . 
+        cat "$(dirname -- $SOURCE_PATH)/./$2" >> ./review_pr_complete.md
+        cat ./code2prompt.md >> ./review_pr_complete.md
+        echo "**Input:**
+        - List of Changed Files: \n " >> create_pr_complete.md
+
+        git diff -U10 --staged --name-only >> create_pr_complete.md
+
+        echo " \n## Pull Request Review Description Template for LLM
+        - Relevant Diff or Code Snippet (optional): \n \n " >> create_pr_complete.md
+
+        git diff -U10 --staged  >> create_pr_complete.md
+        return 1
+      ;;
       * )
         echo "Error please provide the files to be added"
         return 1
