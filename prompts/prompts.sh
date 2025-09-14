@@ -194,6 +194,56 @@ function _review_pr_complete_instructions(){
         git diff -U10 --staged  >> review_pr_complete.md
         return 1
       ;;
+
+      "staged_diff_simple" )
+        echo "# Pull Request Review Description Template for LLM
+
+        Use this template to prompt a Large Language Model (LLM) to generate an insightful, actionable, and well-structured pull request review description.
+        Please use english language and the output needs to be in markdown format.
+
+        ---
+
+        ## Prompt Template
+
+        You are an experienced software engineer and code reviewer. Given the following pull request details, generate a thorough, constructive, and actionable pull request review description. Be specific, clear, and concise.
+
+        **Instructions:**
+        Summarize the purpose and scope of the pull request in 1–2 sentences.
+        - List the main changes introduced, referencing relevant files or modules.
+        - List the main changes introduced, per changed file.
+        - Point out strengths or well-implemented aspects.
+        - Maintain a positive and professional tone.
+
+        **Input:**
+        - Pull Request Description: $(echo $1)
+        - List of Changed Files: \n " >> review_pr_complete.md
+
+        git diff -U10 --staged --name-only >> review_pr_complete.md
+
+        echo " \n## Pull Request Review Description Template for LLM
+        - Relevant Diff or Code Snippet (optional): \n \n " >> review_pr_complete.md
+
+        git diff -U10 --staged  >> review_pr_complete.md
+
+        echo " **Pull Request Review**
+
+        **Summary:**
+        - {{LLM generates a brief summary of the PRs purpose and scope in markdown format.}}
+
+        **Main Changes:**
+        - {{LLM lists and briefly explains the key changes in markdown format.}}
+
+        **Detailed Changes:**
+        - {{LLM describes the changes for each modified file in markdown format}}
+
+        ---
+
+        **Review Tone:**
+        - Supportive, clear, and focused on code quality and collaboration in markdown format.
+
+        ---
+
+        **End of Template**" >> review_pr_complete.md
       * )
         echo "Error please provide the files to be added"
         return 1
