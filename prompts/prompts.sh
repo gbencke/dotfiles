@@ -242,14 +242,22 @@ function _review_code_pr(){
 
   # Check if exactly 2 arguments are provided: files_to_be_included and template_file
   if [[ $# -lt 3 ]]; then
+    echo ""
     echo "Error: Please enter the template to use and also the files to be reviewed:"
-    echo "Usage: review_code_pr <<Context:[stash|stash_dependencies|all]>> <<Command file>> <<Persona file>>"
+    echo ""
+    echo "Usage: review_code_pr <<Context Window:[stash|stash_dependencies|all]>> <<Command file>> <<Persona file>>"
     echo "Where:"
     echo ""
-    echo "Context:"
-    echo "Command:"
-    echo "Persona:"
-
+    echo "* **Context Window**: This is the type of context that will be used for this command"
+    echo ""
+    echo "* **Command**: the command prompt, there are the following:"
+    echo "    pr_guidelines_architecture: general prompt for architectural review"
+    echo "    pyramid_refactoring: prompt for pyramid refactoring type of review"
+    echo ""
+    echo "* **Persona**: The characteristics of the person or guidelines:"
+    echo "    bootstrap_promp: Complete guidelines"
+    echo "    good_general_guideline: Simple guidelines"
+    echo ""
     return 1
   fi
 
