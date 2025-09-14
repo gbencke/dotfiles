@@ -239,24 +239,23 @@ function _find_git_root() {
 
 
 function _review_code_pr(){
-
   # Check if exactly 2 arguments are provided: files_to_be_included and template_file
   if [[ $# -lt 3 ]]; then
     echo ""
-    echo "Error: Please enter the template to use and also the files to be reviewed:"
+    echo -e "\033[31mError: Please enter the template to use and also the files to be reviewed:\033[0m"
     echo ""
-    echo "Usage: review_code_pr <<Context Window:[stash|stash_dependencies|all]>> <<Command file>> <<Persona file>>"
-    echo "Where:"
+    echo -e "\033[33mUsage: review_code_pr <<Context Window:[staged|staged_dependencies|staged_diff|all]>> <<Command file>> <<Persona file>>\033[0m"
+    echo -e "\033[34mWhere:\033[0m"
     echo ""
-    echo "* **Context Window**: This is the type of context that will be used for this command"
+    echo -e "* \033[1mContext Window\033[0m: This is the type of context that will be used for this command"
     echo ""
-    echo "* **Command**: the command prompt, there are the following:"
-    echo "    pr_guidelines_architecture: general prompt for architectural review"
-    echo "    pyramid_refactoring: prompt for pyramid refactoring type of review"
+    echo -e "* \033[1mCommand\033[0m: the command prompt, there are the following:"
+    echo -e "    \033[3mpr_guidelines_architecture\033[0m: general prompt for architectural review"
+    echo -e "    \033[3mpyramid_refactoring\033[0m: prompt for pyramid refactoring type of review"
     echo ""
-    echo "* **Persona**: The characteristics of the person or guidelines:"
-    echo "    bootstrap_promp: Complete guidelines"
-    echo "    good_general_guideline: Simple guidelines"
+    echo -e "* \033[1mPersona\033[0m: The characteristics of the person or guidelines:"
+    echo -e "    \033[3mbootstrap_prompt\033[0m: Complete guidelines"
+    echo -e "    \033[3mgood_general_guideline\033[0m: Simple guidelines"
     echo ""
     return 1
   fi
