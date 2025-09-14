@@ -184,14 +184,14 @@ function _review_pr_complete_instructions(){
       "staged_diff" )
         cat "$(dirname -- $SOURCE_PATH)/./pr.guides/$2" >> ./review_pr_complete.md
         echo "**Input:**
-        - List of Changed Files: \n " >> create_pr_complete.md
+        - List of Changed Files: \n " >> review_pr_complete.md
 
-        git diff -U10 --staged --name-only >> create_pr_complete.md
+        git diff -U10 --staged --name-only >> review_pr_complete.md
 
         echo " \n## Pull Request Review Description Template for LLM
-        - Relevant Diff or Code Snippet (optional): \n \n " >> create_pr_complete.md
+        - Relevant Diff or Code Snippet (optional): \n \n " >> review_pr_complete.md
 
-        git diff -U10 --staged  >> create_pr_complete.md
+        git diff -U10 --staged  >> review_pr_complete.md
         return 1
       ;;
       * )
