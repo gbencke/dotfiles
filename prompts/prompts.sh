@@ -167,7 +167,7 @@ function _generate_pr_description(){
 
 function _review_pr_complete_instructions(){
   case $1 in
-      "stash" )
+      "staged" )
         SOURCE_PATH="${(%):-%x}"
         files=$( git diff --name-only --cached)
         files_=$(echo "$files" | paste -sd ',' -)
@@ -175,7 +175,7 @@ function _review_pr_complete_instructions(){
         cat ./code2prompt.md > ./review_pr_complete.md
         cat "$(dirname -- $SOURCE_PATH)/./$2" >> ./review_pr_complete.md
       ;;
-      "stash_dependencies" | "all" )
+      "staged_dependencies" | "all" )
         code2prompt -O ./code2prompt.md -e review_pr_complete.md . 
         cat "$(dirname -- $SOURCE_PATH)/./$2" >> ./review_pr_complete.md
         cat ./code2prompt.md >> ./review_pr_complete.md
