@@ -244,6 +244,8 @@ function _review_pr_complete_instructions(){
         ---
 
         **End of Template**" >> review_pr_complete.md
+        return 1
+      ;;
       * )
         echo "Error please provide the files to be added"
         return 1
