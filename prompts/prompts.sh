@@ -173,17 +173,17 @@ function _review_pr_complete_instructions(){
         files_=$(echo "$files" | paste -sd ',' -)
         code2prompt -O ./code2prompt.md -i $files_ . 
         cat ./code2prompt.md > ./review_pr_complete.md
-        cat "$(dirname -- $SOURCE_PATH)/./$2" >> ./review_pr_complete.md
+        cat "$(dirname -- $SOURCE_PATH)/./pr.guides/$2" >> ./review_pr_complete.md
       ;;
       "staged_dependencies" | "all" )
         code2prompt -O ./code2prompt.md -e review_pr_complete.md . 
-        cat "$(dirname -- $SOURCE_PATH)/./$2" >> ./review_pr_complete.md
+        cat "$(dirname -- $SOURCE_PATH)/./pr.guides/$2" >> ./review_pr_complete.md
         cat ./code2prompt.md >> ./review_pr_complete.md
         return 1
       ;;
       "staged_diff" )
         code2prompt -O ./code2prompt.md -e review_pr_complete.md . 
-        cat "$(dirname -- $SOURCE_PATH)/./$2" >> ./review_pr_complete.md
+        cat "$(dirname -- $SOURCE_PATH)/./pr.guides/$2" >> ./review_pr_complete.md
         cat ./code2prompt.md >> ./review_pr_complete.md
         echo "**Input:**
         - List of Changed Files: \n " >> create_pr_complete.md
@@ -264,7 +264,7 @@ function _review_code_pr(){
 
   SOURCE_PATH="${(%):-%x}"
   echo "" > ./review_pr_complete.md
-  cat "$(dirname -- $SOURCE_PATH)/./$3" >> ./review_pr_complete.md
+  cat "$(dirname -- $SOURCE_PATH)/./guidelines/$3" >> ./review_pr_complete.md
 
   _review_pr_complete_instructions $1 $2
   if [[ -z "./review_pr_complete.md" ]]; then
