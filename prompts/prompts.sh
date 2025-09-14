@@ -182,9 +182,7 @@ function _review_pr_complete_instructions(){
         return 1
       ;;
       "staged_diff" )
-        code2prompt -O ./code2prompt.md -e review_pr_complete.md . 
         cat "$(dirname -- $SOURCE_PATH)/./pr.guides/$2" >> ./review_pr_complete.md
-        cat ./code2prompt.md >> ./review_pr_complete.md
         echo "**Input:**
         - List of Changed Files: \n " >> create_pr_complete.md
 
