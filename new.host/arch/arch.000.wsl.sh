@@ -9,7 +9,7 @@
     pacman -Syyu --noconfirm
     pacman -R --noconfirm vim
     pacman -Sy --noconfirm sudo git curl tmux gvim mc tig p7zip htop mc wget unzip zsh protobuf
-    pacman -Sy --noconfirm tree nano dos2unix bc graphviz ctags gitui tldr
+    pacman -Sy --noconfirm tree nano dos2unix bc graphviz ctags gitui tldr base-devel
     pacman -Sy --noconfirm rsync ranger virtualgl  i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
     pacman -Sy --noconfirm w3m mediainfo libcaca highlight unrar scrot tidy shellcheck alacritty ttf-liberation
     pacman -Sy --noconfirm gtk2 xorg-xhost dmenu perl lsof libnotify libxss gtk3 nss go fakeroot
@@ -29,8 +29,8 @@
 
     $SHELL
 
-    pyenv install 3.10.10
-    pyenv global 3.10.10
+    pyenv install 3.13.1
+    pyenv global 3.13.1
 
     git config --global user.email "gbencke@benckesoftware.com.br"  
     git config --global user.name "Guilherme Bencke"  
@@ -64,7 +64,7 @@
     chmod 755 -R /var/git 
     chmod 755 /root
     cd /var/git/000.INFRA
-    git clone http://github.com/gbencke/dotfiles/
+    git clone https://github.com/gbencke/dotfiles/ /var/git/000.INFRA/dotfiles
     cp -r /var/git/000.INFRA/dotfiles/new.host/wallpaper ~/Wallpapers
     cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/xstartup ~/.vnc/xstartup
     cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/config ~/.vnc/config
