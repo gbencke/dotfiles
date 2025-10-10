@@ -105,5 +105,9 @@ Remember: Clear writing is clear thinking. If you can't write it simply, you don
 
 ## PR Creation Guidelines
 1. Make sure to remove any mention to Claude in the PR Description
-2. DEscribe in detail thje changes made 
+2. Describe in detail the changes made 
+
+## Commit Creation Guidelines
+1. Make sure to remove any mention to Claude in the PR Description
+2. Describe in detail the changes made 
 
