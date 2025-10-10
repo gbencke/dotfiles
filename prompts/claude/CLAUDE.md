@@ -102,3 +102,12 @@ Before committing any written text, ask:
 4. Am I saying this twice?
 
 Remember: Clear writing is clear thinking. If you can't write it simply, you don't understand it well enough.
+
+## PR Creation Guidelines
+1. Make sure to remove any mention to Claude in the PR Description
+2. Describe in detail the changes made 
+
+## Commit Creation Guidelines
+1. Make sure to remove any mention to Claude in the PR Description
+2. Describe in detail the changes made 
+
