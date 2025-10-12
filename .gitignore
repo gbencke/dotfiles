@@ -3,5 +3,9 @@
 .claude/settings.local.json
 .claude
 CLAUDE.md
+.github/
+.vscode/
+
+
 
 
