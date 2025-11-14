@@ -30,11 +30,317 @@ alias move_gitea='git remote remove origin; git remote add origin http://gitea:3
 alias node_modules_jest='tsc; node --inspect-brk node_modules/jest/bin/jest.js'
 
 alias jt=jetbrains-toolbox
+alias vim=nvim
+alias gvim=nvim
 
-alias vim=neovide
-alias gvim=neovide
+# AWS profile switching functions
+switch_bencke_func(){
+    cp ~/.aws/config.bencke ~/.aws/config;
+    cp ~/.aws/credentials.bencke ~/.aws/credentials;
+    unset AWS_PROFILE;
+}
 
-# eval "$(pyenv init -)"
+switch_serviceai_func(){
+    cp ~/.aws/config.serviceai ~/.aws/config;
+    cp ~/.aws/credentials.serviceai ~/.aws/credentials;
+    export AWS_PROFILE=serviceai-prod;
+    aws codeartifact login --tool npm --repository services-ai-sdk --domain servicesai-code-artifacts --region us-east-1;
+}
+
+switch_adlumin_func(){
+    cp ~/.aws/config.adlumin ~/.aws/config;
+    cp ~/.aws/credentials.adlumin ~/.aws/credentials;
+    unset AWS_PROFILE;
+}
+
+remove_husky(){
+    sed -i -e 's/hooksPath = .husky//g' .git/config
+}
+
+remove_cdkout(){
+    find . -type d -name cdk.out -exec rm -rf {} \;
+}
+
+remove_node_modules(){
+    find . -type d -name node_modules -exec rm -rf {} \;
+}
+
+search_desktop(){
+    # nmap -p3389 "192.168.15.*" -oG -
+    nmap 192.168.15.1-15  -p3389   -Pn
+}
+
+list_remotes(){
+  for a in $(ls -1 ); do
+    echo $a
+    cd $a
+    git remote -v
+    cd ..
+  done
+}
+
+eslint_changes(){
+  export FILES_TO_CHECK=$(git diff --name-only  $(git merge-base HEAD master  2> /dev/null || git merge-base HEAD main 2> /dev/null ) | tr '\n' ' ')
+  echo $FILES_TO_CHECK
+  eval "docker run -it --rm -v $(pwd):/data dockerized-eslint -c /config/eslint.config.ts $FILES_TO_CHECK"
+}
+
+flake8_changes(){
+  export FILES_TO_CHECK=$(git diff --name-only  $(git merge-base HEAD master  2> /dev/null || git merge-base HEAD main 2> /dev/null ) | tr '\n' ' ')
+  echo $FILES_TO_CHECK
+  eval "flake8 --select=WPS $FILES_TO_CHECK"
+}
+
+changed_files(){
+  export BASE_COMMIT=$(git merge-base HEAD master 2> /dev/null || git merge-base HEAD main 2> /dev/null)
+  git diff --name-only $BASE_COMMIT | tr '\n' ' '
+}
+
+run_code(){
+  NODE_OPTIONS= code $PWD
+}
+
+yt_download(){
+    CDATE=$(date '+%Y%m%d%H%M')
+    echo $CDATE
+    yt-dlp -f bv+ba/b --restrict-filenames --remux-video mkv --merge-output-format mkv   -o "$CDATE.%(title)s.%(id)s.%(ext)s" $1
+}
+
+diff_obsidian(){
+    set +x
+    echo 'Will run diff'
+    diff -C 10 /mnt/d/GoogleDrive/Pessoal/gitjournal/assets/00.Daily/$(date '+%Y.%m.%d').md /mnt/d/GoogleDrive/Pessoal/gitjournal/assets/00.Daily/00._Template/CurrentTasks.md
+}
+
+alias git_changed_files=changed_files
+alias git_eslint_changes=eslint_changes
+alias switch_bencke=switch_bencke_func
+alias switch_serviceai=switch_serviceai_func
+alias switch_adlumin=switch_adlumin_func
+alias removeHusky=remove_husky
+alias removeCdkout=remove_cdkout
+alias removeNodeModules=remove_node_modules
+alias diffObsidian=diff_obsidian
+alias listremotes=list_remotes
+alias searchdesktop=search_desktop
+alias runCode=run_code
+alias df=duf --theme dark
+alias yt=yt_download
+
+# Android SDK paths (Linux)
+export DEFAULT_AVD=Teste
+export ANDROID_HOME=~/Android/Sdk
+export QT_QPA_PLATFORMTHEME='qt5ct'
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+export PATH=$PATH:$ANDROID_HOME/emulator
+export PATH=$PATH:$ANDROID_HOME/tools/bin
+
+# Haxe configuration
+export HAXE_STD_PATH="/opt/homebrew/lib/haxe/std"
+export LOCAL_DATETIME=$(date +"%Y-%m-%dT%H:%M:%S%z")
+
+export PYENV_ROOT="$HOME/.pyenv"
+command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
+# Additional paths
+export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
+export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
+export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"
+export JAVA_HOME="/opt/homebrew/opt/openjdk@17"
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+export PATH="$PATH:$HOME/go/bin"
+export PATH="$PATH:$HOME/.dotnet/tools"
+export PATH="$PATH:/usr/local/lib/libreoffice/program"
+
+# Database configuration
+export PG_POSTGRESS_PASSWORD_BASE64='<<SECRET>>'
+export PG_SU_PASSWORD='<<SECRET>>'
+export PG_POSTGRES_PORT=5432
+export PYSCRAPPERJOB_DUMP_FILE=20250316170001.dump
+export PYSCRAPPERJOB_DUMP_DIR=~/Downloads
+export PYSCRAPPERJOB_DUMP=$PYSCRAPPERJOB_DUMP_DIR/$PYSCRAPPERJOB_DUMP_FILE
+# export GITHUB_TOKEN='<<SECRET>>'
+
+# Auto git refresh script
+FILE=~/.last_git_refresh
+OLDTIME=600
+CURTIME=$(date +%s)
+
+# Check if file exists before getting modification time
+if [ -f "$FILE" ]; then
+    # Linux uses different stat syntax than macOS
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        FILETIME=$(stat -c %Y "$FILE" 2>/dev/null)
+    else
+        FILETIME=$(stat -t %s -f %m "$FILE" 2>/dev/null)
+    fi
+    TIMEDIFF=$(expr $CURTIME - $FILETIME)
+else
+    # File doesn't exist, assume it's old
+    TIMEDIFF=$((OLDTIME + 1))
+fi
+
+# Check if file older
+if [ $TIMEDIFF -gt $OLDTIME ]; then
+   echo "File is older, do stuff here"
+   cd ~/gitjournal/
+   git add .
+   git commit -m "$LOCAL_DATETIME"
+   git push origin --all
+   git push oracle --all
+   git pull origin master
+   git pull oracle master
+
+   cd ~/Desktop/
+   git add .
+   git commit -m "$LOCAL_DATETIME"
+   git push origin --all
+   git pull origin master
+
+   cd ~/git/296.traggo.scripts/
+   git add .
+   git commit -m "$LOCAL_DATETIME"
+   git push origin --all
+   git pull origin master
+
+   cd ~/git/295.DataGrip.Personal.Projects
+   git add .
+   git commit -m "$LOCAL_DATETIME"
+   git push origin --all
+   git pull origin master
+
+   source ~/.cargo/env
+
+   clear
+   touch $FILE
+   cd
+fi
+
+# AI/API Keys
+export OPENAI_KEY='<<SECRET>>'
+export OPENROUTER_API_KEY='<<SECRET>>'
+# export GEMINI_API_KEY='<<SECRET>>'
+export AIDER_EDITOR=nvim
+export AI_BACKUP_PR_FOLDER=~/Desktop/AI/PRs
+# export PR_MODELS_TO_RUN="claude.3.7 anthropic/claude-3.7-sonnet kimi_k2 moonshotai/kimi-k2 qwen3_14b qwen/qwen3-14b:free deepseek deepseek/deepseek-r1-0528:free"
+export PR_MODELS_TO_RUN="claude.3.7 anthropic/claude-3.7-sonnet"
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:$HOME/.lmstudio/bin"
+# End of LM Studio CLI section
+
+# Arbitrium project functions
+function _arb_docker {
+  cp .env.jet .env
+  docker-compose up redis postgres
+}
+
+function _arb_composer {
+  docker rm arbitrium-school-api
+  docker image rm 301arbitrium-school-apigit-app
+  cp .env.docker-compose .env
+  docker compose up
+}
+
+function _midnight_commander {
+    it2profile -s mc;
+    LANG=en_EN.UTF-9 mc;
+}
+
+# Neovim Configuration Cleaner (Bash version)
+# Cleans all XDG-compliant Neovim directories (config, data, cache, state)
+nvim-clean() {
+  # Leverage current shell's environment
+  local xdg_config="${XDG_CONFIG_HOME:-$HOME/.config}"
+  local xdg_data="${XDG_DATA_HOME:-$HOME/.local/share}"
+  local xdg_cache="${XDG_CACHE_HOME:-$HOME/.cache}"
+  local xdg_state="${XDG_STATE_HOME:-$HOME/.local/state}"
+
+  # Neovim directories following XDG spec (bash associative array)
+  declare -A nvim_dirs=(
+    [config]="$xdg_config/nvim"
+    [data]="$xdg_data/nvim"
+    [cache]="$xdg_cache/nvim"
+    [state]="$xdg_state/nvim"
+  )
+
+  echo "Neovim Configuration Cleaner"
+  echo "============================"
+  echo ""
+
+  # Enumerate targets
+  echo "Directories to remove:"
+  echo ""
+  for key in "${!nvim_dirs[@]}"; do
+    value="${nvim_dirs[$key]}"
+    if [[ -d "$value" ]]; then
+      echo "  [$key] $value (EXISTS)"
+    else
+      echo "  [$key] $value (not found)"
+    fi
+  done
+
+  echo ""
+  echo "⚠️  This will:"
+  echo "  • Remove all configuration files"
+  echo "  • Delete installed plugins"
+  echo "  • Clear undo history and state"
+  echo "  • Remove cache and compiled files"
+  echo ""
+
+  # Interactive confirmation (bash version)
+  read -p "Proceed? (y/n) " -n 1 -r REPLY
+  echo
+
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Cancelled."
+    return 0
+  fi
+
+  # Execute removal
+  for key in "${!nvim_dirs[@]}"; do
+    value="${nvim_dirs[$key]}"
+    if [[ -d "$value" ]]; then
+      echo "Removing $key: $value"
+      rm -rf "$value"
+    fi
+  done
+
+  echo ""
+  echo "✓ Neovim configuration cleaned"
+  echo "Next launch will start fresh"
+}
+
+# Arbitrium development environment
+export NODE_ENV=development
+export ARB_API_DEV=true
+export EDITOR=nvim
+
+alias arb_back='nvm use && cp .env.jet .env && npm run build && node --inspect-brk ./dist/Index.js'
+alias arb_consumer='npm run build && node --inspect-brk=127.0.0.1:9230 ./dist/Consumers.js'
+alias arb_scheduler='npm run build && node --inspect-brk=127.0.0.1:9231 ./dist/Scheduler.js'
+alias arb_docker=_arb_docker
+alias arb_composer=_arb_composer
+alias arb_back_jest='nvm use && cp .env.jest .env && npm run build && node --inspect-brk ./dist/Index.js'
+alias midnight_commander=_midnight_commander
+alias nvc='nvim-clean'
+
+source ~/git/000.INFRA/dotfiles/prompts/scripts/prompts.sh
+source ~/git/000.INFRA/dotfiles/prompts/scripts/summarize.sh
+
+alias litellm_proxy="litellm --config ~/git/000.INFRA/dotfiles/prompts/tools/litellm/litellm.config.yaml"
+
+# Service API keys
+export AWS_REGION=us-east-1
+export EXA_KEY_TOKEN='<<SECRET>>'
+export GITEA_TOKEN='<<SECRET>>'
+export GITEA_ACCESS_TOKEN=$GITEA_TOKEN
+export CONTEXT7_API_KEY='<<SECRET>>'
+export HF_TOKEN='<<SECRET>>'
+
+export UV_ENV_FILE=.env
 
 cd
 
