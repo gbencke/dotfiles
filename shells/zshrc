@@ -103,9 +103,6 @@ yt_download(){
 
 alias git_changed_files=changed_files
 alias git_eslint_changes=eslint_changes
-alias switch_bencke=switch_bencke_func
-alias switch_serviceai=switch_serviceai_func
-alias switch_adlumin=switch_adlumin_func
 alias removeHusky=remove_husky
 alias removeCdkout=remove_cdkout
 alias removeNodeModules=remove_node_modules
@@ -215,19 +212,6 @@ export PR_MODELS_TO_RUN="claude.3.7 anthropic/claude-3.7-sonnet"
 export PATH="$PATH:$HOME/.lmstudio/bin"
 # End of LM Studio CLI section
 
-# Arbitrium project functions
-function _arb_docker {
-  cp .env.jet .env
-  docker-compose up redis postgres
-}
-
-function _arb_composer {
-  docker rm arbitrium-school-api
-  docker image rm 301arbitrium-school-apigit-app
-  cp .env.docker-compose .env
-  docker compose up
-}
-
 function _midnight_commander {
     it2profile -s mc;
     LANG=en_EN.UTF-9 mc;
@@ -292,12 +276,6 @@ export NODE_ENV=development
 export ARB_API_DEV=true
 export EDITOR=nvim
 
-alias arb_back='nvm use && cp .env.jet .env && npm run build && node --inspect-brk ./dist/Index.js'
-alias arb_consumer='npm run build && node --inspect-brk=127.0.0.1:9230 ./dist/Consumers.js'
-alias arb_scheduler='npm run build && node --inspect-brk=127.0.0.1:9231 ./dist/Scheduler.js'
-alias arb_docker=_arb_docker
-alias arb_composer=_arb_composer
-alias arb_back_jest='nvm use && cp .env.jest .env && npm run build && node --inspect-brk ./dist/Index.js'
 alias midnight_commander=_midnight_commander
 alias nvc='nvim-clean'
 

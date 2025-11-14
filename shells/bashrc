@@ -1,16 +1,3 @@
-
-if [ "$EUID" -eq 0 ]
-  then xhost + || true
-fi
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-export _JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=on -Dswing.aatext=true'
-
-if ! [[ $(which npm) = *"18.17.1"* ]]; then
-        nvm install v18.17.1
         nvm alias default v18.17.1
 fi
 
@@ -32,26 +19,6 @@ alias node_modules_jest='tsc; node --inspect-brk node_modules/jest/bin/jest.js'
 alias jt=jetbrains-toolbox
 alias vim=nvim
 alias gvim=nvim
-
-# AWS profile switching functions
-switch_bencke_func(){
-    cp ~/.aws/config.bencke ~/.aws/config;
-    cp ~/.aws/credentials.bencke ~/.aws/credentials;
-    unset AWS_PROFILE;
-}
-
-switch_serviceai_func(){
-    cp ~/.aws/config.serviceai ~/.aws/config;
-    cp ~/.aws/credentials.serviceai ~/.aws/credentials;
-    export AWS_PROFILE=serviceai-prod;
-    aws codeartifact login --tool npm --repository services-ai-sdk --domain servicesai-code-artifacts --region us-east-1;
-}
-
-switch_adlumin_func(){
-    cp ~/.aws/config.adlumin ~/.aws/config;
-    cp ~/.aws/credentials.adlumin ~/.aws/credentials;
-    unset AWS_PROFILE;
-}
 
 remove_husky(){
     sed -i -e 's/hooksPath = .husky//g' .git/config
@@ -114,9 +81,6 @@ diff_obsidian(){
 
 alias git_changed_files=changed_files
 alias git_eslint_changes=eslint_changes
-alias switch_bencke=switch_bencke_func
-alias switch_serviceai=switch_serviceai_func
-alias switch_adlumin=switch_adlumin_func
 alias removeHusky=remove_husky
 alias removeCdkout=remove_cdkout
 alias removeNodeModules=remove_node_modules
@@ -231,18 +195,6 @@ export PR_MODELS_TO_RUN="claude.3.7 anthropic/claude-3.7-sonnet"
 export PATH="$PATH:$HOME/.lmstudio/bin"
 # End of LM Studio CLI section
 
-# Arbitrium project functions
-function _arb_docker {
-  cp .env.jet .env
-  docker-compose up redis postgres
-}
-
-function _arb_composer {
-  docker rm arbitrium-school-api
-  docker image rm 301arbitrium-school-apigit-app
-  cp .env.docker-compose .env
-  docker compose up
-}
 
 function _midnight_commander {
     it2profile -s mc;
@@ -318,12 +270,6 @@ export NODE_ENV=development
 export ARB_API_DEV=true
 export EDITOR=nvim
 
-alias arb_back='nvm use && cp .env.jet .env && npm run build && node --inspect-brk ./dist/Index.js'
-alias arb_consumer='npm run build && node --inspect-brk=127.0.0.1:9230 ./dist/Consumers.js'
-alias arb_scheduler='npm run build && node --inspect-brk=127.0.0.1:9231 ./dist/Scheduler.js'
-alias arb_docker=_arb_docker
-alias arb_composer=_arb_composer
-alias arb_back_jest='nvm use && cp .env.jest .env && npm run build && node --inspect-brk ./dist/Index.js'
 alias midnight_commander=_midnight_commander
 alias nvc='nvim-clean'
 
