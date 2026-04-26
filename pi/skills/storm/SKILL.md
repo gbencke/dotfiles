@@ -60,3 +60,4 @@ Always maintain state and artifacts in a `.storm/<topic-slug>/` directory create
 - **Be exhaustive:** Maximize the parameters of search tools to ingest as much information as context limits allow.
 - **Strictly Grounded:** During Phase 2, you are forbidden from hallucinating facts or searching the web. You must only use information explicitly stored in `.storm/<topic-slug>/reference_store.json`.
 - **Halt and Catch Fire:** Do not skip human-in-the-loop checkpoints. Always wait for explicit user confirmation before moving to the next numbered step.
+- **Minimum length:** The final article (`final_article.md`) must contain at least **50,000 words**. Before saving, run `wc -w .storm/<topic-slug>/final_article.md` and keep expanding sections until the count is met. Every section must be substantive — no padding, no repetition. Reach the target through depth: more analysis, more examples, more evidence, more context.
