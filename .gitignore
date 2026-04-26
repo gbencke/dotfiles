@@ -5,6 +5,10 @@
 CLAUDE.md
 .github/
 .vscode/
+bin/
+auth.json
+sessions/
+
 
 
 
