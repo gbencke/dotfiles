@@ -21,6 +21,7 @@ Each directory contains tool-specific configurations with detailed READMEs.
 - **[shells/](shells/README.md)** - Bash and Zsh configurations
 - **[prompts/](prompts/README.md)** - AI-assisted development guidelines and tools
 - **[new.host/](new.host/README.md)** - New host setup scripts for Arch/Ubuntu/WSL
+- **[pi/](pi/)** - Configuration, skills, and extensions for the Pi AI Coding Agent
 - **npm/** - NPM package installation scripts
 - **icons/** - Desktop icons for Arch and Ubuntu
 - **wallpaper/** - Nature and Japanese-themed wallpapers
