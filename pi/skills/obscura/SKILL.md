@@ -1,5 +1,5 @@
 ---
-name: obscura-headless-browser
+name: obscura
 description: Web scraping and automation using the Obscura headless browser.
 ---
 
