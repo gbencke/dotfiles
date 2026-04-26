@@ -1,5 +1,5 @@
 ---
-name: ast-grep-lsp
+name: lsp
 description: Structural code analysis, navigation, and diagnostics using ast-grep.
 ---
 

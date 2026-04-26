@@ -1,5 +1,5 @@
 ---
-name: context7-docs
+name: context7
 description: Search the Context7 library index and fetch high-quality, version-accurate documentation snippets.
 ---
 

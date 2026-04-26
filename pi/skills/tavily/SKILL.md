@@ -1,5 +1,5 @@
 ---
-name: tavily-search
+name: tavily
 description: Perform AI-powered web searches to find documentation, troubleshoot errors, and summarize information.
 ---
 
