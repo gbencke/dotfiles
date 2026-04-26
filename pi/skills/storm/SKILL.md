@@ -5,126 +5,59 @@ description: Execute a deep research and writing pipeline using the STORM method
 
 # STORM Deep Research Skill
 
-This skill runs the STORM (Synthesis of Topic Outlines through Retrieval and Multi-perspective Question Answering) workflow. It turns a topic into a deeply researched, cited long-form article.
+This skill executes the STORM (Synthesis of Topic Outlines through Retrieval and Multi-perspective Question Answering) methodology. It transforms a topic into a comprehensive, deeply researched, and accurately cited long-form article.
 
-## Tools to Use
-Use the agent's native tools to run the pipeline:
-- `tavily_search`: Find broad source coverage. Use `max_results` aggressively and prefer `search_depth: 'advanced'` when coverage matters.
-- `obscura_web_scrape`: Read full pages when snippets are not enough.
-- `context7_search` / `context7_docs`: Use for software libraries and framework docs.
-- Local file tools (`write`, `edit`, `read`, `bash`): Keep all STORM artifacts in the local `.storm` directory.
-
-## Artifact Layout
-Always keep state in `.storm/<topic-slug>/` at the repository root.
-
-Use this structure:
-
-```text
-.storm/<topic-slug>/
-  topic.md
-  outline/
-    draft.md
-    refined.md
-  perspectives/
-    index.md
-    01-general/
-      perspective.md
-      conversation.md
-      research/
-        turn-01.md
-        turn-02.md
-    02-<perspective-slug>/
-      perspective.md
-      conversation.md
-      research/
-        turn-01.md
-        turn-02.md
-  references/
-    index.json
-    sources/
-      source-0001.json
-      source-0002.json
-  sections/
-    01-<section-slug>.md
-    02-<section-slug>.md
-  final_article.md
-```
-
-### File Rules
-- Each perspective must live in its own directory under `.storm/<topic-slug>/perspectives/`.
-- Each perspective directory must contain its own `perspective.md` and `conversation.md`.
-- Research must not be kept in one shared file. Save each research turn in its own file under that perspective's `research/` directory.
-- Store source material separately under `.storm/<topic-slug>/references/sources/`, with one file per source.
-- Keep `.storm/<topic-slug>/references/index.json` as the lookup table for citation ids, URLs, titles, and file paths.
+## Tools to Utilize
+You should use the agent's native capabilities to coordinate this pipeline:
+- `tavily_search`: To fetch as many web resources as possible. Maximize `max_results` (e.g., 20) and use `search_depth: 'advanced'` to ensure broad and deep coverage.
+- `obscura_web_scrape`: To extract full text from websites when deep reading is necessary for specific claims or when Tavily snippets are insufficient.
+- `context7_search` / `context7_docs`: When the topic involves software libraries, use this for accurate code documentation.
+- Local File Tools (`write`, `edit`, `read`, `bash`): To maintain the local `.storm` directory and its intermediate artifacts.
 
 ## Architecture & Workflow
-The workflow has two phases: **Pre-writing** and **Writing**. Stop at every human checkpoint.
+Always maintain state and artifacts in a `.storm/<topic-slug>/` directory created in the root of the current repository. The workflow is split into **Pre-writing** and **Writing**, with human-in-the-loop checkpoints at every stage.
 
 ### Phase 1: Pre-writing
-1. **Setup**
-   - Create a URL-safe topic slug.
-   - Create `.storm/<topic-slug>/` if missing.
-   - Initialize `topic.md`, `outline/`, `perspectives/`, `references/`, `references/sources/`, and `sections/`.
-   - Write the original topic and any user constraints to `.storm/<topic-slug>/topic.md`.
+1. **Setup & Initialization**
+   - Create a URL-safe slug from the user's topic (e.g., `golang-vs-rust-backend`).
+   - Create the `.storm/<topic-slug>/` directory if it does not exist.
+   - Initialize `.storm/<topic-slug>/reference_store.json` and `.storm/<topic-slug>/conversation_log.json`.
 
 2. **Perspective Discovery**
-   - Identify 5-7 distinct editorial perspectives.
-   - Always include one general perspective.
-   - Save the full list to `.storm/<topic-slug>/perspectives/index.md`.
-   - Create one directory per perspective, using a numbered slug such as `01-general`, `02-market-view`, `03-technical-view`.
-   - In each perspective directory, create `perspective.md` with:
-     - perspective name
-     - short description
-     - key questions to explore
-   - **Human-in-the-Loop Checkpoint 1:** Ask the user to review, add, remove, or rename perspectives before proceeding.
+   - Identify 5-7 distinct editorial perspectives based on the topic. Always include one "general perspective".
+   - **Human-in-the-Loop Checkpoint 1:** Stop and ask the user to review, add, or modify the generated perspectives before proceeding.
 
 3. **Simulated Conversation & Deep Research**
-   - Run a multi-turn Writer/Expert conversation for each perspective.
-   - Keep each perspective isolated in its own directory.
-   - Save the running Q&A transcript to that perspective's `conversation.md`.
-   - For each research turn, create a separate file in `research/turn-XX.md`.
-   - Each `turn-XX.md` file should include:
-     - the writer question
-     - the search queries used
-     - the sources reviewed
-     - the grounded findings
-     - open questions for the next turn
-   - When a source is used, save it as its own JSON file under `.storm/<topic-slug>/references/sources/`.
-   - Update `.storm/<topic-slug>/references/index.json` with the source id, URL, title, perspective, research turn, and source file path.
-   - Reuse existing source files when the same URL appears again. Do not create duplicates.
-   - **Human-in-the-Loop Checkpoint 2:** After the conversations finish, ask the user whether the source depth is enough or whether any perspective needs more research.
+   - For each perspective, simulate a multi-turn conversation between a "Writer" (who asks deep questions based on the perspective) and an "Expert" (who provides answers).
+   - In each turn, the Expert *must* use `tavily_search` (and `obscura_web_scrape` if needed) to gather evidence. Gather as many websites as possible.
+   - Append raw snippets to `.storm/reference_store.json` (keyed by URL/source).
+   - Append Q&A to `.storm/<topic-slug>/conversation_log.json`.
+   - **Human-in-the-Loop Checkpoint 2:** After finishing the conversation simulation, ask the user if the collected sources and Q&A depth are sufficient, or if a specific perspective needs more turns/research.
 
 4. **Outline Synthesis**
-   - Generate a draft outline from the topic alone.
-   - Save it to `.storm/<topic-slug>/outline/draft.md`.
-   - Refine the outline using the perspective conversations and research files.
-   - Save the refined version to `.storm/<topic-slug>/outline/refined.md`.
-   - Merge overlapping sections.
-   - **Human-in-the-Loop Checkpoint 3:** Present the refined outline and wait for approval.
+   - Generate a parametric draft outline based *only* on the topic.
+   - Refine the outline using the gathered `.storm/<topic-slug>/conversation_log.json`. Merge overlapping sections.
+   - Save to `.storm/<topic-slug>/outline.md`.
+   - **Human-in-the-Loop Checkpoint 3:** Present the refined outline to the user. Wait for approval or edits before writing begins.
 
 ### Phase 2: Writing
 1. **Section-by-Section Generation**
-   - Write each section from `.storm/<topic-slug>/outline/refined.md`.
-   - During writing, use only the closed local reference set in `.storm/<topic-slug>/references/`.
-   - Do not run new web searches during writing.
-   - Insert inline citation markers such as `[1]`, `[2]` that resolve through `references/index.json`.
-   - Save each section as its own file under `.storm/<topic-slug>/sections/`.
-   - **Human-in-the-Loop Checkpoint 4:** Ask whether the user wants to review each section or the assembled draft.
+   - For each section in `.storm/<topic-slug>/outline.md`, generate prose by querying the closed `.storm/<topic-slug>/reference_store.json` only.
+   - *Do not make external searches during writing.* All facts must be grounded in the reference store.
+   - Insert inline citation markers (e.g., `[1]`, `[2]`) linking back to the reference store.
+   - Save intermediate sections in `.storm/<topic-slug>/sections/`.
+   - **Human-in-the-Loop Checkpoint 4:** Present drafted sections to the user iteratively or ask if they prefer to review the full draft once assembled.
 
 2. **Polishing & Final Assembly**
-   - Assemble the final article from the section files.
-   - Add a lead summary.
-   - Deduplicate repeated content.
-   - Generate the final citation index from `references/index.json`.
-   - Append a **References** section at the end of the article. Render it as a Markdown table with columns: `#`, `Title`, `URL`, and `Perspective`. Include every source that appears in `references/index.json`, ordered by citation number.
-   - Save the article to `.storm/<topic-slug>/final_article.md`.
-   - **Human-in-the-Loop Checkpoint 5:** Request final review.
+   - Assemble the article. 
+   - Add a lead summary section.
+   - Deduplicate repeated content across sections.
+   - Generate a final citation index from the used references.
+   - Save the final output to `.storm/<topic-slug>/final_article.md` (or another appropriate name).
+   - **Human-in-the-Loop Checkpoint 5:** Request final review from the user.
 
 ## Execution Rules
-- **Be exhaustive:** Search broadly during research.
-- **Stay grounded:** During writing, use only the saved local references.
-- **Always cite sources:** Every URL visited or used during research must appear in `references/index.json` and in the final article's References table. No source may be dropped silently.
-- **Keep artifacts split:** Do not collapse perspectives into one shared conversation file. Do not collapse research turns into one shared research file.
-- **Keep filenames stable:** Use numbered directories and numbered turn files so reruns stay predictable.
-- **Stop at checkpoints:** Never skip a human approval step.
-- **Minimum length:** The final article (`final_article.md`) must contain at least **50,000 words**. Before saving, run `wc -w final_article.md` and keep expanding sections until the count is met. Every section must be substantive — no padding, no repetition. Reach the target through depth: more analysis, more examples, more evidence, more context.
+- **Be exhaustive:** Maximize the parameters of search tools to ingest as much information as context limits allow.
+- **Strictly Grounded:** During Phase 2, you are forbidden from hallucinating facts or searching the web. You must only use information explicitly stored in `.storm/<topic-slug>/reference_store.json`.
+- **Halt and Catch Fire:** Do not skip human-in-the-loop checkpoints. Always wait for explicit user confirmation before moving to the next numbered step.
+- **Minimum length:** The final article (`final_article.md`) must contain at least **50,000 words**. Before saving, run `wc -w .storm/<topic-slug>/final_article.md` and keep expanding sections until the count is met. Every section must be substantive — no padding, no repetition. Reach the target through depth: more analysis, more examples, more evidence, more context.
