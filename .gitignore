@@ -8,6 +8,8 @@ CLAUDE.md
 bin/
 auth.json
 sessions/
+.gbencke/
+.storm/
 
 
 
