@@ -1,0 +1,1 @@
+#!/bin/bash\n\n# yt-dlp skill wrapper\n# Usage: yt-dlp [OPTIONS] <URL>\n\n# Ensure yt-dlp is installed\nif ! command -v yt-dlp &> /dev/null; then\n    echo "Error: yt-dlp is not installed. Please install it with: pip install yt-dlp" >&2\n    exit 1\nfi\n\n# Execute yt-dlp with all arguments\nexec yt-dlp "$@"\n
