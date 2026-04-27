@@ -1,3 +1,8 @@
+---
+name: yt-dlp
+description: Download audio and video from YouTube and 1000+ other platforms using yt-dlp.
+---
+
 # yt-dlp Skill
 
 ## Purpose
