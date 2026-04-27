@@ -1,1 +1,17 @@
-#!/bin/bash\n\n# yt-dlp skill wrapper\n# Usage: yt-dlp [OPTIONS] <URL>\n\n# Ensure yt-dlp is installed\nif ! command -v yt-dlp &> /dev/null; then\n    echo "Error: yt-dlp is not installed. Please install it with: pip install yt-dlp" >&2\n    exit 1\nfi\n\n# Execute yt-dlp with all arguments\nexec yt-dlp "$@"\n
+#!/bin/bash
+
+# yt-dlp skill wrapper
+# Usage: yt-dlp [OPTIONS] <URL>
+
+# Resolve the real yt-dlp binary, excluding this wrapper's own directory so
+# the script never calls itself when its bin/ dir is first in PATH.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CLEAN_PATH=$(printf '%s' "$PATH" | tr ':' '\n' | grep -v "^${SCRIPT_DIR}$" | tr '\n' ':')
+REAL_YT_DLP=$(PATH="$CLEAN_PATH" command -v yt-dlp 2>/dev/null)
+
+if [ -z "$REAL_YT_DLP" ]; then
+    echo "Error: yt-dlp is not installed. Please install it with: pip install yt-dlp" >&2
+    exit 1
+fi
+
+exec "$REAL_YT_DLP" "$@"
