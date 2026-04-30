@@ -1,20 +1,20 @@
 ---
 name: __.DailyDigest
-description: Generate The Architect's Digest — a daily curated briefing of the most relevant stories in architecture, distributed systems, cloud, languages, tooling, and CS research, sourced live from Hacker News, Lobsters, GitHub Trending, InfoQ, and top engineering blogs.
+description: Generate The Architect's Digest — a daily curated briefing of the most relevant stories in architecture, distributed systems, cloud, languages, tooling, AI agents, and CS research, sourced live from Hacker News, Lobsters, GitHub Trending, InfoQ, and top engineering blogs.
 ---
 
 # The Architect's Digest Skill
 
-This skill produces a daily curated digest for software architects. The output follows the format of `architect-digest-example.md`: a lead story, structured sections with annotated entries, and tags per item.
+This skill produces a daily curated digest for software architects. The output is a long-form briefing: substantive, deeply annotated entries across 6 sections, written for senior engineers who want context and architectural implications — not headlines.
 
 ## Tools to Use
 
-- `tavily_search`: Primary research tool. Use `search_depth: 'advanced'` and `topic: 'news'` when freshness matters.
-- `obscura_web_scrape`: Read full articles when snippets are too thin to write a meaningful annotation.
+- `tavily_search`: Primary research tool. Use `search_depth: 'advanced'` and `topic: 'news'` when freshness matters. Always include `time_range: 'week'`.
+- `obscura_web_scrape`: Fetch full article text when a search snippet is too thin to annotate meaningfully. Use for InfoQ, engineering blogs, and GitHub Trending.
 
 ## Output
 
-Save the digest to a file in the current working directory:
+Save the digest to:
 
 ```
 __.DailyDigest/YYYY-MM-DD-architects-digest.md
@@ -26,15 +26,16 @@ Create the `__.DailyDigest/` directory if it does not exist.
 
 ## Workflow
 
-### Step 1 — Gather raw signals
+### Step 1 — Gather raw signals (run all searches in parallel)
 
-Run parallel searches across all source categories below. Collect at minimum **3 candidates per section** before writing anything.
+Collect at minimum **5 candidates per section** before writing anything. Run all searches simultaneously — do not wait for one batch to complete before starting the next.
 
 #### Architecture & Distributed Systems
 ```
-tavily_search("site:news.ycombinator.com distributed systems architecture 2026", topic: 'news', search_depth: 'advanced')
-tavily_search("site:lobste.rs distributed systems database architecture", topic: 'news')
-tavily_search("infoq.com architecture microservices 2026", search_depth: 'advanced')
+tavily_search("distributed systems architecture infoq 2026", topic: 'news', search_depth: 'advanced', time_range: 'week')
+tavily_search("infoq.com architecture microservices distributed systems 2026", search_depth: 'advanced', time_range: 'week')
+tavily_search("database reliability engineering zero-downtime upgrade 2026", search_depth: 'advanced', time_range: 'week')
+tavily_search("site:news.ycombinator.com distributed systems architecture 2026", topic: 'news', time_range: 'week')
 ```
 
 #### GitHub Trending
@@ -42,30 +43,54 @@ tavily_search("infoq.com architecture microservices 2026", search_depth: 'advanc
 obscura_web_scrape("https://github.com/trending?since=daily")
 obscura_web_scrape("https://github.com/trending?since=weekly")
 ```
-Extract repo name, star count, description, and language for the top 10 entries. Pick 3 most relevant to architects.
+Extract: repo name, star total, stars today, language, description. Pick 4–5 most architecturally relevant repos.
 
 #### Languages & Tooling
 ```
-tavily_search("typescript golang rust zig release announcement 2026", topic: 'news')
-tavily_search("site:lobste.rs programming language tooling compiler 2026", topic: 'news')
+tavily_search("programming language release rust golang typescript c++ 2026", topic: 'news', time_range: 'week')
+tavily_search("developer tooling IDE compiler announcement 2026", topic: 'news', search_depth: 'advanced', time_range: 'week')
+tavily_search("site:lobste.rs programming language tooling compiler 2026", topic: 'news', time_range: 'week')
+tavily_search("infoq.com developer tools platform engineering 2026", search_depth: 'advanced', time_range: 'week')
 ```
 
 #### Cloud & Infrastructure
 ```
-tavily_search("AWS GCP Azure infrastructure announcement kubernetes ebpf 2026", topic: 'news', search_depth: 'advanced')
-tavily_search("site:aws.amazon.com/blogs new service announcement", topic: 'news')
+tavily_search("AWS GCP Azure kubernetes infrastructure announcement 2026", topic: 'news', search_depth: 'advanced', time_range: 'week')
+tavily_search("data center network fabric AI infrastructure 2026", search_depth: 'advanced', time_range: 'week')
+tavily_search("cloud provider new service announcement infoq 2026", search_depth: 'advanced', time_range: 'week')
+```
+
+#### AI & Agents
+```
+tavily_search("AI agent architecture production multi-agent system 2026", topic: 'news', search_depth: 'advanced', time_range: 'week')
+tavily_search("LLM agent orchestration workflow enterprise 2026", topic: 'news', search_depth: 'advanced', time_range: 'week')
+tavily_search("MCP model context protocol security architecture 2026", search_depth: 'advanced', time_range: 'week')
+tavily_search("infoq.com AI agents agentic systems context management 2026", search_depth: 'advanced', time_range: 'week')
 ```
 
 #### CS Research
 ```
-tavily_search("site:queue.acm.org distributed systems database paper 2026")
-tavily_search("site:arxiv.org cs.DC cs.DB distributed systems 2026", topic: 'news')
-tavily_search("site:lobste.rs papers research computer science 2026", topic: 'news')
+tavily_search("site:queue.acm.org distributed systems database paper 2026", time_range: 'week')
+tavily_search("arxiv.org cs.DC cs.DB distributed systems 2026", topic: 'news', time_range: 'week')
+tavily_search("post-quantum cryptography migration security 2026", search_depth: 'advanced', time_range: 'week')
+tavily_search("observability tracing AI agent research 2026", search_depth: 'advanced', time_range: 'week')
 ```
 
 ---
 
-### Step 2 — Score and select
+### Step 2 — Fetch full articles for top candidates
+
+For any candidate where the search snippet is insufficient to write a substantive annotation, fetch the full article:
+
+```
+obscura_web_scrape("{article URL}", dump: 'text')
+```
+
+Do this for at least 6–8 of the best candidates. Thin snippets produce thin annotations.
+
+---
+
+### Step 3 — Score and select
 
 For each candidate, score on three axes (1–3 each):
 
@@ -73,40 +98,42 @@ For each candidate, score on three axes (1–3 each):
 |---|---|
 | **Relevance** | Is this directly useful to a working architect? |
 | **Novelty** | Is this new information, not a rehash? |
-| **Depth** | Is there enough substance to annotate meaningfully? |
+| **Depth** | Is there enough substance to annotate at length? |
 
-Keep only items scoring **7 or higher**. If a section has fewer than 2 qualifying items, run one additional search for that section.
-
----
-
-### Step 3 — Write annotations
-
-For each selected item, write a **3–5 sentence annotation**:
-
-1. **What it is** — state the thing plainly.
-2. **The architectural implication** — why does this matter to someone designing systems?
-3. **Context or comparison** — connect it to something the reader already knows (a paper, a pattern, a prior art).
-4. **Actionability** — what should the reader do or watch next?
-
-Use the example below as the tone and length target:
-
-> The new `conflict_action` parameter allows per-table policies — `ignore`, `apply_remote`, or `apply_local` — evaluated inside the replication worker. The architectural implication is significant: teams running active-active Aurora or RDS setups via pglogical can now express conflict semantics declaratively rather than via trigger hacks. Pairs well with row-level security for multi-tenant schemas.
-
-Keep annotations factual and grounded in what was actually found. Do not invent details.
+Keep only items scoring **7 or higher**. Target **20–28 total items** across all sections. If a section has fewer than 3 qualifying items, run one additional targeted search for that section before proceeding.
 
 ---
 
-### Step 4 — Select the lead story
+### Step 4 — Write annotations
 
-The lead story is the single most significant item across all sections. It must:
-- Represent a meaningful shift in the architectural landscape
-- Be something a senior engineer would immediately want to discuss
+For each selected item, write a **comprehensive annotation of 350–600 words** covering:
+
+1. **What it is** — state the thing plainly, with concrete specifics (numbers, names, versions).
+2. **The architectural mechanism** — explain *how* it works, not just *that* it works.
+3. **The architectural implication** — why does this matter to someone designing systems?
+4. **Context and comparison** — connect it to something the reader already knows: a pattern, a prior art, a related incident, a competing approach.
+5. **Tradeoffs and caveats** — what doesn't this solve? What are the risks or limitations?
+6. **Actionability** — what should the reader do, evaluate, or watch next?
+
+Use the tone of a senior engineer explaining something to a peer — direct, specific, no hype. Phrase caveats and limitations honestly. Let complexity stand; do not oversimplify.
+
+Example tone target:
+> Yelp's DBRE team did an in-place rolling upgrade across 1,000+ Cassandra nodes without interrupting production — no parallel cluster, no maintenance window. The strategy combined controlled batch upgrades, cluster repair between each step, and automated health checks throughout. Unlike blue-green approaches that spin up a parallel cluster, this was the harder path: it relies entirely on Cassandra's backward compatibility window and requires the cluster to remain coherent throughout the upgrade sequence. The architectural takeaway generalizes: stateful systems can be continuously upgraded if you treat the cluster as a rolling contract, not a monolith. Teams on Kafka, Elasticsearch, or any AP-model database have a concrete runbook to study here. The important caveat is that this approach requires deep automation investment upfront — attempting it manually at this scale would be unsafe.
+
+---
+
+### Step 5 — Select the lead story
+
+The lead story is the single most architecturally significant item across all sections. It must:
+- Represent a meaningful shift in the landscape
+- Be something a senior engineer would immediately want to discuss with their team
+- Have concrete evidence or production data backing it (not just an announcement)
 
 Write a one-sentence lead blurb for the `> **Lead story:**` block.
 
 ---
 
-### Step 5 — Assemble the digest
+### Step 6 — Assemble the digest
 
 Use this exact template:
 
@@ -121,11 +148,11 @@ Use this exact template:
 ## Architecture & Systems
 
 **[{Title}]({URL})**
-*Source: {Source name} · {engagement metric if available}*
+*Source: {Source name} · {date or engagement metric if available}*
 
-{annotation}
+{annotation — 350–600 words}
 
-`tags: {tag1} · {tag2} · {tag3}`
+`tags: {tag1} · {tag2} · {tag3} · {tag4}`
 
 ---
 
@@ -133,10 +160,10 @@ Use this exact template:
 
 ## GitHub Trending
 
-**[{owner/repo} — {star metric}]({URL})**
-*Source: GitHub Trending*
+**[{owner/repo} — ★{total} (+{today} today)]({URL})**
+*Source: GitHub Trending · {language}*
 
-{annotation}
+{annotation — 350–600 words}
 
 `tags: {tag1} · {tag2} · {tag3}`
 
@@ -148,34 +175,46 @@ Use this exact template:
 
 {same item format}
 
+---
+
 ## Cloud & Infrastructure
 
 {same item format}
+
+---
+
+## AI & Agents
+
+{same item format}
+
+---
 
 ## CS & Research
 
 {same item format}
 ```
 
-Rules:
-- Every item must have a working URL.
-- Tags must be lowercase, hyphen-separated, and relevant (3–5 per item).
-- Source attribution must be accurate — use the actual publication or site name.
-- Engagement metrics (HN points, star counts) are optional but include them when available.
-- Do not invent or estimate metrics. Omit them if not found.
+Assembly rules:
+- Every item must have a working URL obtained from a search or scrape result. Never construct URLs by inference.
+- Tags: lowercase, hyphen-separated, 3–6 per item.
+- Source attribution: use the actual publication name (InfoQ, The New Stack, GitHub Trending, etc.).
+- Engagement metrics (HN points, GitHub star counts): include when found; omit when not — never estimate.
+- Section order: Architecture & Systems → GitHub Trending → Language & Tooling → Cloud & Infrastructure → AI & Agents → CS & Research.
+- If a section genuinely has no qualifying items on a given day, omit the section entirely rather than padding it.
 
 ---
 
-### Step 6 — Save
+### Step 7 — Save
 
-Write the assembled digest to the output path. Print the path when done.
+Write the assembled digest to `__.DailyDigest/YYYY-MM-DD-architects-digest.md`. Print the full path when done.
 
 ---
 
 ## Execution Rules
 
-- **Stay current.** All items must be from the past 7 days unless the item is a resurface of a classic paper (clearly label it as such).
-- **No hallucinated links.** Every URL must have been returned by a search or scrape tool call. Verify with a second tool call if uncertain.
-- **No padding.** If fewer than 2 quality items exist in a section on a given day, collapse that section rather than filling it with weak entries.
-- **Tone.** Direct, senior-engineer-to-senior-engineer. No hype, no filler phrases ("game-changing", "revolutionary"). Let the substance speak.
-- **Length.** Each annotation: 3–5 sentences. Total digest: 800–1500 words excluding tags and headers.
+- **Stay current.** All items must be from the past 7 days unless explicitly labelled as a resurface of a classic paper.
+- **No hallucinated links.** Every URL must have been returned by a tool call. If uncertain, verify with a second `tavily_search` or `obscura_web_scrape` before including.
+- **No padding.** Weak items with thin substance are worse than a shorter digest. Drop them.
+- **Minimum word count: 10,000 words.** The digest should be substantive enough to serve as a complete weekly briefing. Annotations are the primary vehicle — invest in depth.
+- **Tone.** Direct, senior-engineer-to-senior-engineer. No hype, no filler ("game-changing", "revolutionary", "exciting"). State what something does, what it costs, and what it doesn't solve.
+- **Minimum items: 20.** Spread across all six sections. Architecture & Systems should have at least 5 items. GitHub Trending should have exactly 4–5 items.
