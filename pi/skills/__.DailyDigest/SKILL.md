@@ -1,5 +1,5 @@
 ---
-name: daily-digest
+name: __.DailyDigest
 description: Generate The Architect's Digest — a daily curated briefing of the most relevant stories in architecture, distributed systems, cloud, languages, tooling, and CS research, sourced live from Hacker News, Lobsters, GitHub Trending, InfoQ, and top engineering blogs.
 ---
 
