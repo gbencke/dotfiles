@@ -100,7 +100,7 @@ For each candidate, score on three axes (1–3 each):
 | **Novelty** | Is this new information, not a rehash? |
 | **Depth** | Is there enough substance to annotate at length? |
 
-Keep only items scoring **7 or higher**. Target **20–28 total items** across all sections. If a section has fewer than 3 qualifying items, run one additional targeted search for that section before proceeding.
+Keep only items scoring **7 or higher**. Target **100 total items** across all sections. If a section has fewer than 15 qualifying items, run additional targeted searches for that section before proceeding.
 
 ---
 
@@ -217,4 +217,4 @@ Write the assembled digest to `__.DailyDigest/YYYY-MM-DD-architects-digest.md`. 
 - **No padding.** Weak items with thin substance are worse than a shorter digest. Drop them.
 - **Minimum word count: 10,000 words.** The digest should be substantive enough to serve as a complete weekly briefing. Annotations are the primary vehicle — invest in depth.
 - **Tone.** Direct, senior-engineer-to-senior-engineer. No hype, no filler ("game-changing", "revolutionary", "exciting"). State what something does, what it costs, and what it doesn't solve.
-- **Minimum items: 20.** Spread across all six sections. Architecture & Systems should have at least 5 items. GitHub Trending should have exactly 4–5 items.
+- **Minimum items: 100.** Spread across all six sections. Architecture & Systems should have at least 20 items. GitHub Trending should have at least 10 items. AI & Agents should have at least 15 items. Language & Tooling, Cloud & Infrastructure, and CS & Research should each have at least 10 items. Keep running additional searches until the 100-item target is met.
