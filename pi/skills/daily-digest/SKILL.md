@@ -17,10 +17,10 @@ This skill produces a daily curated digest for software architects. The output f
 Save the digest to a file in the current working directory:
 
 ```
-.daily-digests/YYYY-MM-DD-architects-digest.md
+__.DailyDigest/YYYY-MM-DD-architects-digest.md
 ```
 
-Create the `.daily-digests/` directory if it does not exist.
+Create the `__.DailyDigest/` directory if it does not exist.
 
 ---
 
