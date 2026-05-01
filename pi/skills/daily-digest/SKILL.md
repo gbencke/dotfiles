@@ -145,6 +145,29 @@ Use this exact template:
 
 ---
 
+## Index
+
+- **Architecture & Systems**
+  - [{Title}]({URL}) — {one-line summary}
+  - [{Title}]({URL}) — {one-line summary}
+- **GitHub Trending**
+  - [{owner/repo}]({URL}) — {one-line summary}
+  - [{owner/repo}]({URL}) — {one-line summary}
+- **Language & Tooling**
+  - [{Title}]({URL}) — {one-line summary}
+  - [{Title}]({URL}) — {one-line summary}
+- **Cloud & Infrastructure**
+  - [{Title}]({URL}) — {one-line summary}
+  - [{Title}]({URL}) — {one-line summary}
+- **AI & Agents**
+  - [{Title}]({URL}) — {one-line summary}
+  - [{Title}]({URL}) — {one-line summary}
+- **CS & Research**
+  - [{Title}]({URL}) — {one-line summary}
+  - [{Title}]({URL}) — {one-line summary}
+
+---
+
 ## Architecture & Systems
 
 **[{Title}]({URL})**
