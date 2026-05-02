@@ -5,12 +5,12 @@ description: Generate The Architect's Digest — a daily curated briefing of the
 
 # The Architect's Digest Skill
 
-This skill produces a daily curated digest for software architects. The output is a long-form briefing: substantive, deeply annotated entries across 6 sections, written for senior engineers who want context and architectural implications — not headlines.
+This skill produces a daily curated digest for software architects. The output is a long-form briefing: substantive, deeply annotated entries across 7 sections, written for senior engineers who want context and architectural implications — not headlines.
 
 ## Tools to Use
 
 - `tavily_search`: Primary research tool. Use `search_depth: 'advanced'` and `topic: 'news'` when freshness matters. Always include `time_range: 'week'`.
-- `obscura_web_scrape`: Fetch full article text when a search snippet is too thin to annotate meaningfully. Use for InfoQ, engineering blogs, and GitHub Trending.
+- `obscura_web_scrape`: Fetch full article text when a search snippet is too thin to annotate meaningfully. Use for InfoQ, engineering blogs, GitHub Trending, and book review sources.
 
 ## Output
 
@@ -39,11 +39,19 @@ tavily_search("site:news.ycombinator.com distributed systems architecture 2026",
 ```
 
 #### GitHub Trending
+Scrape **all five pages** in parallel to collect at least 50 repositories before filtering:
+
 ```
 obscura_web_scrape("https://github.com/trending?since=daily")
 obscura_web_scrape("https://github.com/trending?since=weekly")
+obscura_web_scrape("https://github.com/trending?since=monthly")
+obscura_web_scrape("https://github.com/trending/python?since=daily")
+obscura_web_scrape("https://github.com/trending/go?since=daily")
+obscura_web_scrape("https://github.com/trending/rust?since=daily")
+obscura_web_scrape("https://github.com/trending/typescript?since=daily")
 ```
-Extract: repo name, star total, stars today, language, description. Pick 4–5 most architecturally relevant repos.
+
+Extract from each page: repo name, star total, stars today/this week, language, description. Deduplicate across pages (keep the entry with the highest star velocity). You must collect **at least 50 distinct repositories** before scoring. Pick the 15–20 most architecturally relevant for the final digest.
 
 #### Languages & Tooling
 ```
@@ -76,6 +84,35 @@ tavily_search("post-quantum cryptography migration security 2026", search_depth:
 tavily_search("observability tracing AI agent research 2026", search_depth: 'advanced', time_range: 'week')
 ```
 
+#### Tech & Startup Book Reviews
+Scrape and search the following sources in parallel. Focus on books published or reviewed in the past 90 days:
+
+```
+obscura_web_scrape("https://commoncog.com/blog/", dump: 'text')
+obscura_web_scrape("https://fivebooks.com/category/technology/", dump: 'text')
+obscura_web_scrape("https://fs.blog/category/reading/book-reviews/", dump: 'text')
+obscura_web_scrape("https://www.oreilly.com/radar/", dump: 'text')
+obscura_web_scrape("https://bookauthority.org/books/new-software-engineering-books", dump: 'text')
+obscura_web_scrape("https://bookauthority.org/books/new-startup-founders-books", dump: 'text')
+tavily_search("new technology startup book review 2026", topic: 'news', search_depth: 'advanced', time_range: 'week')
+tavily_search("site:commoncog.com book review", search_depth: 'advanced', time_range: 'week')
+tavily_search("site:fs.blog book summary 2026", search_depth: 'advanced', time_range: 'week')
+tavily_search("site:fivebooks.com technology startup 2026", search_depth: 'advanced', time_range: 'week')
+tavily_search("software engineering architecture startup book published 2026", search_depth: 'advanced', time_range: 'week')
+```
+
+Prioritize sources in this order:
+1. **commoncog.com** — practitioner-depth reviews; strong on business operations, mental models, and startup strategy
+2. **fs.blog (Farnam Street)** — mental models, decision-making, and business strategy books
+3. **fivebooks.com/category/technology** — expert-curated lists; good for surfacing consensus must-reads
+4. **oreilly.com/radar** — new O'Reilly releases and practitioner-authored tech books
+5. **bookauthority.org** — ranked lists for new startup and engineering books
+6. **shortform.com/best-books/genre/best-technology-books** — summaries with critical context
+7. **pragprog.com** — new Pragmatic Programmer releases; practitioner-written
+8. **goodreads.com/shelf/show/software-business** — community signal on which titles are actually being read
+
+For each candidate book, extract: title, author, publisher, publication date, reviewer/source, and a summary of the review's core argument.
+
 ---
 
 ### Step 2 — Fetch full articles for top candidates
@@ -86,7 +123,7 @@ For any candidate where the search snippet is insufficient to write a substantiv
 obscura_web_scrape("{article URL}", dump: 'text')
 ```
 
-Do this for at least 6–8 of the best candidates. Thin snippets produce thin annotations.
+Do this for at least 6–8 of the best candidates across all sections. For book reviews, always fetch the full review text — summaries alone are too thin to annotate well.
 
 ---
 
@@ -96,11 +133,13 @@ For each candidate, score on three axes (1–3 each):
 
 | Axis | Question |
 |---|---|
-| **Relevance** | Is this directly useful to a working architect? |
+| **Relevance** | Is this directly useful to a working architect or technical founder? |
 | **Novelty** | Is this new information, not a rehash? |
 | **Depth** | Is there enough substance to annotate at length? |
 
-Keep only items scoring **7 or higher**. Target **100 total items** across all sections. If a section has fewer than 15 qualifying items, run additional targeted searches for that section before proceeding.
+Keep only items scoring **7 or higher**. Target **110 total items** across all sections. If a section has fewer than 15 qualifying items, run additional targeted searches for that section before proceeding.
+
+For the Book Reviews section specifically: prefer books that contain a concrete argument, a novel framework, or production-tested insight over books that are primarily narrative or motivational.
 
 ---
 
@@ -114,6 +153,11 @@ For each selected item, write a **comprehensive annotation of 350–600 words** 
 4. **Context and comparison** — connect it to something the reader already knows: a pattern, a prior art, a related incident, a competing approach.
 5. **Tradeoffs and caveats** — what doesn't this solve? What are the risks or limitations?
 6. **Actionability** — what should the reader do, evaluate, or watch next?
+
+For **Book Review** annotations, replace "architectural mechanism" and "architectural implication" with:
+
+2. **The book's central argument** — what claim does it make and what evidence does it provide?
+3. **Who should read it** — which role (architect, founder, engineering manager, IC) gets the most from it, and at what career stage?
 
 Use the tone of a senior engineer explaining something to a peer — direct, specific, no hype. Phrase caveats and limitations honestly. Let complexity stand; do not oversimplify.
 
@@ -165,6 +209,9 @@ Use this exact template:
 - **CS & Research**
   - [{Title}]({URL}) — {one-line summary}
   - [{Title}]({URL}) — {one-line summary}
+- **Tech & Startup Book Reviews**
+  - [{Title} by {Author}]({URL}) — {one-line summary}
+  - [{Title} by {Author}]({URL}) — {one-line summary}
 
 ---
 
@@ -215,14 +262,29 @@ Use this exact template:
 ## CS & Research
 
 {same item format}
+
+---
+
+## Tech & Startup Book Reviews
+
+**[{Title} by {Author}]({URL})**
+*Source: {Review source} · Published: {publication date} · Publisher: {publisher}*
+
+{annotation — 350–600 words covering: what the book argues, the central framework or evidence, who should read it, what it costs the reader in time vs. what it delivers, and one honest caveat}
+
+`tags: {tag1} · {tag2} · {tag3}`
+
+---
+
+{repeat for each item in this section}
 ```
 
 Assembly rules:
 - Every item must have a working URL obtained from a search or scrape result. Never construct URLs by inference.
 - Tags: lowercase, hyphen-separated, 3–6 per item.
-- Source attribution: use the actual publication name (InfoQ, The New Stack, GitHub Trending, etc.).
+- Source attribution: use the actual publication name (InfoQ, The New Stack, GitHub Trending, Commoncog, Farnam Street, etc.).
 - Engagement metrics (HN points, GitHub star counts): include when found; omit when not — never estimate.
-- Section order: Architecture & Systems → GitHub Trending → Language & Tooling → Cloud & Infrastructure → AI & Agents → CS & Research.
+- Section order: Architecture & Systems → GitHub Trending → Language & Tooling → Cloud & Infrastructure → AI & Agents → CS & Research → Tech & Startup Book Reviews.
 - If a section genuinely has no qualifying items on a given day, omit the section entirely rather than padding it.
 
 ---
@@ -235,9 +297,18 @@ Write the assembled digest to `__.DailyDigest/YYYY-MM-DD-architects-digest.md`. 
 
 ## Execution Rules
 
-- **Stay current.** All items must be from the past 7 days unless explicitly labelled as a resurface of a classic paper.
+- **Stay current.** All items must be from the past 7 days unless explicitly labelled as a resurface of a classic paper. Book reviews may cover books published within the past 90 days.
 - **No hallucinated links.** Every URL must have been returned by a tool call. If uncertain, verify with a second `tavily_search` or `obscura_web_scrape` before including.
 - **No padding.** Weak items with thin substance are worse than a shorter digest. Drop them.
 - **Minimum word count: 10,000 words.** The digest should be substantive enough to serve as a complete weekly briefing. Annotations are the primary vehicle — invest in depth.
 - **Tone.** Direct, senior-engineer-to-senior-engineer. No hype, no filler ("game-changing", "revolutionary", "exciting"). State what something does, what it costs, and what it doesn't solve.
-- **Minimum items: 100.** Spread across all six sections. Architecture & Systems should have at least 20 items. GitHub Trending should have at least 10 items. AI & Agents should have at least 15 items. Language & Tooling, Cloud & Infrastructure, and CS & Research should each have at least 10 items. Keep running additional searches until the 100-item target is met.
+- **Minimum items: 110.** Spread across all seven sections:
+  - Architecture & Systems: at least 20 items
+  - GitHub Trending: at least 15 items (from a candidate pool of 50+ repos)
+  - AI & Agents: at least 15 items
+  - Language & Tooling: at least 10 items
+  - Cloud & Infrastructure: at least 10 items
+  - CS & Research: at least 10 items
+  - Tech & Startup Book Reviews: at least 5 items
+- Keep running additional searches until the 110-item target is met.
+- **GitHub Trending pool.** You must scrape at least 50 distinct repos (deduplicated) before selecting the final 15–20 for the digest. Do not skip the language-specific trending pages — they surface repos that the polyglot feed misses.
