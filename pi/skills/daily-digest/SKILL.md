@@ -113,6 +113,8 @@ Prioritize sources in this order:
 
 For each candidate book, extract: title, author, publisher, publication date, reviewer/source, and a summary of the review's core argument.
 
+**Book deduplication against previous digests.** Before selecting candidates, check the `__.DailyDigest/` directory for existing digests from the past 30 days. Read the `## Tech \& Startup Book Reviews` section of the 5 most recent files and extract every book title and author. Exclude any book that has already appeared in a previous digest. Do not repeat a book until at least 30 days have passed since its last appearance. If a book was covered recently, skip it regardless of whether a new review is available.
+
 ---
 
 ### Step 2 — Fetch full articles for top candidates
@@ -139,7 +141,7 @@ For each candidate, score on three axes (1–3 each):
 
 Keep only items scoring **7 or higher**. Target **110 total items** across all sections. If a section has fewer than 15 qualifying items, run additional targeted searches for that section before proceeding.
 
-For the Book Reviews section specifically: prefer books that contain a concrete argument, a novel framework, or production-tested insight over books that are primarily narrative or motivational.
+For the Book Reviews section specifically: prefer books that contain a concrete argument, a novel framework, or production-tested insight over books that are primarily narrative or motivational. Additionally, exclude any book that has appeared in a previous digest within the last 30 days — a repeated book fails the novelty criterion regardless of review quality.
 
 ---
 
