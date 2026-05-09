@@ -1,8 +1,17 @@
 {
-  "lastChangelogVersion": "0.70.2",
-  "defaultProvider": "google-gemini-cli",
-  "defaultModel": "gemini-3.1-pro-preview",
+  "lastChangelogVersion": "0.74.0",
+  "defaultProvider": "anthropic",
+  "defaultModel": "claude-sonnet-4-6",
   "packages": [
-    "npm:@robzolkos/pi-nocchio"
-  ]
+    "npm:@robzolkos/pi-nocchio",
+    "npm:pi-powerline-footer",
+    "npm:@juicesharp/rpiv-todo",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@victor-software-house/pi-curated-themes"
+  ],
+  "powerline": {
+    "preset": "full",
+    "fixedEditor": true
+  },
+  "theme": "everforest-dark-hard"
 }
