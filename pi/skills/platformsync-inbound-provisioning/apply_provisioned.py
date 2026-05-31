@@ -17,29 +17,29 @@ import subprocess
 import argparse
 
 # ---------------------------------------------------------------------------
-# Capacity plan — peak observed + 30 % safety buffer, rounded up
-# Source: SQA load test 2026-05-29/30
-# Updated 2026-05-31: table WCU raised 3500→15000; three low-WCU GSIs raised
-# 100→3500 after bulk-delete throttling exposed them as bottlenecks.
-# Updated 2026-05-31: all units doubled across table and all GSIs.
+# Capacity plan — all values doubled on 2026-05-31 following AWS account
+# quota increase approval: provisioned WCU limit raised 80,000 → 200,000.
+# Base values: live state verified 2026-05-31 via capacity_check.py, with
+# status-creation-index at 9,000 WCU (raised to address 223k throttles).
+# Total across table + 13 GSIs = 157,000 WCU (43,000 headroom under 200,000).
 # ---------------------------------------------------------------------------
 TABLE_WCU = 30000
 TABLE_RCU = 2000
 
 GSI_PLAN = {
-    "status-creation-index":          {"wcu": 12000, "rcu": 2000},
-    "pk-status-index":                {"wcu": 12000, "rcu": 1000},
-    "entityid-status-index":          {"wcu": 12000, "rcu": 1000},
-    "parentpersonid-status-index":    {"wcu": 12000, "rcu": 1000},
-    "parentcaseid-status-index":      {"wcu": 11000, "rcu": 1000},
-    "parentlocationid-status-index":  {"wcu":  9000, "rcu": 1000},
-    "parentproviderid-status-index":  {"wcu":  9000, "rcu": 1000},
-    "parentappointmentid-status-index":{"wcu":  9000, "rcu": 1000},
-    "messageid-index":                {"wcu":  7000, "rcu": 1000},
-    "creation-index":                 {"wcu":  7000, "rcu": 1000},
-    "parentnoteid-status-index":      {"wcu":  7000, "rcu": 1000},
-    "parentprocedureid-status-index": {"wcu":  7000, "rcu": 1000},
-    "parentfclassid-status-index":    {"wcu":  7000, "rcu": 1000},
+    "status-creation-index":           {"wcu": 18000, "rcu": 2000},
+    "pk-status-index":                 {"wcu": 12000, "rcu": 2000},
+    "entityid-status-index":           {"wcu": 12000, "rcu": 2000},
+    "parentpersonid-status-index":     {"wcu": 12000, "rcu": 2000},
+    "parentcaseid-status-index":       {"wcu": 11000, "rcu": 2000},
+    "parentlocationid-status-index":   {"wcu":  9000, "rcu": 2000},
+    "parentproviderid-status-index":   {"wcu":  9000, "rcu": 2000},
+    "parentappointmentid-status-index":{"wcu":  9000, "rcu": 2000},
+    "messageid-index":                 {"wcu":  7000, "rcu": 2000},
+    "creation-index":                  {"wcu":  7000, "rcu": 2000},
+    "parentnoteid-status-index":       {"wcu":  7000, "rcu": 2000},
+    "parentprocedureid-status-index":  {"wcu":  7000, "rcu": 2000},
+    "parentfclassid-status-index":     {"wcu":  7000, "rcu": 2000},
 }
 
 POLL_INTERVAL = 10   # seconds between describe-table calls

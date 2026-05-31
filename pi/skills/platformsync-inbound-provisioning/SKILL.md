@@ -37,41 +37,42 @@ Default environment: `sqa`.
 
 ## Capacity Rationale
 
-Values are derived from SQA load-test CloudWatch metrics (2026-05-29/30).
-All provisioned values = observed peak + 30% safety buffer, rounded up.
+All values doubled on 2026-05-31 following AWS account quota increase approval
+(provisioned WCU limit raised 80,000 → 200,000). Base values derived from
+live provisioned state verified via `capacity_check.py`, with
+`status-creation-index` at 9,000 WCU before doubling.
+Account WCU limit: **200,000**.
+Total across table + 13 GSIs: **157,000 WCU** (43,000 headroom).
 
 ### Table
-| Capacity | Peak Observed | Provisioned |
-|---|---:|---:|
-| Write (WCU) | 2,502 /s | **15,000** |
-| Read  (RCU) |   724 /s |  **1,000** |
-
-> Table WCU raised from 3,500 → 15,000 on 2026-05-31 after a bulk-delete
-> operation confirmed 3,500 WCU is the hard ceiling at 100 workers.
+| Capacity | Provisioned |
+|---|---:|
+| Write (WCU) | **30,000** |
+| Read  (RCU) |  **2,000** |
 
 ### GSIs
 | GSI (suffix only) | WCU | RCU |
 |---|---:|---:|
-| `status-creation-index`         | 6,000 | 1,000 |
-| `pk-status-index`               | 6,000 |   500 |
-| `entityid-status-index`         | 6,000 |   500 |
-| `parentpersonid-status-index`   | 6,000 |   500 |
-| `parentcaseid-status-index`     | 5,500 |   500 |
-| `parentlocationid-status-index` | 4,500 |   500 |
-| `parentproviderid-status-index` | 4,500 |   500 |
-| `parentappointmentid-status-index` | 4,500 | 500 |
-| `messageid-index`               | 3,500 |   500 |
-| `creation-index`                | 3,500 |   500 |
-| `parentnoteid-status-index`     | 3,500 |   100 |
-| `parentprocedureid-status-index`| 3,500 |   100 |
-| `parentfclassid-status-index`   | 3,500 |   100 |
+| `status-creation-index` ⚠️ hottest GSI | **18,000** | 2,000 |
+| `pk-status-index`                      | 12,000 | 2,000 |
+| `entityid-status-index`                | 12,000 | 2,000 |
+| `parentpersonid-status-index`          | 12,000 | 2,000 |
+| `parentcaseid-status-index`            | 11,000 | 2,000 |
+| `parentlocationid-status-index`        |  9,000 | 2,000 |
+| `parentproviderid-status-index`        |  9,000 | 2,000 |
+| `parentappointmentid-status-index`     |  9,000 | 2,000 |
+| `messageid-index`                      |  7,000 | 2,000 |
+| `creation-index`                       |  7,000 | 2,000 |
+| `parentnoteid-status-index`            |  7,000 | 2,000 |
+| `parentprocedureid-status-index`       |  7,000 | 2,000 |
+| `parentfclassid-status-index`          |  7,000 | 2,000 |
 
-> `status-creation-index` is the hottest GSI — it recorded 5.1 M throttle
-> events during the load test and receives every status-change write.
+> `status-creation-index` is the hottest GSI — recorded 223,541 write
+> throttle events during the 2026-05-31 migration run. Provisioned at 18,000
+> WCU (9,000 base × 2) to absorb burst spikes without throttling.
 >
-> `parentnoteid`, `parentprocedureid`, `parentfclassid` GSIs raised from
-> 100 → 3,500 WCU on 2026-05-31. At 100 WCU they were the first to throttle
-> under any parallel write load, even though they hold few items.
+> Account WCU quota raised 80,000 → 200,000 on 2026-05-31 (AWS Support
+> case approved). 43,000 WCU headroom remains.
 
 ---
 
