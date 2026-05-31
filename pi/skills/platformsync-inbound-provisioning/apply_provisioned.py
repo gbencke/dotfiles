@@ -21,24 +21,25 @@ import argparse
 # Source: SQA load test 2026-05-29/30
 # Updated 2026-05-31: table WCU raised 3500→15000; three low-WCU GSIs raised
 # 100→3500 after bulk-delete throttling exposed them as bottlenecks.
+# Updated 2026-05-31: all units doubled across table and all GSIs.
 # ---------------------------------------------------------------------------
-TABLE_WCU = 15000
-TABLE_RCU = 1000
+TABLE_WCU = 30000
+TABLE_RCU = 2000
 
 GSI_PLAN = {
-    "status-creation-index":          {"wcu": 6000, "rcu": 1000},
-    "pk-status-index":                {"wcu": 6000, "rcu":  500},
-    "entityid-status-index":          {"wcu": 6000, "rcu":  500},
-    "parentpersonid-status-index":    {"wcu": 6000, "rcu":  500},
-    "parentcaseid-status-index":      {"wcu": 5500, "rcu":  500},
-    "parentlocationid-status-index":  {"wcu": 4500, "rcu":  500},
-    "parentproviderid-status-index":  {"wcu": 4500, "rcu":  500},
-    "parentappointmentid-status-index":{"wcu": 4500, "rcu": 500},
-    "messageid-index":                {"wcu": 3500, "rcu":  500},
-    "creation-index":                 {"wcu": 3500, "rcu":  500},
-    "parentnoteid-status-index":      {"wcu": 3500, "rcu":  100},
-    "parentprocedureid-status-index": {"wcu": 3500, "rcu":  100},
-    "parentfclassid-status-index":    {"wcu": 3500, "rcu":  100},
+    "status-creation-index":          {"wcu": 12000, "rcu": 2000},
+    "pk-status-index":                {"wcu": 12000, "rcu": 1000},
+    "entityid-status-index":          {"wcu": 12000, "rcu": 1000},
+    "parentpersonid-status-index":    {"wcu": 12000, "rcu": 1000},
+    "parentcaseid-status-index":      {"wcu": 11000, "rcu": 1000},
+    "parentlocationid-status-index":  {"wcu":  9000, "rcu": 1000},
+    "parentproviderid-status-index":  {"wcu":  9000, "rcu": 1000},
+    "parentappointmentid-status-index":{"wcu":  9000, "rcu": 1000},
+    "messageid-index":                {"wcu":  7000, "rcu": 1000},
+    "creation-index":                 {"wcu":  7000, "rcu": 1000},
+    "parentnoteid-status-index":      {"wcu":  7000, "rcu":  200},
+    "parentprocedureid-status-index": {"wcu":  7000, "rcu":  200},
+    "parentfclassid-status-index":    {"wcu":  7000, "rcu":  200},
 }
 
 POLL_INTERVAL = 10   # seconds between describe-table calls
