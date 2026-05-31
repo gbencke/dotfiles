@@ -1,3 +1,14 @@
+---
+name: platformsync-inbound-capacity
+description: >
+  Check consumed vs provisioned RCU and WCU for the
+  platformsync-{env}-inbound-events DynamoDB table and all its GSIs.
+  Reports read and write throttle events over a configurable CloudWatch
+  lookback window. Use when asked to "check capacity", "check RCU/WCU",
+  "check throttles", "check DynamoDB utilisation", or invokes
+  /platformsync-inbound-capacity.
+---
+
 # PlatformSync Inbound Table Capacity Skill
 
 Checks consumed vs provisioned RCU and WCU for the
