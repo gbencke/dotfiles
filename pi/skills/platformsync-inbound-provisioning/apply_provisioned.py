@@ -37,9 +37,9 @@ GSI_PLAN = {
     "parentappointmentid-status-index":{"wcu":  9000, "rcu": 1000},
     "messageid-index":                {"wcu":  7000, "rcu": 1000},
     "creation-index":                 {"wcu":  7000, "rcu": 1000},
-    "parentnoteid-status-index":      {"wcu":  7000, "rcu":  200},
-    "parentprocedureid-status-index": {"wcu":  7000, "rcu":  200},
-    "parentfclassid-status-index":    {"wcu":  7000, "rcu":  200},
+    "parentnoteid-status-index":      {"wcu":  7000, "rcu": 1000},
+    "parentprocedureid-status-index": {"wcu":  7000, "rcu": 1000},
+    "parentfclassid-status-index":    {"wcu":  7000, "rcu": 1000},
 }
 
 POLL_INTERVAL = 10   # seconds between describe-table calls
