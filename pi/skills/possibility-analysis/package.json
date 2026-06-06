@@ -1,0 +1,8 @@
+{
+  "name": "possibility-analysis",
+  "version": "1.0.0",
+  "description": "Structured possibility-space exploration before decisions",
+  "omp": {
+    "skills": ["./"]
+  }
+}
