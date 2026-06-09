@@ -3,15 +3,18 @@
 action_items.py — Manage ACTION_ITEMS.guilherme_bencke.md
 
 Usage:
-  python3 action_items.py add "Action text" [--meeting "Meeting Name"] [--time "HH:MM"] [--date "YYYY-MM-DD"]
+  python3 action_items.py add "Action text" [--meeting "Meeting Name"] [--time "HH:MM"] [--date "YYYY-MM-DD"] [--important]
   python3 action_items.py show [--days N]
   python3 action_items.py search "keyword"
+
+Format: each date section contains a two-column markdown table.
+  | [ ] | action text *(Meeting, time)* |   ← normal
+  | [!] | action text *(Meeting, time)* |   ← important (clickable in Obsidian, ignored by Tasks plugin)
 """
 
 import argparse
 import re
-import sys
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from pathlib import Path
 
 ACTION_FILE = Path(
@@ -21,6 +24,11 @@ ACTION_FILE = Path(
 
 PERSON = "Guilherme Bencke"
 DATE_HEADER_RE = re.compile(r"^## (\d{4}-\d{2}-\d{2})$")
+TABLE_ROW_RE = re.compile(r"^\| [⭐ ] \|")
+TABLE_SEP_RE = re.compile(r"^\|[-| ]+\|$")
+TABLE_HEADER = "| ★ | Action |\n|---|---|\n"
+IMPORTANT_MARKER = "⭐"
+NORMAL_MARKER = " "
 
 
 def read_file() -> str:
@@ -57,50 +65,74 @@ def segments_to_content(segments: list[tuple[str | None, list[str]]]) -> str:
     return "".join("".join(lines) for _, lines in segments)
 
 
+def _last_table_row_idx(lines: list[str]) -> int | None:
+    """Return index of the last table data row, or None if no table exists."""
+    last = None
+    for i, line in enumerate(lines):
+        if TABLE_ROW_RE.match(line):
+            last = i
+    return last
+
+
+def _has_table(lines: list[str]) -> bool:
+    return any(TABLE_ROW_RE.match(l) for l in lines)
+
+
 def cmd_add(args: argparse.Namespace) -> None:
     target_date = args.date or date.today().isoformat()
     meeting = args.meeting or "Manual Entry"
     time_str = args.time or ""
 
     source = f"*({meeting}{', ' + time_str if time_str else ''})*"
-    bullet = f"- **{PERSON}**: {args.text} {source}\n"
+    marker = IMPORTANT_MARKER if args.important else NORMAL_MARKER
+    row = f"| {marker} | **{PERSON}**: {args.text} {source} |\n"
 
     content = read_file()
     segments = parse_sections(content)
 
-    # Find the segment for the target date.
     for i, (seg_date, lines) in enumerate(segments):
         if seg_date == target_date:
-            # Insert bullet right after the `## YYYY-MM-DD` header line.
-            header_line = lines[0]
-            rest = lines[1:]
-            # Skip the blank line immediately after the header, if any.
-            insert_at = 1
-            if rest and rest[0].strip() == "":
-                insert_at = 2
-            segments[i] = (seg_date, [header_line] + rest[:insert_at - 1] + [bullet] + rest[insert_at - 1:])
+            if _has_table(lines):
+                # Append after the last table row.
+                idx = _last_table_row_idx(lines)
+                new_lines = lines[:idx + 1] + [row] + lines[idx + 1:]
+            else:
+                # No table yet — insert header + row after the section heading.
+                header_line = lines[0]
+                rest = lines[1:]
+                insert_at = 1
+                if rest and rest[0].strip() == "":
+                    insert_at = 2
+                table_lines = [*TABLE_HEADER.splitlines(keepends=True), row]
+                new_lines = (
+                    [header_line]
+                    + rest[: insert_at - 1]
+                    + table_lines
+                    + rest[insert_at - 1 :]
+                )
+            segments[i] = (seg_date, new_lines)
             write_file(segments_to_content(segments))
-            print(f"Added under {target_date}:\n  {bullet.strip()}")
+            flag = " [IMPORTANT]" if args.important else ""
+            print(f"Added under {target_date}{flag}:\n  {row.strip()}")
             return
 
-    # Date section doesn't exist — create it directly after the file header.
+    # Date section does not exist — create it.
     new_section_lines = [
         f"\n## {target_date}\n",
         "\n",
-        bullet,
+        *TABLE_HEADER.splitlines(keepends=True),
+        row,
     ]
-
-    # Find insertion point: just before the first existing date section.
     for i, (seg_date, _) in enumerate(segments):
         if seg_date is not None:
             segments.insert(i, (target_date, new_section_lines))
             break
     else:
-        # No date sections yet — append.
         segments.append((target_date, new_section_lines))
 
     write_file(segments_to_content(segments))
-    print(f"Created section {target_date} and added:\n  {bullet.strip()}")
+    flag = " [IMPORTANT]" if args.important else ""
+    print(f"Created section {target_date} and added{flag}:\n  {row.strip()}")
 
 
 def cmd_show(args: argparse.Namespace) -> None:
@@ -129,7 +161,7 @@ def cmd_search(args: argparse.Namespace) -> None:
         if seg_date is None:
             continue
         for line in lines:
-            if line.startswith("- ") and keyword in line.lower():
+            if TABLE_ROW_RE.match(line) and keyword in line.lower():
                 found.append(f"[{seg_date}] {line.strip()}")
 
     if found:
@@ -152,6 +184,7 @@ def main() -> None:
     p_add.add_argument("--meeting", default="", help="Meeting name or source")
     p_add.add_argument("--time", default="", help="Timestamp inside the meeting (e.g. 05:30)")
     p_add.add_argument("--date", default="", help="Target date YYYY-MM-DD (default: today)")
+    p_add.add_argument("--important", action="store_true", help="Mark as important ([!] checkbox)")
     p_add.set_defaults(func=cmd_add)
 
     # show

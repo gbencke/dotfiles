@@ -62,6 +62,33 @@ python3 /home/gbencke/.pi/agent/skills/platformsync-inbound-queue/queue_status.p
 Replace `sqa` with the target environment. The script prints CSV to stdout
 with columns: `message_type, REQUEST, REPROCESS, PROCESSING, ERROR, WAIT, TOTAL`.
 
+### Date range filtering
+
+Both scripts accept `--min-date` and `--max-date` to restrict results to a
+window on the GSI sort key (`creation`). Either flag is optional; omitting
+both queries all rows.
+
+| Flag | Accepted formats | Behaviour |
+|---|---|---|
+| `--min-date` | `YYYY-MM-DD` or `YYYY-MM-DDTHH:MM:SS` | Include rows where `creation >= value` |
+| `--max-date` | `YYYY-MM-DD` or `YYYY-MM-DDTHH:MM:SS` | Include rows where `creation <= value` (end-of-day when date-only) |
+
+**Examples**
+
+```bash
+# All rows created today
+python3 /home/gbencke/.pi/agent/skills/platformsync-inbound-queue/queue_status.py sqa \
+  --min-date 2026-06-08
+
+# Rows in a specific window
+python3 /home/gbencke/.pi/agent/skills/platformsync-inbound-queue/queue_status.py sqa \
+  --min-date 2026-06-01 --max-date 2026-06-07
+
+# Precise timestamp bounds
+python3 /home/gbencke/.pi/agent/skills/platformsync-inbound-queue/queue_status.py sqa \
+  --min-date 2026-06-08T06:00:00 --max-date 2026-06-08T12:00:00
+```
+
 ---
 
 ## Output Format
@@ -157,6 +184,15 @@ Run via the `bash` tool:
 
 ```bash
 nohup python3 /home/gbencke/.pi/agent/skills/platformsync-inbound-queue/promote_wait.py sqa \
+  > /tmp/promote_wait.log 2>&1 &
+echo "PID: $!"
+```
+
+To restrict promotion to a creation-date window, add `--min-date` / `--max-date`:
+
+```bash
+nohup python3 /home/gbencke/.pi/agent/skills/platformsync-inbound-queue/promote_wait.py sqa \
+  --min-date 2026-06-08 --max-date 2026-06-08 \
   > /tmp/promote_wait.log 2>&1 &
 echo "PID: $!"
 ```

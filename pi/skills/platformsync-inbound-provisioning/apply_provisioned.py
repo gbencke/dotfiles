@@ -24,22 +24,22 @@ import argparse
 # Total across table + 13 GSIs = 157,000 WCU (43,000 headroom under 200,000).
 # ---------------------------------------------------------------------------
 TABLE_WCU = 30000
-TABLE_RCU = 2000
+TABLE_RCU = 4000
 
 GSI_PLAN = {
-    "status-creation-index":           {"wcu": 18000, "rcu": 2000},
-    "pk-status-index":                 {"wcu": 12000, "rcu": 2000},
-    "entityid-status-index":           {"wcu": 12000, "rcu": 2000},
-    "parentpersonid-status-index":     {"wcu": 12000, "rcu": 2000},
-    "parentcaseid-status-index":       {"wcu": 11000, "rcu": 2000},
-    "parentlocationid-status-index":   {"wcu":  9000, "rcu": 2000},
-    "parentproviderid-status-index":   {"wcu":  9000, "rcu": 2000},
-    "parentappointmentid-status-index":{"wcu":  9000, "rcu": 2000},
-    "messageid-index":                 {"wcu":  7000, "rcu": 2000},
-    "creation-index":                  {"wcu":  7000, "rcu": 2000},
-    "parentnoteid-status-index":       {"wcu":  7000, "rcu": 2000},
-    "parentprocedureid-status-index":  {"wcu":  7000, "rcu": 2000},
-    "parentfclassid-status-index":     {"wcu":  7000, "rcu": 2000},
+    "status-creation-index":           {"wcu": 18000, "rcu": 4000},
+    "pk-status-index":                 {"wcu": 12000, "rcu": 4000},
+    "entityid-status-index":           {"wcu": 12000, "rcu": 4000},
+    "parentpersonid-status-index":     {"wcu": 12000, "rcu": 4000},
+    "parentcaseid-status-index":       {"wcu": 11000, "rcu": 4000},
+    "parentlocationid-status-index":   {"wcu":  9000, "rcu": 4000},
+    "parentproviderid-status-index":   {"wcu":  9000, "rcu": 4000},
+    "parentappointmentid-status-index":{"wcu":  9000, "rcu": 4000},
+    "messageid-index":                 {"wcu":  7000, "rcu": 4000},
+    "creation-index":                  {"wcu":  7000, "rcu": 4000},
+    "parentnoteid-status-index":       {"wcu":  7000, "rcu": 4000},
+    "parentprocedureid-status-index":  {"wcu":  7000, "rcu": 4000},
+    "parentfclassid-status-index":     {"wcu":  7000, "rcu": 4000},
 }
 
 POLL_INTERVAL = 10   # seconds between describe-table calls
@@ -117,9 +117,7 @@ def main():
     billing = current.get("BillingModeSummary", {}).get("BillingMode", "PROVISIONED")
 
     if billing == "PROVISIONED":
-        print(f"Table is already PROVISIONED. Nothing to do.")
-        print("Run revert_to_ondemand.py first if you want to reset capacity.")
-        sys.exit(0)
+        print("Table is already PROVISIONED — updating capacity values in place.")
 
     print_plan(env, table, current)
 

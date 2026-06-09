@@ -6,14 +6,45 @@ that has at least one COMPLETE record in the entityid-status GSI.
 COMPLETE is a terminal state, so positive results are cached in-process.
 
 Usage:
-    python3 promote_wait.py [env]   (default: sqa)
+    python3 promote_wait.py [env] [--min-date YYYY-MM-DD] [--max-date YYYY-MM-DD]
+    (default env: sqa)
 """
-import sys, boto3, time
+import sys, json, argparse, boto3, time
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import defaultdict
 
-ENV           = sys.argv[1] if len(sys.argv) > 1 else "sqa"
+
+def _parse_date(value: str, end_of_day: bool = False) -> str:
+    """Accept YYYY-MM-DD or full ISO-8601; return UTC ISO-8601 string."""
+    for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%d"):
+        try:
+            dt = datetime.strptime(value, fmt)
+            if fmt == "%Y-%m-%d" and end_of_day:
+                dt = dt.replace(hour=23, minute=59, second=59)
+            return dt.replace(tzinfo=timezone.utc).isoformat()
+        except ValueError:
+            continue
+    raise ValueError(f"Cannot parse date '{value}'. Use YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS.")
+
+
+_parser = argparse.ArgumentParser(
+    description="Promote eligible WAIT rows to REQUEST."
+)
+_parser.add_argument("env", nargs="?", default="sqa",
+                     help="Environment: sqa | uat | dev | prod (default: sqa)")
+_parser.add_argument("--min-date", metavar="YYYY-MM-DD",
+                     help="Only promote WAIT rows with creation >= this date")
+_parser.add_argument("--max-date", metavar="YYYY-MM-DD",
+                     help="Only promote WAIT rows with creation <= this date")
+_parser.add_argument("--type", metavar="MESSAGE_TYPE", default=None,
+                     help="Only promote WAIT rows of this message_type (default: all)")
+_args = _parser.parse_args()
+
+ENV       = _args.env
+TYPE_FILTER = _args.type
+MIN_DATE = _parse_date(_args.min_date)                   if _args.min_date else None
+MAX_DATE = _parse_date(_args.max_date, end_of_day=True)  if _args.max_date else None
 TABLE         = f"platformsync-{ENV}-inbound-events"
 STATUS_INDEX  = f"platformsync-{ENV}-inbound-status-creation-index"
 ENTITYID_INDEX= f"platformsync-{ENV}-inbound-entityid-status-index"
@@ -24,6 +55,19 @@ PARENT_COLS   = [
 
 session = boto3.Session(profile_name=f"rt-{ENV}", region_name="us-east-1")
 client  = session.client("dynamodb")
+
+
+def is_v2(item: dict) -> bool:
+    """v2 messages carry a top-level 'envelope' key inside the payload JSON."""
+    raw = item.get("payload", {}).get("S")
+    if not raw:
+        return False
+    try:
+        doc = json.loads(raw)
+    except (ValueError, TypeError):
+        return False
+    return isinstance(doc, dict) and "envelope" in doc
+
 
 # Cache COMPLETE entity_ids — terminal state, always safe to cache
 complete_cache: set = set()
@@ -100,23 +144,53 @@ def promote(item: dict) -> str:
 def run() -> None:
     promoted_types: defaultdict = defaultdict(int)
     skipped_types:  defaultdict = defaultdict(int)
-    g_promoted, g_already, g_skipped, g_errors = 0, 0, 0, 0
+    g_promoted, g_already, g_skipped, g_errors, g_notv2 = 0, 0, 0, 0, 0
     total_processed = 0
 
     def process(item):
         mt = item.get("message_type", {}).get("S", "UNKNOWN")
+        if not is_v2(item):
+            return mt, "not_v2"
         if can_promote(item):
             return mt, promote(item)
         return mt, "skipped"
 
     print("Scanning WAIT rows page by page...", flush=True)
 
+    key_cond    = "#s = :status"
+    expr_names  = {"#s": "status", "#t": "type"}
+    expr_values = {":status": {"S": "WAIT"}, ":reqtype": {"S": "REQUEST"}}
+
+    # Only consider dispatchable rows (type=REQUEST); skip PLACEHOLDER stubs
+    # created by the out-of-order ingestion mechanism, which never dispatch.
+    filter_expr = "#t = :reqtype"
+
+    if MIN_DATE and MAX_DATE:
+        key_cond += " AND #c BETWEEN :min_date AND :max_date"
+        expr_names["#c"]          = "creation"
+        expr_values[":min_date"]  = {"S": MIN_DATE}
+        expr_values[":max_date"]  = {"S": MAX_DATE}
+    elif MIN_DATE:
+        key_cond += " AND #c >= :min_date"
+        expr_names["#c"]         = "creation"
+        expr_values[":min_date"] = {"S": MIN_DATE}
+    elif MAX_DATE:
+        key_cond += " AND #c <= :max_date"
+        expr_names["#c"]         = "creation"
+        expr_values[":max_date"] = {"S": MAX_DATE}
+
+    if MIN_DATE or MAX_DATE:
+        lo = MIN_DATE or "(unbounded)"
+        hi = MAX_DATE or "(unbounded)"
+        print(f"Date filter: creation >= {lo}  AND  creation <= {hi}", flush=True)
+
     kwargs = dict(
         TableName=TABLE,
         IndexName=STATUS_INDEX,
-        KeyConditionExpression="#s = :status",
-        ExpressionAttributeNames={"#s": "status"},
-        ExpressionAttributeValues={":status": {"S": "WAIT"}},
+        KeyConditionExpression=key_cond,
+        FilterExpression=filter_expr,
+        ExpressionAttributeNames=expr_names,
+        ExpressionAttributeValues=expr_values,
     )
 
     page_num = 0
@@ -129,6 +203,14 @@ def run() -> None:
                 break
             kwargs["ExclusiveStartKey"] = lek
             continue
+
+        if TYPE_FILTER:
+            page = [i for i in page if i.get("message_type", {}).get("S") == TYPE_FILTER]
+            if not page:
+                if not lek:
+                    break
+                kwargs["ExclusiveStartKey"] = lek
+                continue
 
         page_num += 1
         with ThreadPoolExecutor(max_workers=20) as executor:
@@ -144,6 +226,8 @@ def run() -> None:
                 elif result == "skipped":
                     g_skipped += 1
                     skipped_types[mt] += 1
+                elif result == "not_v2":
+                    g_notv2 += 1
                 else:
                     g_errors += 1
                     print(f"  ERROR [{mt}]: {result}", flush=True)
@@ -163,7 +247,8 @@ def run() -> None:
     total_promoted = g_promoted + g_already
     print(f"\n=== Done ===", flush=True)
     print(f"Promoted: {total_promoted} (new={g_promoted}, race={g_already}), "
-          f"skipped (deps not met): {g_skipped}, errors: {g_errors}", flush=True)
+          f"skipped (deps not met): {g_skipped}, skipped (v1/non-envelope): {g_notv2}, "
+          f"errors: {g_errors}", flush=True)
 
     print("\nPromoted by type:")
     for mt, c in sorted(promoted_types.items(), key=lambda x: -x[1]):
