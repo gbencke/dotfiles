@@ -3,7 +3,9 @@ name: daily-workstream-update
 description: >
   Run the daily workstream update workflow for the Obsidian vault. Generates
   today's workstream summary from meeting summaries, syncs individual workstream
-  files, copies daily-note entries into workstream files, and publishes to git.
+  files, copies daily-note entries into workstream files, updates
+  PROJECT_DECISIONS.md, ACTION_ITEMS.guilherme_bencke.md, and the Decisions
+  tables in all Topics subtopic files, then publishes to git.
   Use when asked to "run daily workstream update", "generate daily summary",
   "sync workstreams", "update workstream files", or invokes /daily-workstream-update.
 argument-hint: "[YYYY-MM-DD]"
@@ -127,16 +129,148 @@ operation. Do not hand-roll those.
 
 ---
 
+## Step D — Update PROJECT_DECISIONS.md
+
+Process all of today's meeting summary files through the decisions extractor.
+
+1. Get the list of today's summaries (same list from Step A, step 2).
+2. For each file, run:
+   ```bash
+   python3 /home/gbencke/.pi/agent/skills/project-decisions/extract_decisions.py \
+     process "<full-path-to-summary>"
+   ```
+   Run files one at a time — do not batch them into a single call.
+3. Verify the new entries landed:
+   ```bash
+   head -80 /home/gbencke/git.work/331.obsidian-scripts/00.Tasks/PROJECT_DECISIONS.md
+   ```
+4. Publish:
+   ```bash
+   python3 05.Scripts/daily_workstream_update.py git-publish "Update project decisions <D-dashed>"
+   ```
+
+---
+
+## Step E — Update ACTION_ITEMS.guilherme_bencke.md
+
+Extract every action item assigned to **Guilherme Bencke** from today's daily
+summary (the file written in Step A) and add each one to the action-item log.
+
+1. Read the daily summary from `00.Tasks/Daily.Summary/<D>.WorkstreamUpdates.Summary.md`.
+2. Collect every bullet under `### Action Items` blocks that starts with
+   `**Guilherme Bencke**:`. For each item capture:
+   - The action text (everything after `**Guilherme Bencke**: ` up to the
+     meeting source annotation).
+   - The meeting name and timestamp from the trailing `*(Meeting, HH:MM)*`
+     annotation.
+3. For each item, call:
+   ```bash
+   python3 /home/gbencke/.pi/agent/skills/action-items/action_items.py add \
+     "ACTION TEXT" \
+     --meeting "Meeting Name" \
+     --time "HH:MM" \
+     --date "YYYY-MM-DD"
+   ```
+   Skip any item whose text already appears verbatim in the file (run
+   `search` first if unsure).
+4. Confirm additions:
+   ```bash
+   python3 /home/gbencke/.pi/agent/skills/action-items/action_items.py show --days 1
+   ```
+5. Publish:
+   ```bash
+   python3 05.Scripts/daily_workstream_update.py git-publish "Update action items <D-dashed>"
+   ```
+
+---
+
+## Step F — Update Decisions tables in Topics subtopic files
+
+Every `_*.md` file under `00.Tasks/Topics/` contains a `## Decisions` table.
+Append new rows for any decisions from today's meetings that are relevant to
+that file's topic.
+
+### F.1 — Enumerate subtopic files
+
+```bash
+find /home/gbencke/git.work/331.obsidian-scripts/00.Tasks/Topics -name "_*.md" | sort
+```
+
+### F.2 — Map file to meetings
+
+For each subtopic file:
+
+1. Read its YAML frontmatter: `product`, `workstream`, `description`, `tags`.
+2. Cross-reference against the daily summary sections (Step A output). A file
+   is relevant to a meeting section when:
+   - Its `product` + `workstream` pair maps to a `## <Workstream>` section in
+     the daily summary (fuzzy match — e.g. `product: PlatformSync`,
+     `workstream: Performance` → `## PlatformSync - Performance Improvements`),
+     **or**
+   - Its `description` or `tags` overlap significantly with the meeting content.
+3. If no section in the daily summary touches this file's topic, skip it.
+
+### F.3 — Extract and insert decisions
+
+For each relevant subtopic file:
+
+1. Read the full meeting summary files that fed the matching daily-summary
+   section.
+2. Identify decisions relevant **specifically** to this subtopic's scope (not
+   all decisions from the meeting — only those whose subject matter falls within
+   the file's `description`).
+3. Format each decision as:
+   ```
+   | YYYYMMDD | *[Category]* **Decision statement** — one-sentence rationale *(MeetingName)* |
+   ```
+   - `YYYYMMDD` — date with no separators (e.g. `20260608`).
+   - `Category` — one of: `Architectural`, `Technical`, `Team Management`,
+     `Project Management`, `Process`, `Security & Compliance`,
+     `Cost & Governance`.
+   - Statement — 3–12 words summarising the choice made.
+   - Rationale — one sentence explaining why.
+   - MeetingName — short name matching how other entries in that file cite
+     meetings (e.g. `PlatformSyncMapping`, `WarRoom`, `TeamDaily`).
+4. Insert the new rows **at the top** of the `## Decisions` table, immediately
+   after the header row:
+   ```markdown
+   ## Decisions
+
+   | Date       | Decision |
+   | ---------- | -------- |
+   | 20260608 | *[Technical]* **New decision** — rationale *(Meeting)* |   ← new rows here
+   | 20260605 | *[Architectural]* **Older decision** ...                    ← existing rows
+   ```
+5. Update the `last updated` frontmatter field to `D` (dashed format:
+   `YYYY-MM-DD`).
+6. Do not modify any section other than `## Decisions` and the `last updated`
+   frontmatter field.
+
+### F.4 — Publish
+
+After all subtopic files have been updated:
+
+```bash
+python3 05.Scripts/daily_workstream_update.py git-publish "Update topic decisions <D-dashed>"
+```
+
+---
+
 ## Final Report
 
-After all three steps, print a concise summary:
+After all six steps, print a concise summary:
 
 - Daily summary written to: `00.Tasks/Daily.Summary/<D>.WorkstreamUpdates.Summary.md`
 - Workstream files updated in Step B: list each
 - Daily-note sections copied in Step C: `<section> → <workstream>`
+- PROJECT_DECISIONS.md: N new decisions added across M meetings
+- ACTION_ITEMS: N items added for Guilherme Bencke
+- Topics subtopic files updated: list each file and how many decisions were
+  added
 - Anything skipped or unresolved (`UNKNOWN` workstreams, daily-note sections
-  with no obvious workstream mapping)
-- Two commits pushed
+  with no obvious workstream mapping, subtopic files with no relevant meeting
+  content)
+- Commits pushed: list each commit message
 
 If any `git-publish` reports "nothing to commit", say so explicitly — that
 means there was nothing new to write for `D`.
