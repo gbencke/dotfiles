@@ -36,19 +36,20 @@ tavily_search("distributed systems architecture infoq 2026", topic: 'news', sear
 tavily_search("infoq.com architecture microservices distributed systems 2026", search_depth: 'advanced', time_range: 'week')
 tavily_search("database reliability engineering zero-downtime upgrade 2026", search_depth: 'advanced', time_range: 'week')
 tavily_search("site:news.ycombinator.com distributed systems architecture 2026", topic: 'news', time_range: 'week')
+tavily_search("site:lobste.rs distributed systems architecture 2026", topic: 'news', time_range: 'week')
 ```
 
-#### GitHub Trending
-Scrape **all five pages** in parallel to collect at least 50 repositories before filtering:
+#### GitHub Trending & Lobste.rs
+Scrape the following pages in parallel to collect at least 50 repositories/items before filtering:
 
 ```
 obscura_web_scrape("https://github.com/trending?since=daily")
 obscura_web_scrape("https://github.com/trending?since=weekly")
-obscura_web_scrape("https://github.com/trending?since=monthly")
 obscura_web_scrape("https://github.com/trending/python?since=daily")
 obscura_web_scrape("https://github.com/trending/go?since=daily")
 obscura_web_scrape("https://github.com/trending/rust?since=daily")
-obscura_web_scrape("https://github.com/trending/typescript?since=daily")
+obscura_web_scrape("https://lobste.rs/")
+obscura_web_scrape("https://lobste.rs/newest")
 ```
 
 Extract from each page: repo name, star total, stars today/this week, language, description. Deduplicate across pages (keep the entry with the highest star velocity). You must collect **at least 50 distinct repositories** before scoring. Pick the 15–20 most architecturally relevant for the final digest.
