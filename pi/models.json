@@ -1,0 +1,183 @@
+{
+  "providers": {
+    "desktop": {
+      "baseUrl": "http://desktop:1234/v1",
+      "api": "openai-completions",
+      "apiKey": "not-needed",
+      "models": [
+        {
+          "id": "mistralai/devstral-small-2-2512"
+        },
+        {
+          "id": "qwen/qwen3-coder-next"
+        },
+        {
+          "id": "qwen/qwen3.5-35b-a3b"
+        },
+        {
+          "id": "qwen/qwen3.5-9b"
+        },
+        {
+          "id": "google/gemma-4-31b-qat"
+        },
+        {
+          "id": "google/gemma-4-26b-a4b-qat"
+        },
+        {
+          "id": "diffusiongemma-26b-a4b-it"
+        },
+        {
+          "id": "google/gemma-4-12b-qat"
+        },
+        {
+          "id": "google/gemma-4-12b"
+        },
+        {
+          "id": "qwen/qwen3.6-35b-a3b"
+        },
+        {
+          "id": "google/gemma-4-31b"
+        },
+        {
+          "id": "google/gemma-4-e4b"
+        },
+        {
+          "id": "google/gemma-4-e2b"
+        },
+        {
+          "id": "text-embedding-nomic-embed-text-v1.5"
+        }
+      ]
+    },
+    "local": {
+      "baseUrl": "http://localhost:1234/v1",
+      "api": "openai-completions",
+      "apiKey": "not-needed",
+      "models": [
+        {
+          "id": "mistralai/devstral-small-2-2512"
+        },
+        {
+          "id": "qwen/qwen3-coder-next"
+        },
+        {
+          "id": "qwen/qwen3.5-35b-a3b"
+        },
+        {
+          "id": "qwen/qwen3.5-9b"
+        },
+        {
+          "id": "google/gemma-4-31b-qat"
+        },
+        {
+          "id": "google/gemma-4-26b-a4b-qat"
+        },
+        {
+          "id": "diffusiongemma-26b-a4b-it"
+        },
+        {
+          "id": "google/gemma-4-12b-qat"
+        },
+        {
+          "id": "google/gemma-4-12b"
+        },
+        {
+          "id": "qwen/qwen3.6-35b-a3b"
+        },
+        {
+          "id": "google/gemma-4-31b"
+        },
+        {
+          "id": "google/gemma-4-e4b"
+        },
+        {
+          "id": "google/gemma-4-e2b"
+        },
+        {
+          "id": "text-embedding-nomic-embed-text-v1.5"
+        }
+      ]
+    },
+    "modal-gemma4": {
+      "baseUrl": "https://gbencke--gemma4-26b-a4b-vllmserver-serve.modal.run/v1",
+      "api": "openai-completions",
+      "apiKey": "not-needed",
+      "models": [
+        {
+          "id": "google/gemma-4-26B-A4B-it",
+          "contextWindow": 131072,
+          "maxTokens": 8192
+        }
+      ]
+    },
+    "modal-deepseek-r1": {
+      "baseUrl": "https://gbencke--deepseek-r1-70b-llamacpp-llamacppserver-serve.modal.run/v1",
+      "api": "openai-completions",
+      "apiKey": "not-needed",
+      "models": [
+        {
+          "id": "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
+          "contextWindow": 131072,
+          "maxTokens": 8192
+        }
+      ]
+    },
+    "modal-gemma3": {
+      "baseUrl": "https://gbencke--gemma3-27b-llamacpp-llamacppserver-serve.modal.run/v1",
+      "api": "openai-completions",
+      "apiKey": "not-needed",
+      "models": [
+        {
+          "id": "google/gemma-3-27b-it",
+          "contextWindow": 131072,
+          "maxTokens": 8192
+        }
+      ]
+    },
+    "modal-qwen3-coder-next": {
+      "baseUrl": "https://gbencke--qwen3-coder-next-llamacpp-llamacppserver-serve.modal.run/v1",
+      "api": "openai-completions",
+      "apiKey": "not-needed",
+      "models": [
+        {
+          "id": "Qwen/Qwen3-Coder-Next",
+          "contextWindow": 262144,
+          "maxTokens": 8192
+        }
+      ]
+    },
+    "modal-qwen3-235b": {
+      "baseUrl": "https://gbencke--qwen3-235b-a22b-llamacpp-llamacppserver-serve.modal.run/v1",
+      "api": "openai-completions",
+      "apiKey": "not-needed",
+      "models": [
+        {
+          "id": "Qwen/Qwen3-235B-A22B-Thinking-2507",
+          "contextWindow": 262144,
+          "maxTokens": 8192
+        }
+      ]
+    },
+    "openrouter-fusion": {
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "api": "openai-completions",
+      "apiKey": "${OPENROUTER_API_KEY}",
+      "models": [
+        {
+          "id": "openrouter/fusion",
+          "contextWindow": 1000000,
+          "maxTokens": 16384,
+          "fusionConfig": {
+            "analysis_models": [
+              "deepseek/deepseek-v4-pro",
+              "xiaomi/mimo-v2.5-pro",
+              "moonshotai/kimi-k2.7-code",
+              "z-ai/glm-5.2"
+            ],
+            "judge": "deepseek/deepseek-v4-pro"
+          }
+        }
+      ]
+    }
+  }
+}
