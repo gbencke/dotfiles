@@ -1,17 +1,31 @@
 {
-  "lastChangelogVersion": "0.74.0",
-  "defaultProvider": "anthropic",
-  "defaultModel": "claude-sonnet-4-6",
+  "lastChangelogVersion": "0.80.2",
+  "defaultProvider": "kimi-coding",
+  "defaultModel": "k2p7",
   "packages": [
     "npm:@robzolkos/pi-nocchio",
     "npm:pi-powerline-footer",
     "npm:@juicesharp/rpiv-todo",
     "npm:@juicesharp/rpiv-ask-user-question",
-    "npm:@victor-software-house/pi-curated-themes"
+    "npm:@victor-software-house/pi-curated-themes",
+    "git:github.com/DietrichGebert/ponytail"
   ],
   "powerline": {
     "preset": "full",
     "fixedEditor": true
   },
-  "theme": "everforest-dark-hard"
+  "theme": "cursor-dark",
+  "defaultThinkingLevel": "high",
+  "retry": {
+    "enabled": true,
+    "maxRetries": 3,
+    "baseDelayMs": 2000,
+    "provider": {
+      "timeoutMs": 3600000,
+      "maxRetries": 0,
+      "maxRetryDelayMs": 60000
+    }
+  },
+  "httpIdleTimeoutMs": 0,
+  "treeFilterMode": "all"
 }
