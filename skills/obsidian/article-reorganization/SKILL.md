@@ -1,4 +1,15 @@
-# article.reorganization
+---
+name: article-reorganization
+description: >
+  Reorganize a long, scattered Markdown article into a clean hierarchy of
+  Parts and Chapters, then regenerate its PDF with Pandoc
+  (--top-level-division=part).
+  Use when asked to "reorganize an article", "restructure into parts and
+  chapters", "fix article structure and regenerate PDF", or invokes
+  /article-reorganization.
+---
+
+# article-reorganization
 
 Reorganize a long, scattered Markdown article into a clean hierarchy of **Parts** and **Chapters**, then regenerate its PDF.
 
