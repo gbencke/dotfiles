@@ -10,6 +10,7 @@ This repository holds task-specific skills for an AI agent. Each skill is a self
 | `programming.languages/` | Language-specific guidance and review checklists. Currently Go. |
 | `review/` | Code review and analysis skills: diagnosis, change amplification, possibility analysis, and strict quality audits. |
 | `utils/` | General utilities: skill discovery, bookmark management, transcript viewing, and media download. |
+| `writing/` | Prose and technical-writing skills: the Zinsser method and ASD-STE100 Simplified Technical English. |
 
 ## How a skill works
 
