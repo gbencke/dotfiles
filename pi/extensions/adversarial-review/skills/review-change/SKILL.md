@@ -42,12 +42,21 @@ file. If the diff is empty, say so and stop.
    but record which tests reference the changed symbols (feeds test-surface).
 3. Produce: `{symbol → direct dependents[]}`, count of affected packages/dirs.
 
-## Phase 2 — Lens selection
+## Phase 2 — Lens selection (ALWAYS ask)
 
 Read every `lenses/*/lens.md` in the extension base dir + the repo overlay
 (`.gbencke/adversarial-review/lenses/`, merge same-named). For a change review ALL
-matched lenses apply, and `test-surface` + `blast-radius` ALWAYS apply. List
-the selected lenses in one line each.
+signal-matched lenses apply, and `test-surface` + `blast-radius` ALWAYS
+apply. Language lenses (glob signals like `*.go`, `*.ts`) match only if the
+diff touches matching files.
+
+- If the user passed `--lenses a,b,c` in the argument, use exactly those
+  and skip the prompt.
+- Otherwise, MANDATORY before spawning any agent, ask in plain text:
+  > Matched lenses: <names> (N of M). ENTER/'all matched' to run them ·
+  > 'all' for every lens · or 'skip X, add Y'.
+
+  Wait for the reply and apply it.
 
 ## Phase 3 — Propose (parallel reviewers)
 

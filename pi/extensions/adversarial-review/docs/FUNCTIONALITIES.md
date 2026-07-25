@@ -36,10 +36,13 @@ resolves it. See `docs/adr/0001-adversarial-loop.md`.
 
 Exhaustive by design (ADR 0003). The orchestrator chunks the repo along
 directory boundaries (splitting oversized directories mechanically),
-matches lens signals, and runs propose → kill → judge per lens across all
-chunks. Always skips: `.git`, vendored dependencies, build output, lock
-files, generated code, binaries. The report's `## Not reviewed` section
-lists everything skipped — exhaustiveness claims stay honest.
+matches lens signals, **asks which lenses to run** (matched set by
+default; `--lenses a,b,c` skips the prompt for CI), and runs propose →
+kill → judge per lens across all chunks. Language lenses review only
+their language's chunks. Always skips: `.git`, vendored dependencies,
+build output, lock files, generated code, binaries. The report's
+`## Not reviewed` section lists everything skipped — exhaustiveness
+claims stay honest.
 
 Verdict: per-lens HEALTHY / NEEDS-ATTENTION / CRITICAL.
 
@@ -48,7 +51,9 @@ Verdict: per-lens HEALTHY / NEEDS-ATTENTION / CRITICAL.
 Targets: PR number/URL (via `gh`), branch diff (`git diff base...branch`),
 or a patch file. The PR description / commit messages become the *change
 intent* for the solution-fit verdict; anonymous patches get
-correctness-only verdicts.
+correctness-only verdicts. Asks which lenses to run before spawning
+(`--lenses` skips the prompt); language lenses apply only when the diff
+touches their files.
 
 Verdict: **dual** — IMPLEMENTATION_CORRECTNESS × SOLUTION_FIT →
 SHIP / FIX-THEN-SHIP / DO-NOT-SHIP. Perfect code implementing the wrong
@@ -65,6 +70,38 @@ visibility-timeout vs processing time, DynamoDB 400KB items and hot
 partition keys, unpaginated SDK list calls (silent truncation at 1000),
 public buckets, wildcard IAM, missing DLQs, missing encryption at rest.
 Static knowledge only — no AWS credentials, no live API calls (ADR 0002).
+
+### design
+
+Ousterhout's *A Philosophy of Software Design* (2nd ed.), structural
+chapters: complexity as change-amplification / cognitive load / unknown
+unknowns (ch2), tactical vs strategic programming (ch3), deep vs shallow
+modules and classitis (ch4), information leakage and temporal
+decomposition (ch5), general-purpose interfaces (ch6), pass-through
+methods and redundant layers (ch7), pull complexity down (ch8), together
+or apart (ch9), designing twice (ch11), names (ch14), consistency (ch17),
+obvious code (ch18). Excludes ch10 (errors → error-handling lens) and
+ch12–13 (comments → docs lens) by design. Severity guidance is built in:
+design findings cap at P1 unless they produce unknown unknowns.
+
+### typescript
+
+Type safety and async correctness for `.ts`/`.tsx` chunks: escape hatches
+(`any`, unsafe `as`, `as any as T`, non-null `!`, unexplained
+`@ts-ignore`), boundary assertion instead of validation, missing
+discriminated unions, boolean traps, stringly-typed APIs, floating
+promises, `forEach(async …)`, falsy-default `||` vs `??`. Style owned by
+formatters/linters is out of scope.
+
+### golang
+
+Distilled from Effective Go, go.dev CodeReviewComments, Google + Uber
+style guides, and *100 Go Mistakes*: unchecked/swallowed errors,
+`%w`-loss, panic in library code, goroutines with no stop path, data
+races, copied mutexes, `defer` in loops, unclosed HTTP bodies, defer arg
+evaluation, slice capacity leaks, range-address capture (pre-1.22),
+`any` abuse, premature interfaces, init side effects, global mutable
+state, context misuse. Applies to `.go` chunks only.
 
 ### docs
 

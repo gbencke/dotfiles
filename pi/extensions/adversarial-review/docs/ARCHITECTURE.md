@@ -53,8 +53,11 @@ orchestrator, not pi-registered agent types.
 1. `index.ts` never touches review logic. It reads a SKILL.md and sends it to
    the agent with `triggerTurn`. Skills are the unit of behavior.
 2. The orchestrating agent (your pi session) runs the skill: scans lenses,
-   matches signals, merges the repo overlay (`.gbencke/adversarial-review/lenses/`),
-   then spawns subagents in batched background waves.
+   matches signals, merges the repo overlay
+   (`.gbencke/adversarial-review/lenses/`), then **asks which lenses to run**
+   (mandatory unless `--lenses` was passed), then spawns subagents in
+   batched background waves. Language lenses (`*.go`, `*.ts` signals)
+   review only matching chunks; `always` lenses review every chunk.
 3. Subagents return terse JSON. The orchestrator forwards it between phases
    without interpreting it (context discipline — the orchestrator's context
    is the cost driver in multi-agent systems; it stays thin).

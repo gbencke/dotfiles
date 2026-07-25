@@ -31,12 +31,19 @@ of this repo") in addition to the slash commands: add the skills dir to
 ## Usage
 
 ```
-/review-repo [path]                          # whole-repository review
-/review-change 412                           # PR number (uses gh)
+/review-repo [path] [--lenses a,b,c]         # whole-repository review
+/review-change 412 [--lenses design,security] # PR number (uses gh)
 /review-change https://github.com/o/r/pull/412
-/review-change feature-branch main           # branch diff vs base
-/review-change /tmp/fix.patch                # patch file
+/review-change feature-branch main            # branch diff vs base
+/review-change /tmp/fix.patch                 # patch file
 ```
+
+Every review asks which lenses to run before spawning agents (matched set
+by default; `all`; or `skip X, add Y`). Passing `--lenses` skips the
+prompt — use that in CI.
+
+Language lenses (`typescript`, `golang`) review only the chunks / diff
+files that match their language.
 
 Both commands write two artifacts into the reviewed repo and return a short
 summary in chat:
@@ -53,12 +60,15 @@ The JSON sidecar is CI-gateable (`counts.P0 > 0` → fail the gate).
 | Lens | Repo review | Change review | Focus |
 |------|:---:|:---:|------|
 | aws | ✓ | ✓ | Well-Architected practices + documented service limits |
+| design | ✓ | ✓ | Ousterhout's *A Philosophy of Software Design* — complexity, deep modules, information hiding |
 | docs | ✓ | ✓ | Comments/inline docs that disagree with the code |
 | tests | ✓ | ✓ | Coverage gaps, hollow assertions, test smells |
 | chaos | ✓ | ✓ | Failure tolerance + proposed chaos experiments |
 | security | ✓ | ✓ | Reachable injection/authz/secrets defects |
 | performance | ✓ | ✓ | N+1, unbounded work, hot-path waste |
 | error-handling | ✓ | ✓ | Swallowed errors, lost context, data loss on failure |
+| typescript | ✓ | ✓ | Type safety, escape hatches, async correctness (TS files only) |
+| golang | ✓ | ✓ | Errors, goroutine/defer/slice safety, idioms (Go files only) |
 | test-surface | — | ✓ | Every changed behavior has a test that would catch its deletion |
 | blast-radius | — | ✓ | Downstream impact, risk tier, contract breaks |
 

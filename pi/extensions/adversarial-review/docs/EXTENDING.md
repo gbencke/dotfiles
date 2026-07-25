@@ -59,6 +59,9 @@ When it applies and what it reviews. The orchestrator reads this to decide.
 
 Signals: strings are matched against file paths and dependency names in the
 repo. `always` = every review. `change-only` = skipped for repo reviews.
+File-glob signals (`*.go`, `*.ts`) make a **language lens**: it reviews
+only the chunks (repo review) or diff files (change review) that contain
+matching files — see `lenses/golang/` and `lenses/typescript/`.
 
 ## Add a new skill (a new review shape)
 

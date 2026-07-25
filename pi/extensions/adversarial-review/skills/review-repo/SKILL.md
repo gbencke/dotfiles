@@ -24,7 +24,7 @@ and tell the user to install `@tintinweb/pi-subagents`.
 2. Read `agents/reviewer.md`, `agents/challenger.md`, `agents/judge.md` from the
    extension base dir — these are the prompt templates for every spawn.
 
-## Phase 1 — Lens selection
+## Phase 1 — Lens selection (ALWAYS ask)
 
 1. List `lenses/` in the extension base dir. For each lens read `lens.md`
    (name, apply-when signals).
@@ -33,8 +33,21 @@ and tell the user to install `@tintinweb/pi-subagents`.
    the global rules.md).
 3. A lens applies when its signals match the repo (globs, dependency names,
    file types). `test-surface` and `blast-radius` are change-only — skip them
-   for repo reviews. List the selected lenses to the user in one line each:
-   name + why it matched.
+   for repo reviews.
+4. **`--lenses` arg**: if the user passed `--lenses a,b,c` in the target
+   argument, use exactly those lenses (parse the remainder of the argument
+   for it) and skip step 5. Otherwise step 5 is MANDATORY.
+5. **Ask the user, in plain text, before any agent is spawned:**
+   > Matched lenses: <names> (N of M available: <all names>).
+   > Reply ENTER or 'all matched' to run them · 'all' to run every lens ·
+   > or adjustments like 'skip aws, add chaos'.
+
+   Wait for the reply and apply it. Never skip this prompt without
+   `--lenses` — even if the match looks obvious.
+6. Note per-chunk matching: language lenses (their signals are file globs
+   like `*.go`, `*.ts`) review ONLY the chunks whose files match — a
+   Go-only chunk does not get the typescript lens. `always` lenses review
+   every chunk.
 
 ## Phase 2 — Chunking (exhaustive)
 
@@ -48,7 +61,8 @@ and tell the user to install `@tintinweb/pi-subagents`.
 
 ## Phase 3 — Propose (parallel reviewers)
 
-For each (lens × chunk) pair, spawn a **background** Agent:
+For each (lens × chunk) pair, spawn a **background** Agent (respecting
+per-chunk language-lens matching from Phase 1):
 
 - `subagent_type`: `general-purpose`
 - `description`: `review <lens> chunk <id>`
@@ -61,7 +75,7 @@ For each (lens × chunk) pair, spawn a **background** Agent:
   - `{{TARGET_DIR}}`: absolute path of the target repo
 
 Cap concurrency by trusting the subagents queue — launch everything, let it
-schedule. If (lenses × chunks) exceeds 25, process chunks in waves of ~25.
+schedule. If (lenses × chunks) exceeds 25 pairings, process chunks in waves of ~25.
 
 Collect each reviewer's findings as JSON. If an agent fails or returns
 non-JSON, note it and continue — partial coverage beats aborting.
