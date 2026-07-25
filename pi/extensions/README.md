@@ -11,3 +11,4 @@ These extensions are loaded dynamically and register various functions that the 
 - **`obscura.ts`**: Provides web scraping and headless browser capabilities via the Obscura engine.
 - **`tavily.ts`**: Integrates Tavily AI search to allow the agent to search the web for recent documentation or solutions.
 - **`tools-command.ts`**: Implements a `/tools` slash command to list all available tools to the user in the agent's UI.
+- **`adversarial-review/`**: Adversarial multi-agent code review (`/review-repo`, `/review-change`). Per-lens reviewers propose findings, adversarial challengers kill weak ones, a judge rules. Ships 12 markdown lenses (aws, design, docs, tests, chaos, security, performance, error-handling, typescript, golang, test-surface, blast-radius). Requires `@tintinweb/pi-subagents`. Docs in `adversarial-review/docs/`.
