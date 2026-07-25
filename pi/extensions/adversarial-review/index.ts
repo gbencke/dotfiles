@@ -48,11 +48,16 @@ function loadSkill(pi: ExtensionAPI, name: string, args: string, hasUI: boolean)
   pi.sendMessage({ content, display: false }, { triggerTurn: true });
 }
 
+function argString(args: unknown): string {
+  // pi passes the raw argument string; older code assumed string[].
+  return (Array.isArray(args) ? args.join(" ") : String(args ?? "")).trim();
+}
+
 export default function (pi: ExtensionAPI) {
   pi.registerCommand("review-repo", {
     description: "Adversarial multi-agent review of a repository. Usage: /review-repo [path]",
     handler: async (args, ctx) => {
-      loadSkill(pi, "review-repo", args.join(" ").trim(), ctx.hasUI);
+      loadSkill(pi, "review-repo", argString(args), ctx.hasUI);
     },
   });
 
@@ -60,7 +65,7 @@ export default function (pi: ExtensionAPI) {
     description:
       "Adversarial multi-agent review of a change. Usage: /review-change <pr-url|pr-number|branch|patch-file> [base]",
     handler: async (args, ctx) => {
-      loadSkill(pi, "review-change", args.join(" ").trim(), ctx.hasUI);
+      loadSkill(pi, "review-change", argString(args), ctx.hasUI);
     },
   });
 }
