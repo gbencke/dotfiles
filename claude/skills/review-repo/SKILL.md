@@ -10,23 +10,27 @@ argument-hint: "[path]"
 
 # review-repo — adversarial whole-repository review
 
-Orchestrate the adversarial loop (see CONTEXT.md at the extension base dir for
-the glossary). You are the **orchestrator**: you coordinate, you never review
-code yourself. Reviewing is the subagents' job.
+Orchestrate the adversarial loop (see `BASE_DIR/CONTEXT.md` for the glossary).
+You are the **orchestrator**: you coordinate, you never review code yourself.
+Reviewing is the subagents' job.
 
-Requires the `Agent` tool (pi-subagents extension). If it is unavailable, stop
-and tell the user to install `@tintinweb/pi-subagents`.
+Requires Claude Code's `Agent` tool. If it is unavailable, stop and tell the
+user.
+
+**Shared assets base dir** (`BASE_DIR` below) —
+`~/.claude/skills/adversarial-review/`: `CONTEXT.md` (glossary), `agents/`
+(reviewer, challenger, judge prompt templates), `lenses/` (14 lenses).
 
 ## Phase 0 — Target and scope
 
 1. Target dir = the argument, or the current working directory if empty.
    Resolve to an absolute path. Confirm it is a repo (has `.git` or source files).
-2. Read `agents/reviewer.md`, `agents/challenger.md`, `agents/judge.md` from the
-   extension base dir — these are the prompt templates for every spawn.
+2. Read `BASE_DIR/agents/reviewer.md`, `BASE_DIR/agents/challenger.md`,
+   `BASE_DIR/agents/judge.md` — these are the prompt templates for every spawn.
 
 ## Phase 1 — Lens selection (ALWAYS ask)
 
-1. List `lenses/` in the extension base dir. For each lens read `lens.md`
+1. List `BASE_DIR/lenses/`. For each lens read `lens.md`
    (name, apply-when signals).
 2. Also check `<target>/.gbencke/adversarial-review/lenses/` (project overlay). New
    names are added; same-named lenses MERGE (project rules.md appended after
@@ -68,7 +72,7 @@ per-chunk language-lens matching from Phase 1):
 - `description`: `review <lens> chunk <id>`
 - `run_in_background`: true — launch ALL spawns in ONE message (batched), then
   collect results as they complete. Do not launch sequentially.
-- Prompt: the `agents/reviewer.md` template with slots filled:
+- Prompt: the `BASE_DIR/agents/reviewer.md` template with slots filled:
   - `{{LENS_NAME}}`, the lens's merged `rules.md` content
   - `{{SCOPE}}`: the chunk's path list, and the instruction that this is a
     REPO REVIEW (review the listed files fully, not a diff)
@@ -86,13 +90,14 @@ For each lens that produced ≥1 finding, spawn one background challenger Agent
 per lens (not per chunk — one challenger sees all of the lens's findings for
 dedup context):
 
-- Prompt: the `agents/challenger.md` template with `{{LENS_NAME}}`, the merged
+- Prompt: the `BASE_DIR/agents/challenger.md` template with `{{LENS_NAME}}`, the merged
   `rules.md`, `{{FINDINGS}}` (that lens's findings JSON), `{{TARGET_DIR}}`.
 - Batched launches, background, same as Phase 3.
 
 ## Phase 5 — Judge
 
-Spawn ONE foreground Agent with `agents/judge.md`:
+Spawn ONE foreground Agent (`run_in_background: false`) with
+`BASE_DIR/agents/judge.md`:
 
 - `{{MODE}}`: `repo`
 - `{{FINDINGS}}`: all challenger outputs (VALID / INVALID / AMBIGUOUS with evidence)

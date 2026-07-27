@@ -13,8 +13,11 @@ argument-hint: "<pr-url|pr-number|branch|patch-file> [base]"
 # review-change — adversarial review of a PR / branch / patch
 
 You are the **orchestrator**: coordinate subagents, never review code yourself.
-Requires the `Agent` tool (pi-subagents). If unavailable, stop and tell the
-user to install `@tintinweb/pi-subagents`.
+Requires Claude Code's `Agent` tool. If unavailable, stop and tell the user.
+
+**Shared assets base dir** (`BASE_DIR` below) —
+`~/.claude/skills/adversarial-review/`: `CONTEXT.md` (glossary), `agents/`
+(reviewer, challenger, judge prompt templates), `lenses/` (14 lenses).
 
 ## Phase 0 — Resolve the change
 
@@ -44,7 +47,7 @@ file. If the diff is empty, say so and stop.
 
 ## Phase 2 — Lens selection (ALWAYS ask)
 
-Read every `lenses/*/lens.md` in the extension base dir + the repo overlay
+Read every `lenses/*/lens.md` in `BASE_DIR` + the repo overlay
 (`.gbencke/adversarial-review/lenses/`, merge same-named). For a change review ALL
 signal-matched lenses apply, and `test-surface` + `blast-radius` ALWAYS
 apply. Language lenses (glob signals like `*.go`, `*.ts`) match only if the
@@ -60,8 +63,9 @@ diff touches matching files.
 
 ## Phase 3 — Propose (parallel reviewers)
 
-Spawn background Agents (batched, one message, `run_in_background: true`),
-one per lens. Prompt = `agents/reviewer.md` template with:
+Spawn background Agents (batched, one message, `subagent_type:
+general-purpose`, `run_in_background: true`), one per lens. Prompt =
+`BASE_DIR/agents/reviewer.md` template with:
 
 - `{{LENS_NAME}}` + merged `rules.md`
 - `{{SCOPE}}`: the FULL diff, plus for `blast-radius` the Phase-1 graph, and
@@ -74,13 +78,14 @@ If more than 10 lenses apply, launch in waves of ~10.
 ## Phase 4 — Kill (parallel challengers)
 
 One background challenger per lens with ≥1 finding. Prompt =
-`agents/challenger.md` with `{{LENS_NAME}}`, merged `rules.md`, `{{FINDINGS}}`
+`BASE_DIR/agents/challenger.md` with `{{LENS_NAME}}`, merged `rules.md`, `{{FINDINGS}}`
 (lens's findings JSON), `{{TARGET_DIR}}`. Challengers may read any file to
 disprove a finding.
 
 ## Phase 5 — Judge (dual verdict)
 
-Spawn ONE foreground Agent with `agents/judge.md`:
+Spawn ONE foreground Agent (`run_in_background: false`) with
+`BASE_DIR/agents/judge.md`:
 
 - `{{MODE}}`: `change`
 - `{{INTENT}}`: the change intent from Phase 0 (or "unknown")
