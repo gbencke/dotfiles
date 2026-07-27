@@ -103,6 +103,23 @@ evaluation, slice capacity leaks, range-address capture (pre-1.22),
 `any` abuse, premature interfaces, init side effects, global mutable
 state, context misuse. Applies to `.go` chunks only.
 
+### python
+
+Advanced Python semantics for `.py` chunks: evaluation-time traps
+(mutable defaults, late-binding closures, class-level mutables, missing
+`functools.wraps`, import side effects), identity/equality/copy defects
+(`is` on values, falsy-vs-`None`, broken `__eq__`/`__hash__`, shallow
+copies), asyncio correctness (blocking calls in `async def`, unawaited
+coroutines, orphaned tasks, `gather` error loss, missing timeouts),
+GIL-blind threading and unbounded pools, resource lifecycle (missing
+context managers, cleanup outside `finally`, unbounded reads), Python
+exception shapes (`return` in `finally`, lost `raise ... from`, `assert`
+as validation), typing escape hatches (`Any`, unexplained
+`# type: ignore`, unchecked `Optional`), data correctness (float money,
+naive datetimes), Python-specific security (`pickle`, `yaml.load`,
+`shell=True`, f-string SQL), and mock/fixture test smells. Formatting is
+ruff/black's job and out of scope.
+
 ### docs
 
 Documentation-drift detection: docstrings that document removed

@@ -42,7 +42,7 @@ Every review asks which lenses to run before spawning agents (matched set
 by default; `all`; or `skip X, add Y`). Passing `--lenses` skips the
 prompt — use that in CI.
 
-Language lenses (`typescript`, `golang`) review only the chunks / diff
+Language lenses (`typescript`, `golang`, `python`) review only the chunks / diff
 files that match their language.
 
 Both commands write two artifacts into the reviewed repo and return a short
@@ -69,6 +69,7 @@ The JSON sidecar is CI-gateable (`counts.P0 > 0` → fail the gate).
 | error-handling | ✓ | ✓ | Swallowed errors, lost context, data loss on failure |
 | typescript | ✓ | ✓ | Type safety, escape hatches, async correctness (TS files only) |
 | golang | ✓ | ✓ | Errors, goroutine/defer/slice safety, idioms (Go files only) |
+| python | ✓ | ✓ | Mutable defaults, async blocking, GIL misuse, typing hatches, resource lifecycle (Python files only) |
 | test-surface | — | ✓ | Every changed behavior has a test that would catch its deletion |
 | blast-radius | — | ✓ | Downstream impact, risk tier, contract breaks |
 
