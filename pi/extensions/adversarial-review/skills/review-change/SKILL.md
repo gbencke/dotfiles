@@ -13,8 +13,7 @@ argument-hint: "<pr-url|pr-number|branch|patch-file> [base]"
 # review-change — adversarial review of a PR / branch / patch
 
 You are the **orchestrator**: coordinate subagents, never review code yourself.
-Requires the `Agent` tool (pi-subagents). If unavailable, stop and tell the
-user to install `@tintinweb/pi-subagents`.
+Uses pi's built-in `Agent` tool to spawn reviewers, challengers, and the judge.
 
 ## Phase 0 — Resolve the change
 

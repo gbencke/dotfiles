@@ -6,8 +6,7 @@
  *   /review-change <target>        — adversarial review of a PR, branch, or patch file
  *
  * Both commands load the matching skill from this package and hand it to the
- * agent. The skills orchestrate subagents (requires @tintinweb/pi-subagents,
- * which provides the `Agent` tool).
+ * agent. The skills orchestrate subagents via pi's built-in `Agent` tool.
  */
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { readFileSync, existsSync } from "node:fs";

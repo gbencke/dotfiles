@@ -11,8 +11,7 @@ research basis.
 
 ## Requirements
 
-- pi with the [`@tintinweb/pi-subagents`](https://github.com/tintinweb/pi-subagents)
-  extension installed (provides the `Agent` tool that spawns reviewers).
+- pi (the built-in `Agent` tool spawns the reviewers).
 
 ## Install
 

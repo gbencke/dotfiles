@@ -12,7 +12,7 @@
  (repo | diff)                                                 │           │        │        + findings.json
                                           per lens × chunk     │  per lens │   1 agent
                                           background agents    ▼           ▼
-                                          Agent tool (pi-subagents required)
+                                          Agent tool (pi built-in)      
 ```
 
 **Propose** — one reviewer subagent per (lens × chunk). Prompt = shared

@@ -14,8 +14,7 @@ Orchestrate the adversarial loop (see CONTEXT.md at the extension base dir for
 the glossary). You are the **orchestrator**: you coordinate, you never review
 code yourself. Reviewing is the subagents' job.
 
-Requires the `Agent` tool (pi-subagents extension). If it is unavailable, stop
-and tell the user to install `@tintinweb/pi-subagents`.
+Uses pi's built-in `Agent` tool to spawn reviewers, challengers, and the judge.
 
 ## Phase 0 — Target and scope
 

@@ -80,8 +80,8 @@ it. Template slots: `{{LENS_NAME}}`, `{{RULES}}`, `{{SCOPE}}`,
 
 ## Model and concurrency
 
-Reviewers/challengers/judge run on pi's default model with the subagents
-extension's queue (default concurrency 4). For higher-stakes reviews, run
+Reviewers/challengers/judge run on pi's default model via the built-in
+`Agent` tool's background queue. For higher-stakes reviews, run
 pi with a stronger default model rather than hardcoding one here — see
 ADR 0001 for why the judge's model matters most.
 

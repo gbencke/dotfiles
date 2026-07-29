@@ -4,7 +4,7 @@ Glossary for the adversarial-review pi extension. No implementation details.
 
 ## Terms
 
-- **Extension** — the self-contained package at `~/.pi/agent/extensions/adversarial-review/`. Bundles docs, skills, agent definitions, and lenses. Requires the `@tintinweb/pi-subagents` extension (provides the `Agent` tool used to spawn reviewers).
+- **Extension** — the self-contained package at `~/.pi/agent/extensions/adversarial-review/`. Bundles docs, skills, agent definitions, and lenses. Uses pi's built-in `Agent` tool to spawn reviewers.
 - **Lens** — one review domain (aws, docs, tests, chaos, test-surface, blast-radius, …). Physically a directory of markdown rule packs (`lens.md` manifest with apply-when signals, `rules.md` checklist, optional `conventions.md`) under `lenses/`. Lenses are discovered by scanning; no code, no registration. Lenses are the unit of extensibility: adding a topic = adding a directory.
 - **Finding** — a single review issue. To count as a finding it must name a specific code path, a specific failure condition, and specific evidence. "Consider adding error handling" is not a finding.
 - **Review** — one adversarial pass over a target. Two shapes: **repo review** (whole repository) and **change review** (patch, PR, or branch diff).
