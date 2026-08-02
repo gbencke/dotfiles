@@ -1,0 +1,135 @@
+#!/usr/bin/env zsh
+# pi-review-loop — adversarial-review → fix → re-review until no P0/P1 remain.
+#
+# usage: pi-review-loop [-b base] [-t target] [-r rounds] [-C repo] [-o outdir] [-l lenses] [-B branch] [-n]
+#
+#   -b base     git ref/commit the review starts from   (default: origin/main)
+#   -t target   ref being reviewed                      (default: HEAD)
+#   -r rounds   max review→fix rounds                   (default: 5)
+#   -C repo     repo to run in                          (default: cwd's repo root)
+#   -o outdir   where review-<unixts>.md copies land    (default: repo root)
+#   -l lenses   comma-separated lens list               (default: all matched)
+#   -B branch   work branch to create                   (default: review-fix-<unixts>)
+#   -n          review only, never spawn a fix session
+#
+# Creates the work branch up front, then commits after every review and every
+# fix session, so each round is a reviewable pair of commits.
+# Exits 0 when a review comes back with zero P0/P1, 1 if rounds run out.
+set -euo pipefail
+
+zparseopts -D -E -A opt -- b: t: r: C: o: l: B: n h -help || exit 2
+if (( $+opt[-h] || $+opt[--help] )); then sed -n '2,17p' ${0:A} | sed 's/^# \?//'; exit 0; fi
+
+[[ -n ${opt[-C]:-} ]] && cd "${opt[-C]}"
+REPO=$(git rev-parse --show-toplevel)
+cd "$REPO"
+
+BASE=${opt[-b]:-origin/main}
+TARGET=${opt[-t]:-HEAD}
+MAX_ROUNDS=${opt[-r]:-5}
+OUTDIR=${opt[-o]:-$REPO}
+LENSES=${opt[-l]:-}
+REVIEW_ONLY=$(( $+opt[-n] ))
+BRANCH=${opt[-B]:-review-fix-$(date +%s)}
+
+REPORTS=$REPO/.gbencke/adversarial-review/reports
+AR=${PI_ADVERSARIAL_REVIEW_DIR:-$HOME/.pi/agent/extensions/adversarial-review}
+[[ -f $AR/skills/review-change/SKILL.md ]] || { print "adversarial-review not found at $AR" >&2; exit 2 }
+mkdir -p "$OUTDIR"
+git rev-parse --verify -q "$BASE" >/dev/null || { print "unknown base ref: $BASE" >&2; exit 2 }
+
+# -ne: extension discovery off (pi-nocchio's dump-system-prompt crashes in -p
+# mode and takes the session with it); the skill is loaded explicitly instead.
+pirun() { pi -ne --skill "$AR/skills/review-change/SKILL.md" -p "$@" }
+
+if [[ -n $LENSES ]]; then
+  lens_instruction="Phase 2: use exactly these lenses, do not ask: $LENSES"
+else
+  lens_instruction="Phase 2: take the lens-selection answer as 'all matched' — run exactly the
+signal-matched lenses (plus the always-on test-surface and blast-radius), nothing else."
+fi
+
+# Reviews are stateless: each one sees BASE..HEAD including earlier rounds' fixes,
+# so without this the reviewers re-litigate findings already resolved.
+prior_context() {
+  (( $#PRIOR_REPORTS )) || return 0
+  print -r -- "
+Earlier rounds of this same loop already reviewed and fixed part of this change.
+Prior reports (newest last): ${(j:, :)PRIOR_REPORTS}
+
+Read them before reviewing. Findings they list as resolved are settled: do NOT
+raise them again unless the fix is provably absent or broken at HEAD — in that
+case say so explicitly and cite the current code. Focus this round on
+regressions introduced by those fixes and on issues no prior round raised."
+}
+
+review() {  # $1 = unix timestamp for the local copies; prints findings.json path
+  local ts=$1 before after; local -a found
+  # (Nom) = matches newest first, empty if none — no glob error on a fresh repo
+  found=( $REPORTS/*.findings.json(Nom) ); before=${found[1]:-}
+
+  pirun "Run the review-change skill on this repo.
+Extension base directory (resolve all relative skill references against it): $AR
+Target: $TARGET   Base: $BASE
+
+Non-interactive run: never ask questions.
+$lens_instruction
+$(prior_context)
+
+When waiting on background subagents, poll in a loop instead of fixed long sleeps —
+blind sleeps waste minutes after the agents have already finished. Bracket one letter
+of the pattern so pgrep cannot match the polling shell's own command line:
+  while pgrep -f 'pat[t]ern' >/dev/null; do sleep 15; done
+An unbracketed 'pgrep -f pattern' inside the loop matches itself and never exits." >&2
+
+  found=( $REPORTS/*.findings.json(Nom) ); after=${found[1]:-}
+  if [[ -z $after || $after == $before ]]; then
+    print "review wrote no new report to $REPORTS (newest: ${after:-none})" >&2
+    return 1
+  fi
+  cp "${after%.findings.json}.md" "$OUTDIR/review-$ts.md"
+  cp "$after" "$OUTDIR/review-$ts.findings.json"
+  print "$OUTDIR/review-$ts.findings.json"
+}
+
+commit() {  # $1 = message; no-op when nothing changed
+  git add -A
+  git diff --cached --quiet && { print "=== nothing to commit: $1"; return 0 }
+  git commit -q -m "$1"
+  print "=== committed: $(git rev-parse --short HEAD) $1"
+}
+
+typeset -ga PRIOR_REPORTS=()
+
+print "=== pi-review-loop: $BASE..$TARGET in $REPO (max $MAX_ROUNDS rounds, reports -> $OUTDIR)"
+git switch -c "$BRANCH"
+print "=== work branch: $BRANCH"
+
+for round in {1..$MAX_ROUNDS}; do
+  ts=$(date +%s)
+  print "=== round $round: reviewing -> review-$ts.md"
+  findings=$(review $ts)
+  blockers=$(jq '[.findings[] | select(.severity=="P0" or .severity=="P1")] | length' "$findings")
+  print "=== round $round: $blockers P0/P1 finding(s)"
+  commit "review(round $round): adversarial review of $BASE..$TARGET — $blockers P0/P1"
+
+  if (( blockers == 0 )); then
+    print "=== clean: no P0/P1 issues left (report: $OUTDIR/review-$ts.md)"
+    exit 0
+  fi
+  if (( REVIEW_ONLY )); then
+    print "=== review-only mode: stopping with $blockers P0/P1 open ($OUTDIR/review-$ts.md)"
+    exit 1
+  fi
+
+  print "=== round $round: fixing $blockers issue(s)"
+  pirun "Fix every P0 and P1 finding in @$OUTDIR/review-$ts.md (details in @$OUTDIR/review-$ts.findings.json).
+
+Rules: fix root causes, not symptoms. Ignore P2/P3. Run the tests you touch.
+Do not edit files under .gbencke/. Report each finding id and what you changed."
+  commit "fix(round $round): resolve $blockers P0/P1 finding(s) from review-$ts"
+  PRIOR_REPORTS+=( "$OUTDIR/review-$ts.md" ); PRIOR_REPORTS=( ${(u)PRIOR_REPORTS} )
+done
+
+print "=== stopped after $MAX_ROUNDS rounds with P0/P1 issues still open" >&2
+exit 1

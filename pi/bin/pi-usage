@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+"""Token/cost usage per project for pi sessions on a given day.
+
+Usage: pi-usage [YYYY-MM-DD]   (default: today, local time)
+"""
+import collections
+import datetime as dt
+import glob
+import json
+import os
+import sys
+
+SESSIONS = os.path.expanduser("~/.pi/agent/sessions")
+
+
+def day_bounds(day):
+    start = dt.datetime.combine(day, dt.time.min).timestamp()
+    return start, start + 86400
+
+
+def collect(start, end):
+    """(tokens, cost, requests, in, out, cacheRead, cacheWrite) per project."""
+    tot = collections.defaultdict(lambda: [0, 0.0, 0, 0, 0, 0, 0])
+    for path in glob.glob(os.path.join(SESSIONS, "*", "*.jsonl")):
+        if os.path.getmtime(path) < start:  # can't hold entries from that day
+            continue
+        proj = os.path.basename(os.path.dirname(path))
+        for line in open(path, errors="replace"):
+            try:
+                entry = json.loads(line)
+            except ValueError:
+                continue
+            u = entry.get("message", {}).get("usage") or entry.get("usage")
+            if not isinstance(u, dict) or "totalTokens" not in u:
+                continue
+            ts = (u.get("timestamp") or entry.get("timestamp") or 0)
+            if isinstance(ts, str):  # ISO fallback
+                ts = dt.datetime.fromisoformat(ts.replace("Z", "+00:00")).timestamp()
+            else:
+                ts = ts / 1000
+            if not start <= ts < end:
+                continue
+            t = tot[proj]
+            t[0] += u["totalTokens"]
+            t[1] += u.get("cost", {}).get("total", 0)
+            t[2] += 1
+            for i, k in enumerate(("input", "output", "cacheRead", "cacheWrite"), 3):
+                t[i] += u.get(k, 0)
+    return tot
+
+
+def report(tot, label):
+    print("%14s %8s %5s  %s" % ("tokens", "cost$", "reqs", label))
+    rows = sorted(tot.items(), key=lambda kv: -kv[1][0])
+    for proj, v in rows:
+        print("%14s %8.2f %5d  %s" % (f"{v[0]:,}", v[1], v[2], proj.strip("-")))
+    if not rows:
+        print("(no usage)")
+        return
+    g = [sum(v[i] for v in tot.values()) for i in range(7)]
+    print("%14s %8.2f %5d  TOTAL" % (f"{g[0]:,}", g[1], g[2]))
+    print("input %s · output %s · cacheRead %s · cacheWrite %s"
+          % tuple(f"{n:,}" for n in g[3:]))
+
+
+def demo():
+    u = {"totalTokens": 10, "cost": {"total": 1.5}, "input": 1, "output": 2,
+         "cacheRead": 3, "cacheWrite": 4, "timestamp": 1785418354170}
+    day = dt.datetime.fromtimestamp(1785418354.170).date()
+    start, end = day_bounds(day)
+    assert start <= 1785418354.170 < end
+    tot = collections.defaultdict(lambda: [0, 0.0, 0, 0, 0, 0, 0])
+    assert json.loads(json.dumps({"usage": u}))["usage"]["totalTokens"] == 10
+    tot["x"][0] += u["totalTokens"]
+    assert tot["x"][0] == 10
+    print("ok")
+
+
+if __name__ == "__main__":
+    arg = sys.argv[1] if len(sys.argv) > 1 else ""
+    if arg == "--demo":
+        demo()
+    else:
+        day = dt.date.fromisoformat(arg) if arg else dt.date.today()
+        report(collect(*day_bounds(day)), "project (%s)" % day)
