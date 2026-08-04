@@ -80,10 +80,15 @@ it. Template slots: `{{LENS_NAME}}`, `{{RULES}}`, `{{SCOPE}}`,
 
 ## Model and concurrency
 
-Reviewers/challengers/judge run on pi's default model with the subagents
-extension's queue (default concurrency 4). For higher-stakes reviews, run
-pi with a stronger default model rather than hardcoding one here — see
-ADR 0001 for why the judge's model matters most.
+All three roles run inline in the reviewing process, on whatever default model
+that process was started with — no subagents, so nothing here picks a model
+(ADR 0004). For higher-stakes reviews, start the process on a stronger default
+model rather than hardcoding one here; ADR 0001 explains why the judge's model
+matters most.
+
+Concurrency is processes: `bin/run-matrix.sh` runs one review per
+(repo × lens), all at once. A new lens therefore adds one process per repo to
+every matrix run — that is the cost of adding a lens.
 
 ## Guidelines
 

@@ -10,8 +10,9 @@ The user chose exhaustive deliberately: prioritized sampling silently
 declares part of the codebase unreviewed by heuristic, and the heuristic
 (churn, fan-in) is exactly what a fresh adversarial review cannot trust —
 quiet, low-churn modules are where undocumented rot lives. The costs are
-accepted and mitigated: agent count scales with lenses × chunks (mitigated
-by batched background waves and the subagents queue), and cross-chunk
+accepted and mitigated: work scales with lenses × chunks (mitigated by one
+process per repo × lens running in parallel, and chunks processed sequentially
+within a process so context stays bounded — ADR 0004), and cross-chunk
 duplicate/noise findings flood the report (mitigated by the judge's dedup
 and severity audit, and by the `## Not reviewed` section that keeps the
 exhaustiveness claim honest).

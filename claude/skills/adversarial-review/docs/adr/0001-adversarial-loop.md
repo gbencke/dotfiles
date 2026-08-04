@@ -1,8 +1,11 @@
 # Propose → Kill → Judge as the adversarial loop
 
-Each review runs per-lens reviewers that propose findings, per-lens
-challengers that try to kill each finding (VALID/INVALID/AMBIGUOUS), and one
-judge that dedups and rules. We chose this over the better-known panel +
+> **Mechanism superseded by ADR 0004**: the three roles now run as sequential
+> phases inside one process instead of separate subagents. The loop itself, and
+> every reason below for keeping proposal and refutation apart, still hold.
+
+Each review runs a reviewer that proposes findings, a challenger that tries to
+kill each finding (VALID/INVALID/AMBIGUOUS), and a judge that dedups and rules. We chose this over the better-known panel +
 debate pattern (N persona reviewers debate, then a judge) because the
 published production evidence favors it: ~7% false positives vs 30–60% for
 single-pass review (`gaurav-yadav/adversarial-ai-review`, 500+ PRs), at a

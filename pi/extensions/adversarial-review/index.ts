@@ -1,12 +1,14 @@
 /**
  * adversarial-review — adversarial multi-agent code review for pi.
  *
- * Registers two commands:
- *   /review-repo [path]            — adversarial review of a whole repository
+ * Registers three commands:
+ *   /review-repo <path>            — adversarial review of a whole repository
  *   /review-change <target>        — adversarial review of a PR, branch, or patch file
+ *   /review-consolidate <repos…>   — one cross-repo document from existing findings.json
  *
- * Both commands load the matching skill from this package and hand it to the
- * agent. The skills orchestrate subagents via pi's built-in `Agent` tool.
+ * Each command loads the matching skill from this package and hands it to the
+ * agent. Skills run the whole review inline in this process and spawn no
+ * subagents; parallelism is the caller's job (see docs/adr/0004-no-subagents.md).
  */
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { readFileSync, existsSync } from "node:fs";
@@ -54,7 +56,8 @@ function argString(args: unknown): string {
 
 export default function (pi: ExtensionAPI) {
   pi.registerCommand("review-repo", {
-    description: "Adversarial multi-agent review of a repository. Usage: /review-repo [path]",
+    description:
+      "Adversarial review of a repository. Usage: /review-repo <path> [--lenses a,b,c]",
     handler: async (args, ctx) => {
       loadSkill(pi, "review-repo", argString(args), ctx.hasUI);
     },
@@ -62,9 +65,17 @@ export default function (pi: ExtensionAPI) {
 
   pi.registerCommand("review-change", {
     description:
-      "Adversarial multi-agent review of a change. Usage: /review-change <pr-url|pr-number|branch|patch-file> [base]",
+      "Adversarial review of a change. Usage: /review-change <pr-url|pr-number|branch|patch-file> [base]",
     handler: async (args, ctx) => {
       loadSkill(pi, "review-change", argString(args), ctx.hasUI);
+    },
+  });
+
+  pi.registerCommand("review-consolidate", {
+    description:
+      "Consolidate review findings across repos into one doc. Usage: /review-consolidate <repo> [<repo>...] --out <file.md>",
+    handler: async (args, ctx) => {
+      loadSkill(pi, "review-consolidate", argString(args), ctx.hasUI);
     },
   });
 }

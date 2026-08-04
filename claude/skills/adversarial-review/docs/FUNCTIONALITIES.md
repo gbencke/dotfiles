@@ -2,11 +2,13 @@
 
 ## 1. The adversarial loop
 
-Every review, both shapes, runs the same loop:
+Every review, both shapes, runs the same loop — three phases, one process, no
+subagents (ADR 0004):
 
-1. **Propose** — per-lens reviewers find candidate findings. The finding
-   contract: `file:line` + failure condition + evidence + severity (P0–P3).
-2. **Kill** — per-lens challengers try to disprove each candidate against
+1. **Propose** — the reviewer role finds candidate findings for one lens. The
+   finding contract: `file:line` + failure condition + evidence + severity
+   (P0–P3).
+2. **Kill** — the challenger role tries to disprove each candidate against
    the actual code. Verdicts: VALID / INVALID / AMBIGUOUS.
 3. **Judge** — dedup, severity audit, epistemic labels, verdict, artifacts.
 
@@ -14,8 +16,17 @@ Why not one smart reviewer? Published production data (500+ PRs,
 `gaurav-yadav/adversarial-ai-review`): single-pass AI review produces
 30–60% false positives; the propose/kill split produces ~7%. Research
 consensus (Huang et al. 2023; Kamoi et al. 2024): LLMs cannot reliably
-self-correct — the agent that raises a concern must never be the one that
-resolves it. See `docs/adr/0001-adversarial-loop.md`.
+self-correct — whoever raises a concern must never be the one who resolves it,
+which is why the phases stay separate even inside one process. See
+`docs/adr/0001-adversarial-loop.md`.
+
+### Where the parallelism lives
+
+Not in subagents — in processes. `BASE_DIR/bin/run-matrix.sh` launches one `claude -p`
+review per (repo × lens), all at once, each scoped to a single lens, and each
+leaves an exit code, a log, and a report path behind. `/review-consolidate`
+drives that fan-out and merges the sidecars. Rationale:
+`docs/adr/0004-no-subagents.md`.
 
 ### Epistemic labels
 
@@ -34,13 +45,15 @@ resolves it. See `docs/adr/0001-adversarial-loop.md`.
 
 ## 2. Repo review (`/review-repo`)
 
-Exhaustive by design (ADR 0003). The orchestrator chunks the repo along
-directory boundaries (splitting oversized directories mechanically),
-matches lens signals, **asks which lenses to run** (matched set by
-default; `--lenses a,b,c` skips the prompt for CI), and runs propose →
-kill → judge per lens across all chunks. Language lenses review only
-their language's chunks. Always skips: `.git`, vendored dependencies,
-build output, lock files, generated code, binaries. The report's
+Exhaustive by design (ADR 0003). **The repo path is required** — there is no
+cwd fallback, because batch runs invoke this from an unrelated directory.
+The review chunks the repo along directory boundaries (splitting oversized
+directories mechanically), matches lens signals, **runs every matched lens
+without asking** (`--lenses a,b,c` narrows it; there is no lens picker), and
+runs propose → kill → judge chunk by chunk, keeping only challenger JSON
+between chunks. Language lenses review only their language's chunks. Always
+skips: `.git`, vendored dependencies, build output, lock files, generated code,
+binaries. The report's
 `## Not reviewed` section lists everything skipped — exhaustiveness
 claims stay honest.
 
@@ -51,8 +64,8 @@ Verdict: per-lens HEALTHY / NEEDS-ATTENTION / CRITICAL.
 Targets: PR number/URL (via `gh`), branch diff (`git diff base...branch`),
 or a patch file. The PR description / commit messages become the *change
 intent* for the solution-fit verdict; anonymous patches get
-correctness-only verdicts. Asks which lenses to run before spawning
-(`--lenses` skips the prompt); language lenses apply only when the diff
+correctness-only verdicts. Runs every matched lens without asking
+(`--lenses` narrows it); language lenses apply only when the diff
 touches their files.
 
 Verdict: **dual** — IMPLEMENTATION_CORRECTNESS × SOLUTION_FIT →
@@ -188,12 +201,23 @@ message loss, 200-status-on-failure, stack traces leaked to clients.
 
 ## 5. Artifacts
 
-Every review writes into the reviewed repo:
+Every review writes into the reviewed repo, with the lens in the basename so
+concurrent per-lens runs cannot overwrite each other:
 
 ```
-.gbencke/adversarial-review/reports/<yyyymmdd-hhmmss>-<target>.md
-.gbencke/adversarial-review/reports/<yyyymmdd-hhmmss>-<target>.findings.json
+.gbencke/adversarial-review/reports/<yyyymmdd-hhmmss>-<target>-<lens>.md
+.gbencke/adversarial-review/reports/<yyyymmdd-hhmmss>-<target>-<lens>.findings.json
 ```
+
+`<lens>` is the single lens's name, or `multi` when one run covered several.
+The last line of the chat summary is the absolute report path prefixed
+`REPORT: ` — batch callers parse that instead of scanning mtimes.
+
+`/review-consolidate` adds one more artifact, outside the repos, at the
+required `--out` path: a cross-repo document ordered by severity then repo,
+with a summary table (repo × lens × counts), a coverage table built from the
+matrix manifest, cross-repo themes, and a `## Not consolidated` section listing
+failed pairings with their logs.
 
 The markdown is PR-comment-ready (change mode: verdict first). The JSON
 sidecar schema:

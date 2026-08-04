@@ -8,61 +8,75 @@
                 │ test-surface · blast-radius (change-only)                                       │
                 └─────────────────────────────────────────────────────────────────┬───────────────┘
                                                                                   │ rules injected
- target ──► orchestrator (skill, runs in your pi session) ──► PROPOSE ──► KILL ──► JUDGE ──► report.md
- (repo | diff)                                                 │           │        │        + findings.json
-                                          per lens × chunk     │  per lens │   1 agent
-                                          background agents    ▼           ▼
-                                          Agent tool (pi-subagents required)
+ target ──► one claude process, one lens ──► PROPOSE ──► KILL ──► JUDGE ──► report.md
+ (repo | diff)   (skill = the procedure)     │          │        │       + findings.json
+                                             │  chunk by chunk   │
+                                             ▼          ▼        ▼
+                                    three role packs, no subagents (ADR 0004)
+
+ /review-consolidate <repos…> --out doc.md
+        │
+        ├── bin/run-matrix.sh ──► N × M `claude -p` processes, all parallel ──► manifest.tsv
+        │       (one per repo × lens: exit code + log + REPORT: path each)
+        └── merge every findings.json ──► one doc, severity then repo
 ```
 
-**Propose** — one reviewer subagent per (lens × chunk). Prompt = shared
-reviewer stance (`agents/reviewer.md`) + the lens's merged `rules.md` + scope.
-Returns findings as strict JSON. Every finding must cite `file:line`, a
-concrete failure condition, and evidence — unverifiable opinions die at birth.
+**Propose** — the reviewer role (`agents/reviewer.md` + the lens's merged
+`rules.md` + scope) produces findings as strict JSON. Every finding must cite
+`file:line`, a concrete failure condition, and evidence — unverifiable opinions
+die at birth.
 
-**Kill** — one challenger subagent per lens. Tries to disprove each finding
-against the actual code (checks callers, middleware, framework defaults).
-Verdicts: `VALID` (survives), `INVALID` (dropped with disproof), `AMBIGUOUS`
-(escalated to the human). Killers never raise new findings — separating
-proposal from refutation is what keeps false positives down (LLMs cannot
-reliably self-correct; see ADR 0001).
+**Kill** — the challenger role tries to disprove each finding against the actual
+code (checks callers, middleware, framework defaults). Verdicts: `VALID`
+(survives), `INVALID` (dropped with disproof), `AMBIGUOUS` (escalated to the
+human). The challenger never raises new findings — separating proposal from
+refutation is what keeps false positives down (LLMs cannot reliably
+self-correct; see ADR 0001), and the separation is by phase, not by process.
 
-**Judge** — one agent. Drops INVALID, dedups across lenses/chunks, audits
-severity, attaches epistemic labels (`[CONFIRMED]`, `[CONSENSUS]`,
-`[NEEDS-HUMAN]`), delivers the verdict, writes both artifacts.
+**Judge** — drops INVALID, dedups across lenses/chunks, audits severity,
+attaches epistemic labels (`[CONFIRMED]`, `[CONSENSUS]`, `[NEEDS-HUMAN]`),
+delivers the verdict, writes both artifacts.
 
 ## Components
 
 | Path | Role |
 |------|------|
-| `index.ts` | Registers `/review-repo` and `/review-change`. Loads the matching SKILL.md, injects it with the extension's absolute base path and the target argument. The only TypeScript — everything else is data. |
-| `skills/review-repo/SKILL.md` | Orchestrator procedure for whole-repo reviews: lens selection → exhaustive chunking → propose → kill → judge. |
-| `skills/review-change/SKILL.md` | Orchestrator procedure for PR/branch/patch reviews: diff resolution → mechanical blast-radius graph → propose → kill → judge (dual verdict). |
-| `agents/reviewer.md` | Reviewer prompt template (finding contract, severity rubric, adversarial self-check, JSON output). |
-| `agents/challenger.md` | Challenger prompt template (kill strategies, VALID/INVALID/AMBIGUOUS, JSON output). |
-| `agents/judge.md` | Judge prompt template (dedup, labels, severity audit, dual verdict, artifact schemas). |
+| `~/.claude/skills/adversarial-review/` | `BASE_DIR`: the shared assets every skill reads (glossary, role packs, lenses, launcher). No SKILL.md — it is data, not a skill. |
+| `~/.claude/skills/review-repo/SKILL.md` | Whole-repo procedure: required path → lens selection → exhaustive chunking → propose → kill → judge. |
+| `~/.claude/skills/review-change/SKILL.md` | PR/branch/patch procedure: diff resolution → mechanical blast-radius graph → propose → kill → judge (dual verdict). |
+| `~/.claude/skills/review-consolidate/SKILL.md` | Multi-repo procedure: required repos + `--out` → run the matrix via `bin/run-matrix.sh` → merge every findings.json into one document. |
+| `bin/run-matrix.sh` | The fan-out. One `claude -p` process per (repo × lens), all parallel, then `manifest.tsv` (repo, lens, exit, seconds, report, log). |
+| `bin/test-run-matrix.sh` | Self-check for the launcher (`--dry-run`, starts no claude process). |
+| `agents/reviewer.md` | Reviewer role pack (finding contract, severity rubric, adversarial self-check, JSON output). |
+| `agents/challenger.md` | Challenger role pack (kill strategies, VALID/INVALID/AMBIGUOUS, JSON output). |
+| `agents/judge.md` | Judge role pack (dedup, labels, severity audit, dual verdict, artifact schemas). |
 | `lenses/<name>/lens.md` | Lens manifest: name, description, apply-when signals. |
 | `lenses/<name>/rules.md` | The lens's domain checklist — the actual review knowledge. |
 
-Subagents are spawned as `general-purpose` with the template injected into
-the prompt. The `agents/*.md` files are prompt building blocks read by the
-orchestrator, not pi-registered agent types.
+The `agents/*.md` files are role packs, not Claude Code agent types and no
+longer subagent prompts: the reviewing process reads them and adopts one per
+phase (ADR 0004).
 
 ## Data flow
 
-1. `index.ts` never touches review logic. It reads a SKILL.md and sends it to
-   the agent with `triggerTurn`. Skills are the unit of behavior.
-2. The orchestrating agent (your pi session) runs the skill: scans lenses,
-   matches signals, merges the repo overlay
-   (`.gbencke/adversarial-review/lenses/`), then **asks which lenses to run**
-   (mandatory unless `--lenses` was passed), then spawns subagents in
-   batched background waves. Language lenses (`*.go`, `*.ts` signals)
-   review only matching chunks; `always` lenses review every chunk.
-3. Subagents return terse JSON. The orchestrator forwards it between phases
-   without interpreting it (context discipline — the orchestrator's context
-   is the cost driver in multi-agent systems; it stays thin).
-4. The judge writes the only two files: `reports/<ts>-<target>.md` and
-   `reports/<ts>-<target>.findings.json`.
+1. A skill is the unit of behavior: `review-repo`, `review-change`, and
+   `review-consolidate` are procedures in markdown, reading shared data from
+   `BASE_DIR`. There is no code to register.
+2. The agent runs the skill: scans lenses, matches signals, merges the repo
+   overlay (`.gbencke/adversarial-review/lenses/`), then runs **every matched
+   lens without asking** (`--lenses` narrows it; there is no lens picker, which
+   is what makes `claude -p` batch runs possible). Language lenses (`*.go`, `*.ts`
+   signals) review only matching chunks; `always` lenses review every chunk.
+3. Phases hand terse JSON to each other. Source files are dropped after each
+   chunk and only challenger JSON survives — with no subagents to absorb
+   context, the reviewing process's own context is the scaling limit.
+4. The judge writes the only two files: `reports/<ts>-<target>-<lens>.md` and
+   `reports/<ts>-<target>-<lens>.findings.json`, then prints the path on a final
+   `REPORT: ` line. The lens is in the basename because concurrent processes
+   share the directory.
+5. `/review-consolidate` sits above all of it: required repo list and `--out`,
+   one bash call to `bin/run-matrix.sh`, then a merge of every sidecar into one
+   document ordered by severity then repo. It reads no source files.
 
 ## Scoping
 
@@ -85,9 +99,9 @@ orchestrator, not pi-registered agent types.
 
 ## Design invariants
 
-1. The orchestrator never reviews code. (Context dilution is the enemy.)
-2. Proposal and refutation are separate agents. (ADR 0001)
-3. Reviews execute nothing. (ADR 0002)
+1. Proposal and refutation are separate phases, never merged. (ADR 0001)
+2. No subagents. Parallelism is processes, one per (repo × lens). (ADR 0004)
+3. Reviews execute nothing in the reviewed repo. (ADR 0002)
 4. Every finding is specific: code path + failure condition + evidence.
 5. Lenses are data. Adding a topic is adding a directory, never code.
 
