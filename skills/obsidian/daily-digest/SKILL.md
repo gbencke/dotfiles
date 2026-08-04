@@ -1,11 +1,11 @@
 ---
 name: daily-digest
-description: Generate The Architect's Digest — a daily curated briefing of the most relevant stories in architecture, distributed systems, cloud, languages, tooling, AI agents, and CS research, sourced live from Hacker News, Lobsters, GitHub Trending, InfoQ, and top engineering blogs.
+description: Generate The Architect's Digest — a daily curated briefing of the most relevant stories in architecture, distributed systems, cloud, languages, tooling, AI agents, and CS research, sourced live from Hacker News, Lobsters, GitHub Trending, Hugging Face Papers, InfoQ, and top engineering blogs.
 ---
 
 # The Architect's Digest Skill
 
-This skill produces a daily curated digest for software architects. The output is a long-form briefing: substantive, deeply annotated entries across 7 sections, written for senior engineers who want context and architectural implications — not headlines.
+This skill produces a daily curated digest for software architects. The output is a long-form briefing: substantive, deeply annotated entries across 8 sections, written for senior engineers who want context and architectural implications — not headlines.
 
 ## Tools to Use
 
@@ -77,6 +77,30 @@ tavily_search("MCP model context protocol security architecture 2026", search_de
 tavily_search("infoq.com AI agents agentic systems context management 2026", search_depth: 'advanced', time_range: 'week')
 ```
 
+#### Hugging Face Papers
+Scrape the Hugging Face daily papers pages in parallel to collect at least 30 candidate papers before filtering:
+
+```
+obscura_web_scrape("https://huggingface.co/papers", dump: 'text')
+obscura_web_scrape("https://huggingface.co/papers/week", dump: 'text')
+obscura_web_scrape("https://huggingface.co/papers/month", dump: 'text')
+```
+
+Extract from each page: paper title, arXiv ID, upvote count, and the one-line abstract. Deduplicate across pages (keep the entry with the highest upvotes). Also run:
+
+```
+tavily_search("huggingface.co/papers trending LLM agents 2026", topic: 'news', search_depth: 'advanced', time_range: 'week')
+tavily_search("arxiv trending paper reasoning agents inference efficiency 2026", topic: 'news', search_depth: 'advanced', time_range: 'week')
+```
+
+For papers that make the shortlist, fetch the arXiv abstract page for detail:
+
+```
+obscura_web_scrape("https://arxiv.org/abs/{arxiv_id}", dump: 'text')
+```
+
+Prioritize papers with architectural significance: new model architectures, inference/serving efficiency, agent frameworks, evaluation methodology, context management, and training/inference systems work — over pure benchmark-chasing results.
+
 #### CS Research
 ```
 tavily_search("site:queue.acm.org distributed systems database paper 2026", time_range: 'week')
@@ -140,7 +164,7 @@ For each candidate, score on three axes (1–3 each):
 | **Novelty** | Is this new information, not a rehash? |
 | **Depth** | Is there enough substance to annotate at length? |
 
-Keep only items scoring **7 or higher**. Target **110 total items** across all sections. If a section has fewer than 15 qualifying items, run additional targeted searches for that section before proceeding.
+Keep only items scoring **7 or higher**. Target **120 total items** across all sections. If a section has fewer than 15 qualifying items, run additional targeted searches for that section before proceeding.
 
 For the Book Reviews section specifically: prefer books that contain a concrete argument, a novel framework, or production-tested insight over books that are primarily narrative or motivational. Additionally, exclude any book that has appeared in a previous digest within the last 30 days — a repeated book fails the novelty criterion regardless of review quality.
 
@@ -212,6 +236,9 @@ Use this exact template:
 - **CS & Research**
   - [{Title}]({URL}) — {one-line summary}
   - [{Title}]({URL}) — {one-line summary}
+- **Hugging Face Papers**
+  - [{Title}]({URL}) — {one-line summary}
+  - [{Title}]({URL}) — {one-line summary}
 - **Tech & Startup Book Reviews**
   - [{Title} by {Author}]({URL}) — {one-line summary}
   - [{Title} by {Author}]({URL}) — {one-line summary}
@@ -268,6 +295,19 @@ Use this exact template:
 
 ---
 
+## Hugging Face Papers
+
+**[{Title}]({arXiv URL})**
+*Source: Hugging Face Papers · arXiv:{arxiv_id} · {upvotes if available} upvotes*
+
+{annotation — 350–600 words}
+
+`tags: {tag1} · {tag2} · {tag3}`
+
+---
+
+{repeat for each item in this section}
+
 ## Tech & Startup Book Reviews
 
 **[{Title} by {Author}]({URL})**
@@ -287,7 +327,7 @@ Assembly rules:
 - Tags: lowercase, hyphen-separated, 3–6 per item.
 - Source attribution: use the actual publication name (InfoQ, The New Stack, GitHub Trending, Commoncog, Farnam Street, etc.).
 - Engagement metrics (HN points, GitHub star counts): include when found; omit when not — never estimate.
-- Section order: Architecture & Systems → GitHub Trending → Language & Tooling → Cloud & Infrastructure → AI & Agents → CS & Research → Tech & Startup Book Reviews.
+- Section order: Architecture & Systems → GitHub Trending → Language & Tooling → Cloud & Infrastructure → AI & Agents → CS & Research → Hugging Face Papers → Tech & Startup Book Reviews.
 - If a section genuinely has no qualifying items on a given day, omit the section entirely rather than padding it.
 
 ---
@@ -305,13 +345,14 @@ Write the assembled digest to `__.DailyDigest/YYYY-MM-DD-architects-digest.md`. 
 - **No padding.** Weak items with thin substance are worse than a shorter digest. Drop them.
 - **Minimum word count: 10,000 words.** The digest should be substantive enough to serve as a complete weekly briefing. Annotations are the primary vehicle — invest in depth.
 - **Tone.** Direct, senior-engineer-to-senior-engineer. No hype, no filler ("game-changing", "revolutionary", "exciting"). State what something does, what it costs, and what it doesn't solve.
-- **Minimum items: 110.** Spread across all seven sections:
+- **Minimum items: 120.** Spread across all eight sections:
   - Architecture & Systems: at least 20 items
   - GitHub Trending: at least 15 items (from a candidate pool of 50+ repos)
   - AI & Agents: at least 15 items
   - Language & Tooling: at least 10 items
   - Cloud & Infrastructure: at least 10 items
   - CS & Research: at least 10 items
+  - Hugging Face Papers: at least 10 items (from a candidate pool of 30+ papers)
   - Tech & Startup Book Reviews: at least 5 items
-- Keep running additional searches until the 110-item target is met.
+- Keep running additional searches until the 120-item target is met.
 - **GitHub Trending pool.** You must scrape at least 50 distinct repos (deduplicated) before selecting the final 15–20 for the digest. Do not skip the language-specific trending pages — they surface repos that the polyglot feed misses.
