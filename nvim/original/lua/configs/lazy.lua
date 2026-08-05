@@ -2,6 +2,9 @@ return {
   defaults = { lazy = true },
   install = { colorscheme = { "nvchad" } },
 
+  -- no plugin here needs luarocks; skip the hererocks bootstrap it warns about
+  rocks = { enabled = false },
+
   ui = {
     icons = {
       ft = "",

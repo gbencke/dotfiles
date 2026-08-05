@@ -1,23 +1,36 @@
--- EXAMPLE 
-local on_attach = require("nvchad.configs.lspconfig").on_attach
-local on_init = require("nvchad.configs.lspconfig").on_init
-local capabilities = require("nvchad.configs.lspconfig").capabilities
+require("nvchad.configs.lspconfig").defaults()
 
-local lspconfig = require "lspconfig"
-local servers = { "html", "cssls" }
+-- ruff owns lint/format/import-sorting; basedpyright owns types and hover.
+-- Without this both answer hover and you get duplicated popups.
+vim.lsp.config("ruff", {
+  on_attach = function(client)
+    client.server_capabilities.hoverProvider = false
+  end,
+})
 
--- lsps with default config
-for _, lsp in ipairs(servers) do
-  lspconfig[lsp].setup {
-    on_attach = on_attach,
-    on_init = on_init,
-    capabilities = capabilities,
-  }
-end
+vim.lsp.config("basedpyright", {
+  settings = {
+    basedpyright = {
+      analysis = {
+        typeCheckingMode = "standard",
+        diagnosticSeverityOverrides = { reportMissingImports = "warning" },
+      },
+      -- ruff does this, and better
+      disableOrganizeImports = true,
+    },
+  },
+})
 
--- typescript
-lspconfig.tsserver.setup {
-  on_attach = on_attach,
-  on_init = on_init,
-  capabilities = capabilities,
+vim.lsp.enable {
+  "html",
+  "cssls",
+  "jsonls",
+  -- typescript / javascript
+  "vtsls",
+  "eslint",
+  -- python
+  "ruff",
+  "basedpyright",
 }
+
+-- read :h vim.lsp.config for changing options of lsp servers

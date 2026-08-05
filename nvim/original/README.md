@@ -1,34 +1,9 @@
-# Neovim Configuration
+**This repo is supposed to be used as config by NvChad users!**
 
-Neovim setup with NvChad, LSP, and tree-sitter.
+- The main nvchad repo (NvChad/NvChad) is used as a plugin by this repo.
+- So you just import its modules , like `require "nvchad.options" , require "nvchad.mappings"`
+- So you can delete the .git from this repo ( when you clone it locally ) or fork it :)
 
-## Features
+# Credits
 
-- NvChad base configuration with One Dark theme
-- LSP for code intelligence
-- Tree-sitter for syntax highlighting
-- Neo-tree file explorer (F9)
-- Telescope fuzzy finder
-- Lazy.nvim plugin management
-
-## Structure
-
-- **init.lua** - Main configuration entry point
-- **lazy-lock.json** - Locked plugin versions
-- **lua/** - Lua configuration modules
-  - **chadrc.lua** - NvChad theme settings
-  - **configs/** - Plugin configurations (Conform, LSP)
-  - **mappings.lua** - Custom keybindings (leader: ";")
-  - **plugins/init.lua** - Plugin definitions
-
-## Installation
-
-1. Backup existing config: `mv ~/.config/nvim ~/.config/nvim.backup`
-2. Symlink: `ln -s ~/dotfiles/nvim ~/.config/nvim`
-3. Launch Neovim: plugins install automatically
-
-## Key Mappings
-
-- Leader: `;`
-- Toggle file tree: `F9`
-- Additional mappings in `lua/mappings.lua`
+1) Lazyvim starter https://github.com/LazyVim/starter as nvchad's starter was inspired by Lazyvim's . It made a lot of things easier!
