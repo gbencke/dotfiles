@@ -1,70 +1,107 @@
 ---
 name: codegraph
-description: Query a pre-indexed CodeGraph knowledge graph of the current repo — symbol search, callers/callees, change impact, affected tests, and one-shot area exploration — so you read only the files that matter instead of grepping the tree. Use when asked to "explore this codebase", "who calls X", "what does X call", "what breaks if I change X", "which tests cover these changes", "index this repo with codegraph", or "codegraph <anything>". Pi has no MCP client, so ignore the project's MCP-tool docs and use the CLI below.
+description: Read and understand code in a repo through its pre-indexed CodeGraph knowledge graph instead of grepping and reading files — one call returns the relevant source, the call paths between symbols, and the blast radius of a change. Use for "explore this codebase", "how does X work", "how does X reach Y", "who calls X", "what breaks if I change X", "which tests cover these changes", and for reading any indexed file. Also use unprompted before any code search in a repo that has a .codegraph/ index.
 ---
 
-# codegraph (CLI)
+# codegraph
 
-`codegraph` keeps a SQLite graph of the repo in `.codegraph/` (symbols, call
-edges, imports). Query it before reading files.
+Every repo under `~/git.work` is already indexed. **Do not run `init` or `index`** —
+that is the user's call and costs minutes.
 
-Requires the `codegraph` CLI on PATH (`npm install -g @colbymchenry/codegraph`,
-Node 20–24). All commands resolve the project by walking up from cwd; `-p <path>`
-overrides.
+## The one rule
 
-## First step, always
+`codegraph_explore` is the tool. It answers "how does X work", a flow ("how does X
+reach Y"), a survey of an area, *and* a plain file read. Reach for it first, and
+reach for it again when the first answer is thin.
 
-```bash
-codegraph status              # initialized? file/node/edge counts, last indexed
+**Treat source it returns as already read.** Do not re-open those files with
+`read`. Do not re-verify with `grep`. Explore *is* the pre-built index — a
+grep/read loop only repeats work it already did.
+
+**When an answer is incomplete, the fix is another `codegraph_explore` on the
+uncovered area — not a fallback to grep or read.** Falling back early is the
+single biggest waste: measured, a read loop after an explore costs more than the
+explore saved.
+
+## Respect the budget line
+
+Every explore response ends with its own budget, e.g. *"Explore budget: 2 calls
+for this project (975 files indexed). Each call covers ~6 files."* That number is
+tuned to the repo. Obey it literally:
+
+- Spend every remaining call on the **uncovered** area before considering `read`.
+- When the budget is spent, **synthesize and answer.** Do not start a read sweep
+  to reach completeness the budget did not buy.
+- If the question genuinely spans more files than `calls × files-per-call`, it is
+  too broad. Split it and answer the part that matters, or say which part is
+  uncovered — do not silently fall back to reading 20 files.
+- Explore also prints `... and N more files`. That is a scope signal, not an
+  invitation to read them.
+
+## Writing a good query
+
+Explore ranks on the names you give it. Vague questions get vague answers, and a
+vague answer is what tempts you back to grep.
+
+- Name concrete symbols and files: `"SessionStore.refresh src/auth/session.ts token rotation"`
+- Use qualified `Class.method` names when you know them.
+- For a flow, name both ends: `"how does handleRequest reach executeQuery"`.
+- To read a file, just name its path — you get line-numbered source back.
+
+## What arrives without asking
+
+One default explore already includes:
+
+- **verbatim source** for the relevant symbols, grouped by file
+- **call paths** between them, including callback / interface→impl hops grep cannot follow
+- **blast radius** — what depends on each symbol
+- **covering tests** — `tested via callers: ...` per symbol
+
+So there is no separate callers, callees, impact, or symbol-search step. Asking
+for those separately buys nothing and costs a round trip.
+
+## The other two tools
+
+- `codegraph_affected_tests(files)` — which tests cover a list of changed files.
+  The one question explore cannot answer, because it takes a file list rather
+  than a query. Use when reviewing a diff.
+- `codegraph_status(action)` — `status` before the first query in an unfamiliar
+  repo; `sync` when results look stale after a rebase or a batch of edits made
+  outside this session. Pi does not run codegraph's file watcher, so the index
+  does not auto-update here.
+
+If `status` reports `reindexRecommended: true`, the index was built by an older
+extraction engine and explore's coverage is below what the current build gives.
+Tell the user and let them decide — never re-index on your own.
+
+`structure_only: true` on explore gives a ~1 KB map with no source bodies. Use it
+only to orient on a large unfamiliar area — the full mode is what answers
+questions.
+
+## Do not
+
+- Do not grep or glob a repo before trying `codegraph_explore`.
+- Do not `read` a file that explore already returned.
+- Do not cap explore's output. It scales its own budget to the repo's file
+  count; capping starves the answer without saving tokens.
+- Do not delegate exploration to a sub-agent — the sub-agent reads files and
+  codegraph becomes pure overhead. Answer directly.
+- Do not run `init`, `index`, `uninit`, `install`, or `daemon`.
+- Do not query from `~/git.work` itself unless you mean to search all repos at
+  once; the root carries its own 20k-file graph. Pass `path` or `cd` into the repo.
+
+## Tuning a noisy repo
+
+If explore keeps surfacing scripts, fixtures, or vendored code over real source,
+add a `codegraph.json` at the repo root — `deprioritize` drops paths in ranking
+while keeping them findable, `exclude` removes them from the index:
+
+```json
+{ "deprioritize": ["scripts/", "optional-skills/"], "exclude": ["static/vendor/"] }
 ```
 
-Not initialized → **ask the user first**; indexing is their call, and the CLI
-itself refuses to index `$HOME` or `/`.
+## Known trade-off
 
-```bash
-codegraph init                # initialize + build initial index
-codegraph sync                # incremental update (fast, safe to run often)
-codegraph index               # full rebuild from scratch
-```
-
-Stale results after a rebase or big refactor → `codegraph sync` first.
-
-## Exploring an area (start here)
-
-```bash
-codegraph explore "how does the inbound event resolver work"
-codegraph explore "jira ticket update flow" --max-files 8
-```
-
-Returns the relevant symbols' source grouped by file plus the call paths between
-them — usually enough to answer without opening anything.
-
-## Structural queries
-
-```bash
-codegraph query <search> -l 20 -k function   # find symbols (-k: function, class, method, ...)
-codegraph callers <symbol>                   # who calls it
-codegraph callees <symbol>                   # what it calls
-codegraph impact <symbol> -d 2               # blast radius, depth 1-10
-codegraph node <name>                        # full detail for one symbol
-codegraph files                              # indexed files
-```
-
-## Reviewing changes
-
-```bash
-git diff --name-only HEAD~1 | codegraph affected --stdin      # tests covering changed files
-codegraph affected src/foo.ts -f "e2e/*.spec.ts"              # custom test glob
-codegraph impact <changed-symbol> -d 2                        # then blast radius per risky symbol
-```
-
-Workflow: `affected` for test coverage → `impact` on each changed symbol →
-report by risk, flag symbols with impact but no covering test.
-
-## Notes
-
-- Add `-j/--json` to any query command for machine-readable output.
-- Add `.codegraph/` to `.gitignore` if it isn't already.
-- `codegraph daemon` / `serve` are for MCP hosts — unused by pi.
-- Symbol not found → try `codegraph query` first; `callers`/`impact` need a name
-  the index knows (methods are stored as `Class.method`).
+Explore cuts tokens *processed*, but its dense payloads stay resident in the
+context window longer than many small grep results would. In a long session on a
+small window, that footprint is real. It is still the cheaper path per answer.
