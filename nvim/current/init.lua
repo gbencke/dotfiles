@@ -1,0 +1,5 @@
+-- init.lua — entry point (guide chapter 2)
+require("config.options")
+require("config.keymaps")
+require("config.autocmds")
+require("config.lazy")
