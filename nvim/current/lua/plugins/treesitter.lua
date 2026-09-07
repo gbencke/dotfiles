@@ -1,67 +1,68 @@
--- ch.3: treesitter (pinned master) + textobjects
+-- ch.3: treesitter + textobjects
+local parsers = {
+  "lua", "vim", "vimdoc", "query",
+  "python",
+  "javascript", "typescript", "tsx", "vue", "svelte",
+  "html", "css", "scss", "json", "yaml", "toml",
+  "markdown", "markdown_inline", "regex", "bash",
+  "sql", "graphql", "dockerfile", "gitcommit", "diff",
+}
+
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    branch = "master",
+    branch = "main",
+    lazy = false,
     build = ":TSUpdate",
-    event = { "BufReadPost", "BufNewFile" },
-    opts = {
-      ensure_installed = {
-        "lua", "vim", "vimdoc", "query",
-        "python",
-        "javascript", "typescript", "tsx", "vue", "svelte",
-        "html", "css", "scss", "json", "jsonc", "yaml", "toml",
-        "markdown", "markdown_inline", "regex", "bash",
-        "sql", "graphql", "dockerfile", "gitcommit", "diff",
-      },
-      auto_install = true,
-      highlight = { enable = true },
-      indent = { enable = true },
-      incremental_selection = {
-        enable = true,
-        keymaps = {
-          init_selection = "<C-space>",
-          node_incremental = "<C-space>",
-          node_decremental = "<BS>",
-          scope_incremental = false,
-        },
-      },
-    },
-    config = function(_, opts)
-      require("nvim-treesitter.configs").setup(opts)
+    config = function()
+      require("nvim-treesitter").install(parsers)
+      vim.api.nvim_create_autocmd("FileType", {
+        callback = function(event)
+          local lang = vim.treesitter.language.get_lang(vim.bo[event.buf].filetype)
+          if lang and vim.treesitter.language.add(lang) then
+            vim.treesitter.start(event.buf, lang)
+            vim.bo[event.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+          end
+        end,
+      })
+
+      vim.keymap.set({ "n", "x" }, "<C-space>", function() vim.treesitter.select("parent") end,
+        { desc = "Expand syntax-node selection" })
+      vim.keymap.set("x", "<BS>", function() vim.treesitter.select("child") end,
+        { desc = "Shrink syntax-node selection" })
     end,
   },
   {
     "nvim-treesitter/nvim-treesitter-textobjects",
-    branch = "master",
+    branch = "main",
+    lazy = false,
     dependencies = "nvim-treesitter/nvim-treesitter",
-    opts = {
-      textobjects = {
-        select = {
-          enable = true,
-          lookahead = true,
-          keymaps = {
-            ["af"] = "@function.outer", ["if"] = "@function.inner",
-            ["ac"] = "@class.outer",    ["ic"] = "@class.inner",
-            ["aa"] = "@parameter.outer",["ia"] = "@parameter.inner",
-            ["al"] = "@loop.outer",     ["il"] = "@loop.inner",
-          },
-        },
-        move = {
-          enable = true,
-          set_jumps = true,
-          goto_next_start = { ["]m"] = "@function.outer", ["]]"] = "@class.outer" },
-          goto_previous_start = { ["[m"] = "@function.outer", ["[["] = "@class.outer" },
-        },
-        swap = {
-          enable = true,
-          swap_next = { ["<leader>sn"] = "@parameter.inner" },
-          swap_previous = { ["<leader>sp"] = "@parameter.inner" },
-        },
-      },
-    },
-    config = function(_, opts)
-      require("nvim-treesitter.configs").setup(opts)
+    config = function()
+      require("nvim-treesitter-textobjects").setup({
+        select = { lookahead = true },
+        move = { set_jumps = true },
+      })
+
+      local function map(modes, lhs, module, method, query, desc)
+        vim.keymap.set(modes, lhs, function()
+          require("nvim-treesitter-textobjects." .. module)[method](query, "textobjects")
+        end, { desc = desc })
+      end
+
+      map({ "x", "o" }, "af", "select", "select_textobject", "@function.outer", "Around function")
+      map({ "x", "o" }, "if", "select", "select_textobject", "@function.inner", "Inside function")
+      map({ "x", "o" }, "ac", "select", "select_textobject", "@class.outer", "Around class")
+      map({ "x", "o" }, "ic", "select", "select_textobject", "@class.inner", "Inside class")
+      map({ "x", "o" }, "aa", "select", "select_textobject", "@parameter.outer", "Around parameter")
+      map({ "x", "o" }, "ia", "select", "select_textobject", "@parameter.inner", "Inside parameter")
+      map({ "x", "o" }, "al", "select", "select_textobject", "@loop.outer", "Around loop")
+      map({ "x", "o" }, "il", "select", "select_textobject", "@loop.inner", "Inside loop")
+      map({ "n", "x", "o" }, "]m", "move", "goto_next_start", "@function.outer", "Next function")
+      map({ "n", "x", "o" }, "[m", "move", "goto_previous_start", "@function.outer", "Previous function")
+      map({ "n", "x", "o" }, "]]", "move", "goto_next_start", "@class.outer", "Next class")
+      map({ "n", "x", "o" }, "[[", "move", "goto_previous_start", "@class.outer", "Previous class")
+      map("n", "<leader>sn", "swap", "swap_next", "@parameter.inner", "Swap next parameter")
+      map("n", "<leader>sp", "swap", "swap_previous", "@parameter.inner", "Swap previous parameter")
     end,
   },
 }

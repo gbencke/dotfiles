@@ -3,7 +3,7 @@
 A from-scratch Neovim configuration replacing WebStorm and PyCharm feature-for-feature:
 Python (basedpyright, ruff, debugpy, molten/Jupyter) and JS/TS (vtsls, eslint, prettier,
 tailwind, vscode-js-debug) with full IDE tooling — git stack, database client, HTTP client,
-testing — built on lazy.nvim with Neovim 0.11+ native LSP.
+testing — built on lazy.nvim with Neovim 0.12+ native LSP.
 
 Companion to the guide: *Replacing WebStorm and PyCharm with Neovim* (22 chapters),
 which explains every file here and the migration plan to adopt it safely.
@@ -13,12 +13,12 @@ See the [command cheatsheet](CHEATSHEET.md) for shortcuts and step-by-step
 
 ## Prerequisites
 
-- Neovim **0.11+** (`nvim --version`)
-- git, a C compiler (`gcc`/`clang`), **ripgrep**, **fd**
+- Neovim **0.12+** (`nvim --version`)
+- git, a C compiler (`gcc`/`clang`), **ripgrep**, **fd**, tree-sitter CLI **0.26.1+**
 - A **Nerd Font** in your terminal
 - node + npm (language servers, js-debug-adapter, prettier)
 - python3 + `pip install pynvim` (molten remote plugin)
-- Optional: `uv` (Python envs), `lazygit`, `lazydocker`, `docker`, `tree-sitter` CLI
+- Optional: `uv` (Python envs), `lazygit`, `lazydocker`, `docker`
 
 ## Install (side-by-side, zero risk)
 
@@ -88,8 +88,8 @@ Bufferline shows open buffers across the top. Use `]b` / `[b` to switch buffers.
 - Update deliberately: `:Lazy sync` on your schedule, review `git diff lazy-lock.json`, commit.
 - Breakage rollback: `git checkout -- lazy-lock.json && nvim -c "Lazy restore"`.
 - Startup budget: `:Lazy profile` — keep it under ~100ms; lazy-load triggers everywhere.
-- Pinned on purpose: `blink.cmp` v1 (`version = "1.*"`), nvim-treesitter `master`.
-  Revisit when blink v2 / treesitter main / vim.pack stabilize (guide chapter 22).
+- Pinned on purpose: `blink.cmp` v1 (`version = "1.*"`). nvim-treesitter uses `main`,
+  the branch compatible with Neovim 0.12.
 
 ## Optional extras (commented in the specs)
 
