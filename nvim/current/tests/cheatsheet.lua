@@ -29,6 +29,7 @@ local ok, err = pcall(function()
   load("<leader>du", "nvim-dap")
   load("<leader>ts", "neotest")
   load("<leader>mp", "glow.nvim")
+  load("<leader>nf", "obsidian.nvim")
 
   local maps = {}
   for _, mode in ipairs({ "n", "v", "o", "x", "t", "i" }) do
@@ -84,7 +85,9 @@ local ok, err = pcall(function()
     ["<leader>xs"] = true, ["<leader>xr"] = true, ["<leader>xq"] = true,
     ["<leader>?"] = true, ["-"] = true, ["<leader>gd"] = true,
     ["<leader>gD"] = true, ["<leader>gH"] = true, ["<leader>gy"] = true,
-    ["<leader>mp"] = true,
+    ["<leader>mp"] = true, ["<leader>nn"] = true, ["<leader>nf"] = true,
+    ["<leader>ns"] = true, ["<leader>nt"] = true, ["<leader>nb"] = true,
+    ["<leader>no"] = true, ["<leader>nw"] = true,
   }
   for lhs in pairs(global) do
     assert(doc:find("`" .. lhs .. "`", 1, true), "Cheatsheet is missing " .. lhs)
@@ -135,13 +138,13 @@ local ok, err = pcall(function()
     "DapShowLog", "DapSetLogLevel", "ConformInfo", "DiffviewClose", "Git", "Octo",
     "OverseerRun", "OverseerToggle", "DBUIToggle", "DBUIFindBuffer", "DBUIAddConnection",
     "MoltenInit", "UpdateRemotePlugins", "TSInstall", "TSUpdate", "Lazy",
-    "VenvSelect", "Glow",
+    "VenvSelect", "Glow", "Obsidian",
   }
   for _, command in ipairs(commands) do
     local found = doc:find("`:" .. command, 1, true) or doc:find("`" .. command .. "`", 1, true)
     assert(found, "Cheatsheet is missing " .. command)
   end
-  for _, command in ipairs({ "Neotree", "Mason", "MasonInstall", "DapPause", "DapDisconnect", "DapToggleRepl", "DapShowLog", "DapSetLogLevel", "ConformInfo", "DiffviewClose", "Git", "Octo", "OverseerRun", "OverseerToggle", "DBUIToggle", "DBUIFindBuffer", "DBUIAddConnection", "TSInstall", "TSUpdate", "Lazy", "VenvSelect", "Glow" }) do
+  for _, command in ipairs({ "Neotree", "Mason", "MasonInstall", "DapPause", "DapDisconnect", "DapToggleRepl", "DapShowLog", "DapSetLogLevel", "ConformInfo", "DiffviewClose", "Git", "Octo", "OverseerRun", "OverseerToggle", "DBUIToggle", "DBUIFindBuffer", "DBUIAddConnection", "TSInstall", "TSUpdate", "Lazy", "VenvSelect", "Glow", "Obsidian" }) do
     assert(vim.fn.exists(":" .. command) == 2, "Missing command: " .. command)
   end
   if vim.fn.has("python3") == 1 then

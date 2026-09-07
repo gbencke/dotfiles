@@ -18,8 +18,8 @@ Neo-tree opens at startup. The start dashboard and AI plugins are disabled or re
 [LSP](#code-navigation-and-diagnostics) · [Replace](#search-and-replace) ·
 [Git](#git-and-github) · [Tests](#tests-and-coverage) ·
 [Terminals](#terminals-and-tasks) · [Sessions](#sessions) ·
-[Databases](#databases) · [HTTP](#http-requests) · [Notebooks](#notebooks) ·
-[Maintenance](#maintenance-and-help)
+[Databases](#databases) · [HTTP](#http-requests) · [Obsidian](#obsidian-notes) ·
+[Notebooks](#notebooks) · [Maintenance](#maintenance-and-help)
 
 ## Everyday essentials
 
@@ -312,6 +312,30 @@ Press `<leader>mp` or run `:Glow` to preview the current Markdown buffer in a
 full-screen floating window with a rounded border. Run `:Glow path/to/file.md`
 to preview a file. Press `q`, `<Esc>`, or run `:Glow!` to close the preview.
 The `glow` executable must be available on `$PATH`.
+
+## Obsidian notes
+
+Obsidian.nvim manages these vaults: `~/gitjournal`, `~/git/331.obsidian-scripts`,
+and `~/git/362.agentic-job-scrapper`. Open a Markdown file in a vault to enable
+wiki-link and tag completion. Search uses Snacks and ripgrep.
+
+| Key / command | Action |
+| --- | --- |
+| `<leader>nn` | Create a note in the active vault. |
+| `<leader>nf` | Find and switch to a note. |
+| `<leader>ns` | Search note contents. |
+| `<leader>nt` | Open or create today's daily note. |
+| `<leader>nb` | List backlinks to the current note. |
+| `<leader>no` | Open the current note in the Obsidian app. |
+| `<leader>nw` | Switch the active vault. |
+| `<CR>` on a link, tag, or checkbox | Follow the link, list the tag, or toggle the checkbox. |
+| `]o` / `[o` | Jump to the next / previous link in the note. |
+| `:Obsidian` | Pick an available Obsidian action. |
+| `:Obsidian check` | Check the active vault and plugin setup. |
+| `:Obsidian help` | Open the installed plugin documentation. |
+
+Type `[[` for note-link completion or `#` for tag completion. The note-specific
+commands require a Markdown buffer inside a configured vault.
 
 ### Search pickers: Snacks
 
