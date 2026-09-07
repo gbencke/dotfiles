@@ -16,6 +16,7 @@ return {
       indent = { enabled = true },
       input = { enabled = true },
       bufdelete = { enabled = true },
+      scratch = { filekey = { cwd = false, branch = false, count = true } },
     },
     keys = {
       -- Search Everywhere parity (ch.20.1)

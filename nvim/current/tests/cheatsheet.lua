@@ -30,6 +30,8 @@ local ok, err = pcall(function()
   load("<leader>ts", "neotest")
   load("<leader>mp", "glow.nvim")
   load("<leader>nf", "obsidian.nvim")
+  assert(Snacks.config.scratch.filekey.cwd == false, "Scratch buffers must be shared across repositories")
+  assert(Snacks.config.scratch.filekey.branch == false, "Scratch buffers must be shared across branches")
 
   local maps = {}
   for _, mode in ipairs({ "n", "v", "o", "x", "t", "i" }) do

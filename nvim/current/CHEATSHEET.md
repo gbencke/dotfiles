@@ -430,13 +430,13 @@ Use text objects with an operator or Visual mode: `vif` selects a function's bod
 
 ## Scratch buffers
 
-Snacks provides persistent, auto-saved scratch buffers scoped to the current directory,
-Git branch, filetype, and numeric count.
+Snacks provides persistent, auto-saved scratch buffers shared across all repositories
+and branches. Filetype and numeric count keep separate scratches.
 
 | Key | Action |
 | --- | --- |
-| `<leader>.` | Toggle scratch 1 for the current context. |
-| `2<leader>.`, `3<leader>.`, … | Open more scratches for the same context. |
+| `<leader>.` | Toggle global scratch 1 for the current filetype. |
+| `2<leader>.`, `3<leader>.`, … | Open more global scratches for that filetype. |
 | `<leader>S` | Show, select, create, or delete saved scratches. |
 
 A scratch inherits the current buffer's filetype; otherwise it uses Markdown. In the
