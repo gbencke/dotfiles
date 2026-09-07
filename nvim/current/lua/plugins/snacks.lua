@@ -42,6 +42,9 @@ return {
       { "<leader>tf", function() Snacks.terminal(nil, { win = { position = "float" } }) end, desc = "Terminal (float)" },
       { "<leader>t1", function() Snacks.terminal(nil, { count = 1 }) end, desc = "Terminal 1" },
       { "<leader>t2", function() Snacks.terminal(nil, { count = 2 }) end, desc = "Terminal 2" },
+      -- persistent scratch buffers
+      { "<leader>.", function() Snacks.scratch() end, desc = "Toggle scratch buffer" },
+      { "<leader>S", function() Snacks.scratch.select() end, desc = "Select scratch buffer" },
       -- lazygit (ch.17.3)
       { "<leader>gg", function() Snacks.lazygit() end, desc = "Lazygit" },
       -- buffer delete without layout wreck (ch.20.13)

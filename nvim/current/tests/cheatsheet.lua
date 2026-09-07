@@ -88,6 +88,7 @@ local ok, err = pcall(function()
     ["<leader>mp"] = true, ["<leader>nn"] = true, ["<leader>nf"] = true,
     ["<leader>ns"] = true, ["<leader>nt"] = true, ["<leader>nb"] = true,
     ["<leader>no"] = true, ["<leader>nw"] = true,
+    ["<leader>."] = true, ["<leader>S"] = true,
   }
   for lhs in pairs(global) do
     assert(doc:find("`" .. lhs .. "`", 1, true), "Cheatsheet is missing " .. lhs)

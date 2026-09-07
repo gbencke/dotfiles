@@ -15,7 +15,7 @@ Neo-tree opens at startup. The start dashboard and AI plugins are disabled or re
 
 **Jump to:** [Debugging](#debugging) · [Files and search](#files-and-search) ·
 [Windows](#buffers-and-windows) · [Editing](#editing-and-completion) ·
-[LSP](#code-navigation-and-diagnostics) · [Replace](#search-and-replace) ·
+[Scratch](#scratch-buffers) · [LSP](#code-navigation-and-diagnostics) · [Replace](#search-and-replace) ·
 [Git](#git-and-github) · [Tests](#tests-and-coverage) ·
 [Terminals](#terminals-and-tasks) · [Sessions](#sessions) ·
 [Databases](#databases) · [HTTP](#http-requests) · [Obsidian](#obsidian-notes) ·
@@ -45,6 +45,7 @@ nvim src/main.py
 | `:q!` / `:qa!` | Close / quit **without saving changes**. |
 | `u` / `<C-r>` | Undo / redo. |
 | `<leader>bd` | Delete the current buffer without disrupting the window layout. |
+| `<leader>.` / `<leader>S` | Toggle the current scratch / select a saved scratch. |
 | `<leader>dc` or `<F5>` | Start or continue debugging. See setup below. |
 
 ## Debugging
@@ -426,6 +427,21 @@ separate default: Tab shows/cycles suggestions; Ctrl+y accepts.
 
 Use text objects with an operator or Visual mode: `vif` selects a function's body;
 `daf` deletes a function.
+
+## Scratch buffers
+
+Snacks provides persistent, auto-saved scratch buffers scoped to the current directory,
+Git branch, filetype, and numeric count.
+
+| Key | Action |
+| --- | --- |
+| `<leader>.` | Toggle scratch 1 for the current context. |
+| `2<leader>.`, `3<leader>.`, … | Open more scratches for the same context. |
+| `<leader>S` | Show, select, create, or delete saved scratches. |
+
+A scratch inherits the current buffer's filetype; otherwise it uses Markdown. In the
+selector, `<C-n>` creates a scratch and `<C-x>` deletes the selected scratch. Lua
+scratches run the current line or Visual selection with `<CR>`.
 
 ## Code navigation and diagnostics
 
