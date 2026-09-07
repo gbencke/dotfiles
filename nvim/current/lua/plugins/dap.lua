@@ -1,4 +1,21 @@
 -- ch.14/15: nvim-dap stack + debugpy + vscode-js-debug
+-- F5/<leader>dc: menu of all configs when buffer ft has none (e.g. empty buffer)
+local function continue_or_pick()
+  local dap = require("dap")
+  local configs = dap.configurations[vim.bo.filetype]
+  if configs and #configs > 0 then
+    dap.continue()
+    return
+  end
+  local all = {}
+  for _, cfgs in pairs(dap.configurations) do
+    vim.list_extend(all, cfgs)
+  end
+  vim.ui.select(all,
+    { prompt = "Debug config", format_item = function(c) return c.name end },
+    function(c) if c then dap.run(c) end end)
+end
+
 return {
   {
     "mfussenegger/nvim-dap",
@@ -23,7 +40,7 @@ return {
       { "<leader>db", function() require("persistent-breakpoints.api").toggle_breakpoint() end, desc = "Toggle breakpoint" },
       { "<leader>dB", function() require("dap").set_breakpoint(vim.fn.input("Condition: ")) end, desc = "Conditional breakpoint" },
       { "<leader>dl", function() require("dap").set_breakpoint(nil, nil, vim.fn.input("Log: ")) end, desc = "Logpoint" },
-      { "<leader>dc", function() require("dap").continue() end, desc = "Continue / start" },
+      { "<leader>dc", continue_or_pick, desc = "Continue / start" },
       { "<leader>dn", function() require("dap").step_over() end, desc = "Step over" },
       { "<leader>di", function() require("dap").step_into() end, desc = "Step into" },
       { "<leader>do", function() require("dap").step_out() end, desc = "Step out" },
@@ -33,7 +50,7 @@ return {
       { "<leader>de", function() require("dapui").eval() end, mode = { "n", "v" }, desc = "Eval expression" },
       { "<leader>du", function() require("dapui").toggle() end, desc = "Toggle DAP UI" },
       -- optional F-key layout (ch.14.9)
-      { "<F5>", function() require("dap").continue() end, desc = "DAP continue" },
+      { "<F5>", continue_or_pick, desc = "DAP continue" },
       { "<F9>", function() require("persistent-breakpoints.api").toggle_breakpoint() end, desc = "DAP breakpoint" },
       { "<F10>", function() require("dap").step_over() end, desc = "DAP step over" },
       { "<F11>", function() require("dap").step_into() end, desc = "DAP step into" },
@@ -63,11 +80,24 @@ return {
 
       dap.set_exception_breakpoints({ "uncaught" })
 
+      -- Python configs (adapter "python" is registered by nvim-dap-python, ft=python)
+      dap.configurations.python = {
+        { type = "python", request = "launch", name = "Python: current file",
+          program = "${file}", console = "internalConsole", justMyCode = false },
+        { type = "python", request = "launch", name = "Pytest: current file",
+          module = "pytest", args = { "${file}", "-vv" },
+          console = "internalConsole", justMyCode = false },
+        { type = "python", request = "launch", name = "Pytest: all",
+          module = "pytest", args = { "-vv" },
+          console = "internalConsole", justMyCode = false },
+      }
+
       local ok, json5 = pcall(require, "json5")
       if ok then require("dap.ext.vscode").json_decode = json5.parse end
+      require("dap.ext.vscode").load_launchjs()  -- picks up .vscode/launch.json per project
 
-      vim.fn.sign_define("DapBreakpoint", { text = "", texthl = "DiagnosticError" })
-      vim.fn.sign_define("DapStopped", { text = "", texthl = "DiagnosticWarn" })
+      vim.fn.sign_define("DapBreakpoint", { text = "●", texthl = "DiagnosticError" })
+      vim.fn.sign_define("DapStopped", { text = "▶", texthl = "DiagnosticWarn" })
 
       -- JS/TS adapters: vscode-js-debug via mason's js-debug-adapter (ch.15.3)
       for _, adapter in ipairs({ "pwa-node", "pwa-chrome" }) do
@@ -102,7 +132,7 @@ return {
   },
   {
     "mfussenegger/nvim-dap-python",
-    ft = "python",
+    lazy = false,
     dependencies = { "mfussenegger/nvim-dap", "rcarriga/nvim-dap-ui" },
     config = function()
       local python = vim.fn.expand("~/.local/share/nvim/mason/packages/debugpy/venv/bin/python")
