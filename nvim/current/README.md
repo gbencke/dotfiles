@@ -18,7 +18,7 @@ See the [command cheatsheet](CHEATSHEET.md) for shortcuts and step-by-step
 - A **Nerd Font** in your terminal
 - node + npm (language servers, js-debug-adapter, prettier)
 - python3 + `pip install pynvim` (molten remote plugin)
-- Optional: `uv` (Python envs), `lazygit`, `lazydocker`, `docker`
+- Optional: `uv` (Python envs), `glow` (Markdown previews), `lazygit`, `lazydocker`, `docker`
 
 ## Install (side-by-side, zero risk)
 

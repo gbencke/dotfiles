@@ -306,6 +306,12 @@ files. Run `:w` and review the proposed filesystem operations before confirming.
 | `g.` | Toggle hidden files; they are shown initially. |
 | `<C-c>` / `g?` | Close Oil / show help. |
 
+### Markdown preview: Glow
+
+Run `:Glow` to preview the current Markdown buffer, `:Glow path/to/file.md`
+to preview a file, and `:Glow!` to close the preview. Press `q` in the preview
+to close it. The `glow` executable must be available on `$PATH`.
+
 ### Search pickers: Snacks
 
 | Key | Picker |
