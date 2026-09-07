@@ -308,9 +308,10 @@ files. Run `:w` and review the proposed filesystem operations before confirming.
 
 ### Markdown preview: Glow
 
-Run `:Glow` to preview the current Markdown buffer, `:Glow path/to/file.md`
-to preview a file, and `:Glow!` to close the preview. Press `q` in the preview
-to close it. The `glow` executable must be available on `$PATH`.
+Press `<leader>mp` or run `:Glow` to preview the current Markdown buffer in a
+full-screen floating window with a rounded border. Run `:Glow path/to/file.md`
+to preview a file. Press `q`, `<Esc>`, or run `:Glow!` to close the preview.
+The `glow` executable must be available on `$PATH`.
 
 ### Search pickers: Snacks
 

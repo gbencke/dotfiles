@@ -76,7 +76,7 @@ after/lsp/*.lua           per-server LSP overrides (merged over lspconfig defaul
 
 `f` find · `g` git · `c` code/LSP · `d` debug · `t` test/terminal · `s` search/replace ·
 `q` session · `b` buffer · `x` diagnostics · `h` harpoon · `D` database ·
-`R` http · `j` jupyter · `o` overseer · `p` python
+`R` http · `j` jupyter · `o` overseer · `p` python · `m` markdown
 
 Press `<leader>` and wait 400ms — which-key shows the full tree.
 
