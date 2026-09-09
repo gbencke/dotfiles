@@ -1,11 +1,11 @@
 ---
 name: daily-digest
-description: Generate The Architect's Digest — a daily curated briefing of the most relevant stories in architecture, distributed systems, cloud, languages, tooling, AI agents, and CS research, sourced live from Hacker News, Lobsters, GitHub Trending, Hugging Face Papers, InfoQ, and top engineering blogs.
+description: Generate The Architect's Digest — a daily curated briefing of the most relevant stories in architecture, distributed systems, cloud, languages, tooling, AI agents, CS research, and new technical book releases (Apress, O'Reilly, Packt, Manning), sourced live from Hacker News, Lobsters, GitHub Trending, Hugging Face Papers, InfoQ, and top engineering blogs.
 ---
 
 # The Architect's Digest Skill
 
-This skill produces a daily curated digest for software architects. The output is a long-form briefing: substantive, deeply annotated entries across 8 sections, written for senior engineers who want context and architectural implications — not headlines.
+This skill produces a daily curated digest for software architects. The output is a long-form briefing: substantive, deeply annotated entries across 9 sections, written for senior engineers who want context and architectural implications — not headlines.
 
 ## Tools to Use
 
@@ -138,7 +138,30 @@ Prioritize sources in this order:
 
 For each candidate book, extract: title, author, publisher, publication date, reviewer/source, and a summary of the review's core argument.
 
-**Book deduplication against previous digests.** Before selecting candidates, check the `__.DailyDigest/` directory for existing digests from the past 30 days. Read the `## Tech \& Startup Book Reviews` section of the 5 most recent files and extract every book title and author. Exclude any book that has already appeared in a previous digest. Do not repeat a book until at least 30 days have passed since its last appearance. If a book was covered recently, skip it regardless of whether a new review is available.
+**Book deduplication against previous digests.** Before selecting candidates, check the `__.DailyDigest/` directory for existing digests from the past 30 days. Read the `## Tech \& Startup Book Reviews` and `## Technical Books` sections of the 5 most recent files and extract every book title and author. Exclude any book that has already appeared in a previous digest. Do not repeat a book until at least 30 days have passed since its last appearance. If a book was covered recently, skip it regardless of whether a new review is available.
+
+#### Technical Books (New Releases)
+Scrape and search the publisher catalogs in parallel. Focus strictly on books **published within the past 90 days** — check the publication date on each book's page and drop anything older:
+
+```
+obscura_web_scrape("https://www.manning.com/catalog", dump: 'text')
+obscura_web_scrape("https://www.apress.com/us/shop", dump: 'text')
+obscura_web_scrape("https://www.packtpub.com/en-us/all-products", dump: 'text')
+obscura_web_scrape("https://www.oreilly.com/search/?q=*&type=book&publishers=O%27Reilly%20Media%20Inc.&order_by=published_on", dump: 'text')
+tavily_search("site:manning.com new book MEAP 2026", search_depth: 'advanced', time_range: 'month')
+tavily_search("site:apress.com new book release software 2026", search_depth: 'advanced', time_range: 'month')
+tavily_search("site:packtpub.com new book release 2026", search_depth: 'advanced', time_range: 'month')
+tavily_search("site:oreilly.com new book published 2026", search_depth: 'advanced', time_range: 'month')
+tavily_search("Apress OR Packt OR Manning OR O'Reilly new technical book release", topic: 'news', search_depth: 'advanced', time_range: 'month')
+```
+
+For each candidate book, extract: title, author(s), publisher, publication date, topics covered, and page count if available. If a catalog page or search result does not show the publication date, fetch the book's detail page:
+
+```
+obscura_web_scrape("{book detail page URL}", dump: 'text')
+```
+
+Prioritize books aimed at working architects and senior engineers: distributed systems, architecture, cloud infrastructure, data engineering, platform engineering, AI systems, and language/runtime internals. Skip beginner tutorials and certification-prep titles unless they cover a genuinely new platform or standard. The same 30-day deduplication rule from the Book Reviews section applies here.
 
 ---
 
@@ -164,9 +187,9 @@ For each candidate, score on three axes (1–3 each):
 | **Novelty** | Is this new information, not a rehash? |
 | **Depth** | Is there enough substance to annotate at length? |
 
-Keep only items scoring **7 or higher**. Target **120 total items** across all sections. If a section has fewer than 15 qualifying items, run additional targeted searches for that section before proceeding.
+Keep only items scoring **7 or higher**. Target **130 total items** across all sections. If a section has fewer than 15 qualifying items, run additional targeted searches for that section before proceeding.
 
-For the Book Reviews section specifically: prefer books that contain a concrete argument, a novel framework, or production-tested insight over books that are primarily narrative or motivational. Additionally, exclude any book that has appeared in a previous digest within the last 30 days — a repeated book fails the novelty criterion regardless of review quality.
+For the Book Reviews section specifically: prefer books that contain a concrete argument, a novel framework, or production-tested insight over books that are primarily narrative or motivational. For the Technical Books section: prefer books that teach a mechanism or a system over books that survey a topic superficially. Additionally, exclude any book that has appeared in a previous digest within the last 30 days — a repeated book fails the novelty criterion regardless of review quality.
 
 ---
 
@@ -181,7 +204,7 @@ For each selected item, write a **comprehensive annotation of 350–600 words** 
 5. **Tradeoffs and caveats** — what doesn't this solve? What are the risks or limitations?
 6. **Actionability** — what should the reader do, evaluate, or watch next?
 
-For **Book Review** annotations, replace "architectural mechanism" and "architectural implication" with:
+For **Book Review** and **Technical Books** annotations, replace "architectural mechanism" and "architectural implication" with:
 
 2. **The book's central argument** — what claim does it make and what evidence does it provide?
 3. **Who should read it** — which role (architect, founder, engineering manager, IC) gets the most from it, and at what career stage?
@@ -240,6 +263,9 @@ Use this exact template:
   - [{Title}]({URL}) — {one-line summary}
   - [{Title}]({URL}) — {one-line summary}
 - **Tech & Startup Book Reviews**
+  - [{Title} by {Author}]({URL}) — {one-line summary}
+  - [{Title} by {Author}]({URL}) — {one-line summary}
+- **Technical Books**
   - [{Title} by {Author}]({URL}) — {one-line summary}
   - [{Title} by {Author}]({URL}) — {one-line summary}
 
@@ -320,6 +346,19 @@ Use this exact template:
 ---
 
 {repeat for each item in this section}
+
+## Technical Books
+
+**[{Title} by {Author}]({URL})**
+*Source: {Publisher} · Published: {publication date} · {page count if available}*
+
+{annotation — 350–600 words covering: what the book teaches, the mechanism or system at its core, who should read it and at what career stage, what it costs the reader in time vs. what it delivers, and one honest caveat}
+
+`tags: {tag1} · {tag2} · {tag3}`
+
+---
+
+{repeat for each item in this section}
 ```
 
 Assembly rules:
@@ -327,7 +366,7 @@ Assembly rules:
 - Tags: lowercase, hyphen-separated, 3–6 per item.
 - Source attribution: use the actual publication name (InfoQ, The New Stack, GitHub Trending, Commoncog, Farnam Street, etc.).
 - Engagement metrics (HN points, GitHub star counts): include when found; omit when not — never estimate.
-- Section order: Architecture & Systems → GitHub Trending → Language & Tooling → Cloud & Infrastructure → AI & Agents → CS & Research → Hugging Face Papers → Tech & Startup Book Reviews.
+- Section order: Architecture & Systems → GitHub Trending → Language & Tooling → Cloud & Infrastructure → AI & Agents → CS & Research → Hugging Face Papers → Tech & Startup Book Reviews → Technical Books.
 - If a section genuinely has no qualifying items on a given day, omit the section entirely rather than padding it.
 
 ---
@@ -345,7 +384,7 @@ Write the assembled digest to `__.DailyDigest/YYYY-MM-DD-architects-digest.md`. 
 - **No padding.** Weak items with thin substance are worse than a shorter digest. Drop them.
 - **Minimum word count: 10,000 words.** The digest should be substantive enough to serve as a complete weekly briefing. Annotations are the primary vehicle — invest in depth.
 - **Tone.** Direct, senior-engineer-to-senior-engineer. No hype, no filler ("game-changing", "revolutionary", "exciting"). State what something does, what it costs, and what it doesn't solve.
-- **Minimum items: 120.** Spread across all eight sections:
+- **Minimum items: 130.** Spread across all nine sections:
   - Architecture & Systems: at least 20 items
   - GitHub Trending: at least 15 items (from a candidate pool of 50+ repos)
   - AI & Agents: at least 15 items
@@ -354,5 +393,6 @@ Write the assembled digest to `__.DailyDigest/YYYY-MM-DD-architects-digest.md`. 
   - CS & Research: at least 10 items
   - Hugging Face Papers: at least 10 items (from a candidate pool of 30+ papers)
   - Tech & Startup Book Reviews: at least 5 items
-- Keep running additional searches until the 120-item target is met.
+  - Technical Books: at least 5 items (all published within the past 90 days)
+- Keep running additional searches until the 130-item target is met.
 - **GitHub Trending pool.** You must scrape at least 50 distinct repos (deduplicated) before selecting the final 15–20 for the digest. Do not skip the language-specific trending pages — they surface repos that the polyglot feed misses.
