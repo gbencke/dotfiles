@@ -36,6 +36,7 @@ o.cursorline = true
 
 -- Files & performance
 o.swapfile = false
+o.autoread = true -- reload buffers changed on disk (see checktime autocmd)
 o.updatetime = 250
 o.timeoutlen = 400
 

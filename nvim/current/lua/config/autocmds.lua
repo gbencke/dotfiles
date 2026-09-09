@@ -18,6 +18,24 @@ vim.api.nvim_create_autocmd("BufReadPost", {
   end,
 })
 
+-- autoread only fires on :checktime, so poll for external edits
+vim.api.nvim_create_autocmd({ "FocusGained", "TermClose", "TermLeave", "BufEnter", "CursorHold" }, {
+  group = augroup,
+  callback = function()
+    -- Skip command-line window and unnamed/special buffers; checktime errors there.
+    if vim.fn.getcmdwintype() ~= "" or vim.bo.buftype ~= "" then return end
+    vim.cmd("checktime")
+  end,
+})
+
+-- Tell me when it happened
+vim.api.nvim_create_autocmd("FileChangedShellPost", {
+  group = augroup,
+  callback = function()
+    vim.notify("File changed on disk, buffer reloaded", vim.log.levels.WARN)
+  end,
+})
+
 -- Close tool windows with q
 vim.api.nvim_create_autocmd("FileType", {
   group = augroup,

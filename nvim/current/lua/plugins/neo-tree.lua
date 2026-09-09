@@ -11,7 +11,12 @@ return {
     keys = {
       { "<leader>e", "<cmd>Neotree toggle<cr>", desc = "Toggle file tree" },
     },
-    opts = {},
+    opts = {
+      filesystem = {
+        -- Watch the filesystem so external moves/creates show up without a manual refresh.
+        use_libuv_file_watcher = true,
+      },
+    },
     init = function()
       vim.g.loaded_netrw = 1
       vim.g.loaded_netrwPlugin = 1

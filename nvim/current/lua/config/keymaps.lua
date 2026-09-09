@@ -16,6 +16,8 @@ map("n", "<C-Right>", ":vertical resize +2<CR>", { silent = true })
 -- Buffers
 map("n", "]b", ":bnext<CR>", { silent = true, desc = "Next buffer" })
 map("n", "[b", ":bprevious<CR>", { silent = true, desc = "Prev buffer" })
+map("n", "<leader>bn", ":bnext<CR>", { silent = true, desc = "Next buffer" })
+map("n", "<leader>bp", ":bprevious<CR>", { silent = true, desc = "Prev buffer" })
 map("n", "<leader>bd", ":bdelete<CR>", { silent = true, desc = "Delete buffer" })
 
 -- Clear search highlight

@@ -17,9 +17,7 @@ return {
       legacy_commands = false,
       picker = { name = "snacks.picker" },
       workspaces = {
-        { name = "journal", path = "~/gitjournal" },
-        { name = "obsidian-scripts", path = "~/git/331.obsidian-scripts" },
-        { name = "agentic-job-scrapper", path = "~/git/362.agentic-job-scrapper" },
+        { name = "obsidian-scripts", path = "~/git.work/331.obsidian-scripts" },
       },
     },
   },

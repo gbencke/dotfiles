@@ -1,19 +1,7 @@
 -- ch.14/15: nvim-dap stack + debugpy + vscode-js-debug
--- F5/<leader>dc: menu of all configs when buffer ft has none (e.g. empty buffer)
+-- dap.continue includes static profiles and .vscode/launch.json providers.
 local function continue_or_pick()
-  local dap = require("dap")
-  local configs = dap.configurations[vim.bo.filetype]
-  if configs and #configs > 0 then
-    dap.continue()
-    return
-  end
-  local all = {}
-  for _, cfgs in pairs(dap.configurations) do
-    vim.list_extend(all, cfgs)
-  end
-  vim.ui.select(all,
-    { prompt = "Debug config", format_item = function(c) return c.name end },
-    function(c) if c then dap.run(c) end end)
+  require("dap").continue()
 end
 
 return {
@@ -22,9 +10,14 @@ return {
     dependencies = {
       { "rcarriga/nvim-dap-ui", dependencies = { "nvim-neotest/nvim-nio" } },
       { "theHamsta/nvim-dap-virtual-text", opts = {
-          virt_text_pos = "eol",
+          virt_text_pos = "inline",
+          all_references = true,
           highlight_changed_variables = true,
           only_first_definition = false,
+          display_callback = function(variable)
+            local value = variable.value:gsub("%s+", " ")
+            return " = " .. (#value > 80 and value:sub(1, 77) .. "..." or value)
+          end,
       } },
       { "jay-babu/mason-nvim-dap.nvim",
         dependencies = { "mason-org/mason.nvim" },
@@ -80,6 +73,26 @@ return {
 
       dap.set_exception_breakpoints({ "uncaught" })
 
+      -- vscode-js-debug marks top-level TypeScript module variables as expensive,
+      -- so nvim-dap does not fetch them automatically for virtual text.
+      dap.listeners.after.scopes.dap_virtual_text_module_scope = function(session, err, body)
+        if err then return end
+        for _, scope in ipairs(body and body.scopes or {}) do
+          if scope.expensive and scope.name == "Module" then
+            session:request("variables", { variablesReference = scope.variablesReference }, function(request_err, response)
+              if request_err then
+                vim.notify("DAP module variables: " .. vim.inspect(request_err), vim.log.levels.WARN)
+                return
+              end
+              if not response then return end
+              scope.variables = response.variables or {}
+              for _, variable in ipairs(scope.variables) do variable.parent = scope end
+              require("nvim-dap-virtual-text").refresh(session)
+            end)
+          end
+        end
+      end
+
       -- Python configs (adapter "python" is registered by nvim-dap-python, ft=python)
       dap.configurations.python = {
         { type = "python", request = "launch", name = "Python: current file",
@@ -94,7 +107,7 @@ return {
 
       local ok, json5 = pcall(require, "json5")
       if ok then require("dap.ext.vscode").json_decode = json5.parse end
-      require("dap.ext.vscode").load_launchjs()  -- picks up .vscode/launch.json per project
+      -- nvim-dap reads .vscode/launch.json automatically when a session starts.
 
       vim.fn.sign_define("DapBreakpoint", { text = "●", texthl = "DiagnosticError" })
       vim.fn.sign_define("DapStopped", { text = "▶", texthl = "DiagnosticWarn" })
@@ -105,7 +118,7 @@ return {
           type = "server",
           host = "127.0.0.1",
           port = "${port}",
-          executable = { command = "js-debug-adapter", args = { "${port}" } },
+          executable = { command = "js-debug-adapter", args = { "${port}", "127.0.0.1" } },
         }
       end
 

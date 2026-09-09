@@ -29,7 +29,7 @@ return {
             cwd = function() return vim.fn.getcwd() end,  -- monorepo: see ch.16.13
           }),
         },
-        consumers = { diagnostic = true },
+        diagnostic = { enabled = true },
         status = { virtual_text = true, signs = true },
         summary = {
           open = "botright vsplit | vertical resize 60",

@@ -13,7 +13,7 @@ return {
         { "<leader>D", group = "database" },
         { "<leader>R", group = "http" }, { "<leader>j", group = "jupyter" },
         { "<leader>o", group = "overseer" }, { "<leader>p", group = "python" },
-        { "<leader>m", group = "markdown" }, { "<leader>n", group = "notes" },
+        { "<leader>m", group = "markdown" }, { "<leader>n", group = "notes (obsidian)" },
       },
     },
     keys = { { "<leader>?", function() require("which-key").show({ global = false }) end, desc = "Buffer keymaps" } } },
