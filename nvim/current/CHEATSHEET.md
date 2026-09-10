@@ -354,6 +354,7 @@ commands require a Markdown buffer inside a configured vault.
 | `<leader>fq` | Quickfix entries. |
 | `<leader>f:` / `<leader>f/` | Command / search history. |
 | `<leader>fs` / `<leader>fS` | Document / workspace symbols. |
+| `<leader>fT` | Open Telescope's picker list. |
 
 ### Pinned files: Harpoon
 
@@ -459,6 +460,11 @@ server support.
 | `<leader>cf` | Format the current buffer with Conform. |
 | `<leader>ci` | Request an organize-imports code action. |
 | `<leader>ch` | Toggle inlay hints, if supported. |
+| `<leader>lf` | Open Lspsaga Finder for references and implementations. |
+| `<leader>la` | Find references, implementations, definitions, and type definitions. |
+| `<leader>ld` / `<leader>lt` | Find definitions / type definitions. |
+| `<leader>lci` / `<leader>lco` | Show incoming / outgoing call hierarchy. |
+| `:Lspsaga finder` | Open Finder directly; use `incoming_calls` or `outgoing_calls` for call hierarchy. |
 | `<leader>pv` | Select a Python environment. |
 | `]d` / `[d` | Next / previous diagnostic; does not require an LSP. |
 | `<leader>xx` / `<leader>xX` | Toggle all / current-buffer diagnostics in Trouble. |
@@ -471,6 +477,11 @@ server support.
 Saving runs Conform; Python also has Ruff fix/import actions, and ESLint-attached
 buffers request fixes. Web formatting uses project-local Prettier. Missing tools
 are not installed by Conform: inspect `:ConformInfo` and install the relevant tool.
+
+Inside Lspsaga Finder, use `o` to open or toggle a result, `s` for a vertical
+split, `i` for a horizontal split, `t` for a tab, `w` to switch panes, and `q`
+to close. Call hierarchy uses `e` to edit, `s` for a vertical split, `i` for a
+horizontal split, `t` for a tab, `u` to expand or request calls, and `q` to close.
 
 ## Search and replace
 

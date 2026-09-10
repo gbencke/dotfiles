@@ -20,6 +20,7 @@ local ok, err = pcall(function()
 
   -- Register plugin keymaps by loading specs; do not execute external/UI actions.
   load("<leader>ff", "snacks.nvim")
+  load("<leader>fT", "telescope.nvim")
   load("<leader>gg", "snacks.nvim")
   load("<leader>sr", "grug-far.nvim")
   load("<leader>ha", "harpoon")
@@ -27,6 +28,7 @@ local ok, err = pcall(function()
   load("<leader>Du", "vim-dadbod-ui")
   load("<leader>or", "overseer.nvim")
   load("<leader>du", "nvim-dap")
+  load("<leader>lf", "lspsaga.nvim")
   load("<leader>ts", "neotest")
   load("<leader>mp", "glow.nvim")
   load("<leader>nf", "obsidian.nvim")
@@ -65,7 +67,8 @@ local ok, err = pcall(function()
     ["]d"] = true, ["[d"] = true, ["<leader>ff"] = true, ["<leader>fa"] = true,
     ["<leader>fg"] = true, ["<leader>fb"] = true, ["<leader>fr"] = true,
     ["<leader>fh"] = true, ["<leader>fk"] = true, ["<leader>fc"] = true,
-    ["<leader>fd"] = true, ["<leader>fq"] = true, ["<leader>f:"] = true,
+    ["<leader>fd"] = true, ["<leader>fq"] = true, ["<leader>fT"] = true,
+    ["<leader>f:"] = true,
     ["<leader>f/"] = true, ["<leader>fs"] = true, ["<leader>fS"] = true,
     ["gr"] = true, ["gd"] = true, ["gi"] = true, ["gy"] = true,
     ["<leader>gf"] = true, ["<leader>gg"] = true, ["<leader>sr"] = true,
@@ -77,7 +80,9 @@ local ok, err = pcall(function()
     ["<leader>dB"] = true, ["<leader>dl"] = true, ["<leader>dc"] = true,
     ["<leader>dn"] = true, ["<leader>di"] = true, ["<leader>do"] = true,
     ["<leader>dC"] = true, ["<leader>dr"] = true, ["<leader>dq"] = true,
-    ["<leader>de"] = true, ["<F5>"] = true, ["<F9>"] = true,
+    ["<leader>de"] = true, ["<leader>lf"] = true, ["<leader>la"] = true,
+    ["<leader>ld"] = true, ["<leader>lt"] = true, ["<leader>lci"] = true,
+    ["<leader>lco"] = true, ["<F5>"] = true, ["<F9>"] = true,
     ["<F10>"] = true, ["<F11>"] = true, ["<leader>or"] = true,
     ["<leader>ot"] = true, ["<leader>oa"] = true, ["<leader>ts"] = true,
     ["<leader>tt"] = true, ["<leader>tr"] = true, ["<leader>to"] = true,
@@ -141,13 +146,13 @@ local ok, err = pcall(function()
     "DapShowLog", "DapSetLogLevel", "ConformInfo", "DiffviewClose", "Git", "Octo",
     "OverseerRun", "OverseerToggle", "DBUIToggle", "DBUIFindBuffer", "DBUIAddConnection",
     "MoltenInit", "UpdateRemotePlugins", "TSInstall", "TSUpdate", "Lazy",
-    "VenvSelect", "Glow", "Obsidian",
+    "VenvSelect", "Glow", "Obsidian", "Lspsaga",
   }
   for _, command in ipairs(commands) do
     local found = doc:find("`:" .. command, 1, true) or doc:find("`" .. command .. "`", 1, true)
     assert(found, "Cheatsheet is missing " .. command)
   end
-  for _, command in ipairs({ "Neotree", "Mason", "MasonInstall", "DapPause", "DapDisconnect", "DapToggleRepl", "DapShowLog", "DapSetLogLevel", "ConformInfo", "DiffviewClose", "Git", "Octo", "OverseerRun", "OverseerToggle", "DBUIToggle", "DBUIFindBuffer", "DBUIAddConnection", "TSInstall", "TSUpdate", "Lazy", "VenvSelect", "Glow", "Obsidian" }) do
+  for _, command in ipairs({ "Neotree", "Mason", "MasonInstall", "DapPause", "DapDisconnect", "DapToggleRepl", "DapShowLog", "DapSetLogLevel", "ConformInfo", "DiffviewClose", "Git", "Octo", "OverseerRun", "OverseerToggle", "DBUIToggle", "DBUIFindBuffer", "DBUIAddConnection", "TSInstall", "TSUpdate", "Lazy", "VenvSelect", "Glow", "Obsidian", "Lspsaga" }) do
     assert(vim.fn.exists(":" .. command) == 2, "Missing command: " .. command)
   end
   if vim.fn.has("python3") == 1 then

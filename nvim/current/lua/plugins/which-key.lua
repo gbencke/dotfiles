@@ -7,6 +7,7 @@ return {
       spec = {
         { "<leader>f", group = "find" }, { "<leader>g", group = "git" },
         { "<leader>c", group = "code" }, { "<leader>d", group = "debug" },
+        { "<leader>l", group = "lsp" }, { "<leader>lc", group = "call hierarchy" },
         { "<leader>t", group = "test/terminal" }, { "<leader>s", group = "search/replace" },
         { "<leader>q", group = "session" }, { "<leader>b", group = "buffer" },
         { "<leader>x", group = "diagnostics" }, { "<leader>h", group = "harpoon" },
