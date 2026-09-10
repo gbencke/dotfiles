@@ -136,16 +136,8 @@ alias vim=nvim
 alias gvim=nvim 
 alias oc=opencode
 
-typeset -g ALACRITTY_FONT_SIZE=14
-
-alacritty_font_size() {
-  local size=$((ALACRITTY_FONT_SIZE + $1))
-  alacritty msg config "font.size=${size}.0" &&
-    ALACRITTY_FONT_SIZE=$size
-}
-
-alias fup='alacritty_font_size 1'
-alias fdn='alacritty_font_size -1'
+alias fup='xdotool key ctrl+plus'
+alias fdn='xdotool key ctrl+minus'
 
 # Find the next available port starting from a given port (default: 3000)
 find_port() {
