@@ -136,8 +136,8 @@ alias vim=nvim
 alias gvim=nvim 
 alias oc=opencode
 
-alias fup='xdotool key ctrl+plus'
-alias fdn='xdotool key ctrl+minus'
+alias fup='xdotool key ctrl+equal'
+alias fdn='xdotool key ctrl+KP_Subtract'
 
 # Find the next available port starting from a given port (default: 3000)
 find_port() {
