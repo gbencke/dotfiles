@@ -520,6 +520,7 @@ Review the matches before changing files.
 | `<leader>ghq` | Send this buffer's hunks to quickfix. |
 | `ih` | Git-hunk text object, e.g. `vih` selects the hunk. |
 | `<leader>gd` | Open Diffview for the working tree. |
+| `<leader>gc` | Close Diffview. |
 | `<leader>gD` / `<leader>gH` | Diffview history for this file / the repository. |
 | `:DiffviewClose` | Close Diffview after opening it. |
 | `<leader>gy` | Copy a repository permalink for the cursor/Visual range. |

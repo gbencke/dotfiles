@@ -91,7 +91,7 @@ local ok, err = pcall(function()
     ["[t"] = true, ["<leader>xx"] = true, ["<leader>xX"] = true,
     ["<leader>xs"] = true, ["<leader>xr"] = true, ["<leader>xq"] = true,
     ["<leader>?"] = true, ["-"] = true, ["<leader>gd"] = true,
-    ["<leader>gD"] = true, ["<leader>gH"] = true, ["<leader>gy"] = true,
+    ["<leader>gc"] = true, ["<leader>gD"] = true, ["<leader>gH"] = true, ["<leader>gy"] = true,
     ["<leader>mp"] = true, ["<leader>nn"] = true, ["<leader>nf"] = true,
     ["<leader>ns"] = true, ["<leader>nt"] = true, ["<leader>nb"] = true,
     ["<leader>no"] = true, ["<leader>nw"] = true,

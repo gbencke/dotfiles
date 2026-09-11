@@ -37,6 +37,7 @@ return {
     cmd = { "DiffviewOpen", "DiffviewFileHistory" },
     keys = {
       { "<leader>gd", "<cmd>DiffviewOpen<cr>", desc = "Diffview: working tree" },
+      { "<leader>gc", "<cmd>DiffviewClose<cr>", desc = "DiffView Close" },
       { "<leader>gD", "<cmd>DiffviewFileHistory %<cr>", desc = "File history" },
       { "<leader>gH", "<cmd>DiffviewFileHistory<cr>", desc = "Branch history" },
     },
