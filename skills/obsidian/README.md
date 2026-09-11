@@ -8,6 +8,7 @@ Workflows that read and write a personal Obsidian markdown vault — meetings, d
 |-------|--------------|
 | `action-items` | Manage a personal action-item log: add items under a date, show recent, and search by keyword. |
 | `article-reorganization` | Reorganize a scattered Markdown article into Parts and Chapters, then regenerate its PDF with Pandoc. |
+| `book-digest` | Research technical books released by ten major publishers in the past 90 days and write an illustrated digest. |
 | `daily-digest` | Generate a daily curated briefing of top stories in architecture, distributed systems, cloud, tooling, and AI. |
 | `daily-workstream-update` | Run the daily workstream workflow: summarize meetings, sync workstream files, update decisions and action items, publish to git. |
 | `decision-svg` | Extract architectural decisions from a note and render them as an inline SVG decision map (no plugins). |
