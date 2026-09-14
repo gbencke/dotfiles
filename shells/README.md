@@ -115,7 +115,7 @@ source ~/.bashrc
 
 **Zsh:**
 ```bash
-cat ~/git/000.INFRA/dotfiles/shells/zshrc >> ~/.zshrc
+cp ~/git/000.INFRA/dotfiles/shells/zshrc ~/.zshrc
 source ~/.zshrc
 ```
 

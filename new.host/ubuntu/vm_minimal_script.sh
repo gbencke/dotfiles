@@ -47,7 +47,7 @@ vncserver -geometry 1440x900
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 
 cat ~/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
-cat ~/git/000.INFRA/dotfiles/shells/zshrc >> ~/.zshrc
+cp ~/git/000.INFRA/dotfiles/shells/zshrc ~/.zshrc
 cp ~/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
 sed -i -e 's/robbyrussell/clean/g' ~/.zshrc
 sudo usermod --shell /bin/zsh $(whoami)

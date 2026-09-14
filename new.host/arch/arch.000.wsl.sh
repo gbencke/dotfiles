@@ -82,7 +82,7 @@
 
 #NONINTERACTIVE 
     cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
-    cat /var/git/000.INFRA/dotfiles/shells/zshrc >> ~/.zshrc
+    cp /var/git/000.INFRA/dotfiles/shells/zshrc ~/.zshrc
     cp /var/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
     sed -i -e 's/robbyrussell/clean/g' /root/.zshrc
     $SHELL
@@ -132,7 +132,7 @@
     cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/xstartup ~/.vnc/xstartup
     cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/config ~/.vnc/config
     cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
-    cat /var/git/000.INFRA/dotfiles/shells/zshrc >> ~/.zshrc
+    cp /var/git/000.INFRA/dotfiles/shells/zshrc ~/.zshrc
     cp /var/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
     cp /var/git/000.INFRA/dotfiles/new.host/xterm/Xresources ~/.Xresources
 

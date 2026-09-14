@@ -46,7 +46,7 @@
 
 #NONINTERACTIVE 
     cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
-    cat /var/git/000.INFRA/dotfiles/shells/zshrc >> ~/.zshrc
+    cp /var/git/000.INFRA/dotfiles/shells/zshrc ~/.zshrc
     cp /var/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
     sed -i -e 's/robbyrussell/clean/g' /root/.zshrc
     $SHELL
@@ -71,7 +71,7 @@
 
 #NONINTERACTIVE 
     cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
-    cat /var/git/000.INFRA/dotfiles/shells/zshrc >> ~/.zshrc
+    cp /var/git/000.INFRA/dotfiles/shells/zshrc ~/.zshrc
     cp /var/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
     sed -i -e 's/robbyrussell/clean/g' /home/gbencke/.zshrc
     $SHELL
