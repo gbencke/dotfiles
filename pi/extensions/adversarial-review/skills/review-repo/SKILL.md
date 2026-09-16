@@ -22,6 +22,10 @@ lenses and chunks.
 
 ## Phase 0 — Target and scope
 
+Read `docs/report-contract.md`. All new reports use schema v2, cumulative finding
+records, evidence-backed coverage, and validation before publication. No empty
+finding list or completed lens counter proves the whole repository is healthy.
+
 1. **The repo path is required.** Take it from the argument. If the argument is
    empty (or contains only flags like `--lenses …`), stop immediately with:
    > review-repo needs a repository path: `/review-repo <path> [--lenses a,b,c]`
@@ -54,12 +58,22 @@ lenses and chunks.
    those lenses instead of the matched set. That is the only way to narrow the
    selection. One lens per run is the batch case and the cheapest per-process
    context.
-6. Per-chunk matching: language lenses (signals are file globs like `*.go`,
+6. Compute `LENS_SLUG`: the sole lens name, or `multi` for multiple lenses. This
+   keeps concurrent per-lens reports separate. Freeze the Git HEAD and verify a clean matching checkout. Record full head SHA,
+   null base SHA, UTC timestamps, and `snapshot_consistent`. If Git/revision context
+   is unavailable, deliver INCOMPLETE instead of claiming a verified snapshot.
+   Set target to `repo:<LENS_SLUG>`, then run:
+
+   ```bash
+   node <extension>/bin/report-tools.mjs collect <TARGET_DIR> <target> > /tmp/<unique>-prior.json
+   ```
+
+   Reconcile every prior ID in this declared scope using the v2 lifecycle contract.
+   Other lens scopes and legacy repository reports remain explicit history, not
+   whole-repo approvals or automatic closures. Never overwrite prior reports.
+7. Per-chunk matching: language lenses (signals are file globs like `*.go`,
    `*.ts`) review ONLY the chunks whose files match — a Go-only chunk does not
    get the typescript lens. `always` lenses review every chunk.
-7. Compute `LENS_SLUG` for the report basename: the lens name when exactly one
-   lens is selected, otherwise `multi`. This is what keeps concurrent runs from
-   overwriting each other (Phase 4).
 
 ## Phase 2 — Chunking (exhaustive)
 
@@ -70,6 +84,11 @@ lenses and chunks.
    too large for one reading pass (~>40 source files or ~>30k tokens)
    mechanically into sub-chunks.
 3. Produce the chunk list `[{id, paths[]}]` and state the count.
+4. Before discovery, map critical invariants across chunks: entry points, all
+   shared-state writers, final consumers, and relevant success/failure/cancel/
+   supersession/replacement/never-settling outcomes. Record coverage statuses and
+   evidence/next checks as defined in the v2 contract. Cross-chunk ownership must
+   not disappear at a chunk boundary.
 
 ## Phase 3 — The loop, one chunk at a time
 
@@ -82,9 +101,12 @@ Process chunks **sequentially**. For each chunk, for each lens that matches it:
 2. **Kill** — switch to `agents/challenger.md` for the same findings: try to
    disprove each one against the actual code (callers, middleware, framework
    defaults, parent config). Emit `VALID` / `INVALID` / `AMBIGUOUS` with the
-   kill attempts you actually made. Do not raise new findings while wearing
-   this hat; note them and propose them in the next chunk that owns the code.
-3. **Discard the file contents.** Keep ONLY the challenger JSON for this chunk.
+   kill attempts you actually made, preserving the complete finding in a lossless
+   `{finding, challenge, disposition}` envelope. Do not raise new findings while
+   wearing this hat; queue them for the chunk that owns the code, or a separate
+   discovery pass if that chunk was already visited.
+3. **Discard the file contents.** Keep the lossless challenge envelopes, cumulative
+   finding dispositions, and coverage updates for this chunk.
    Your own context is the budget now that there are no subagents to absorb it
    — carrying source across chunks is what makes a large repo run out of room.
    If context is still tight, append each chunk's challenger JSON to a scratch
@@ -93,9 +115,11 @@ Process chunks **sequentially**. For each chunk, for each lens that matches it:
 Never batch all chunks into one reading pass: one chunk in context at a time is
 what keeps findings specific instead of vague.
 
-If a chunk cannot be read or blows the budget, record it as skipped with the
-reason and carry on. Partial coverage beats aborting — the report says what was
-skipped.
+If a chunk cannot be read or blows the budget, record uninspected coverage with a
+next check and carry on. Before judgment, handle queued discovery gaps once or
+leave them explicit. A critical skipped chunk requires INCOMPLETE, not HEALTHY
+with a footnote. Missing inspectable source/CI returns to evidence gathering;
+genuine runtime/domain uncertainty remains separate from confirmed defects.
 
 ## Phase 4 — Judge
 
@@ -106,11 +130,15 @@ Now adopt `agents/judge.md` with:
 - `{{CONTEXT}}`: repo name, selected lenses, chunk count, skipped chunks
 
 Rule on challenger output only — do not re-read code to invent new findings.
-Drop `INVALID`, dedup across chunks and lenses, audit severity, then write BOTH
-artifacts into `<TARGET_DIR>/.gbencke/adversarial-review/reports/`:
+Exclude INVALID from active defects while retaining evidenced historical closure.
+Dedup without losing prior IDs/aliases; reconcile every prior issue, audit severity,
+and apply the v2 coverage/closure gates. Use null solution_fit for repo mode and
+show a per-lens health table. Recheck source revision and recollect history if a
+concurrent report arrived. Then write BOTH artifacts into
+`<TARGET_DIR>/.gbencke/adversarial-review/reports/`:
 
-- `<yyyymmdd-hhmmss>-repo-<LENS_SLUG>.md` — the report
-- `<yyyymmdd-hhmmss>-repo-<LENS_SLUG>.findings.json` — the sidecar (same basename)
+- `<UTC-yyyymmdd-hhmmss>-repo-<LENS_SLUG>.md` — the report
+- `<UTC-yyyymmdd-hhmmss>-repo-<LENS_SLUG>.findings.json` — the sidecar (same basename)
 
 The lens slug is required, not cosmetic: reviews of one repo run concurrently
 (one process per repo × lens), so a lens-less basename collides whenever two
@@ -130,7 +158,17 @@ processes, under other lenses. Therefore:
 - Never infer "the latest report" from the directory listing — the newest file
   there probably belongs to another lens's run.
 
-## Phase 5 — Summary
+## Phase 5 — Validate and summarize
+
+Run the extension's data-only validator before emitting a success marker:
+
+```bash
+node <extension>/bin/report-tools.mjs validate <absolute-sidecar>
+```
+
+Validation errors require reconciliation or an honest INCOMPLETE result, never
+omitting history or claiming uninspected code is verified. The finalized-message
+hook and matrix launcher independently enforce the same contract.
 
 Reply in chat with ONLY: per-lens health verdicts, severity counts
 (P0/P1/P2/P3), top-5 findings (one line each), skipped chunks (if any), and the
@@ -149,4 +187,5 @@ parse that line instead of guessing from directory mtimes.
 - Never modify the reviewed repo except writing into
   `.gbencke/adversarial-review/reports/`.
 - Never execute repo code, test suites, builds, or cloud/API calls (see
-  docs/adr/0002-execution-boundary.md).
+  docs/adr/0002-execution-boundary.md). Read-only Git metadata and the extension's
+  report collector/validator are allowed; they do not execute reviewed code.

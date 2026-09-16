@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Self-check for run-matrix.sh. Uses --dry-run, so no pi process is started.
+# Self-check for run-matrix.sh. Dry runs and a fake CLI; no real pi process.
 set -uo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 matrix=$here/run-matrix.sh
@@ -35,5 +35,23 @@ check "runner in dry-run output" "$(printf '%s' "$out" | grep -c '^DRY-RUN claud
 "$matrix" --dry-run --log-dir "$tmp/l3" --lenses design "$tmp/nope" "$tmp/repo-a" >/dev/null 2>&1
 check "missing repo recorded" "$(grep -c 'nope' "$tmp/l3/manifest.tsv")" "1"
 check "good repo still ran" "$(grep -c 'repo-a' "$tmp/l3/manifest.tsv")" "1"
+
+# A child exit 0 is not success if its report is absent or invalid. Fake the CLI;
+# no model process or reviewed application code is executed.
+mkdir -p "$tmp/bin" "$tmp/repo-a/.gbencke/adversarial-review/reports"
+cat >"$tmp/bin/pi" <<'SH'
+#!/usr/bin/env bash
+printf 'REPORT: %s\n' "$FAKE_REPORT"
+SH
+chmod +x "$tmp/bin/pi"
+report="$tmp/repo-a/.gbencke/adversarial-review/reports/invalid.md"
+printf '{}\n' >"${report%.md}.findings.json"
+printf '# invalid report\n' >"$report"
+PATH="$tmp/bin:$PATH" FAKE_REPORT="$report" "$matrix" --log-dir "$tmp/l6" --lenses design "$tmp/repo-a" >/dev/null
+check "failed pairing makes launcher exit nonzero" "$?" "1"
+check "invalid report marks pairing failed" "$(tail -n 1 "$tmp/l6/manifest.tsv" | cut -f3)" "1"
+check "invalid report cannot publish success path" "$(tail -n 1 "$tmp/l6/manifest.tsv" | cut -f5)" "none"
+PATH="$tmp/bin:$PATH" FAKE_REPORT="$tmp/outside.md" "$matrix" --log-dir "$tmp/l7" --lenses design "$tmp/repo-a" >/dev/null
+check "out-of-repo report marks pairing failed" "$(tail -n 1 "$tmp/l7/manifest.tsv" | cut -f3)" "1"
 
 exit $fail

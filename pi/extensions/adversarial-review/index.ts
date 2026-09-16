@@ -15,6 +15,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
+import { guardReportMessage } from "./bin/report-tools.mjs";
 
 function baseDir(): string {
   // Prefer the real location of this file; fall back to the canonical path.
@@ -27,12 +28,18 @@ function baseDir(): string {
   return join(homedir(), ".pi", "agent", "extensions", "adversarial-review");
 }
 
-function loadSkill(pi: ExtensionAPI, name: string, args: string, hasUI: boolean) {
+function loadSkill(
+  pi: ExtensionAPI,
+  name: string,
+  args: string,
+  hasUI: boolean,
+) {
   const base = baseDir();
   const skillPath = join(base, "skills", name, "SKILL.md");
   if (!existsSync(skillPath)) {
     const msg = `adversarial-review: skill not found at ${skillPath}`;
-    if (hasUI) pi.sendMessage({ content: msg, display: true }, { triggerTurn: false });
+    if (hasUI)
+      pi.sendMessage({ content: msg, display: true }, { triggerTurn: false });
     else console.error(msg);
     return;
   }
@@ -55,18 +62,46 @@ function argString(args: unknown): string {
 }
 
 export default function (pi: ExtensionAPI) {
+  let expectedMode: string | undefined;
+  let expectedPr: number | undefined;
+  pi.on("agent_end", () => {
+    expectedMode = undefined;
+    expectedPr = undefined;
+  });
+
+  // Finalized output is evidence-gated even when the model skips the CLI check.
+  // This cannot retract text already shown during streaming.
+  pi.on("message_end", (event) => {
+    const message = guardReportMessage(event.message, expectedMode, expectedPr);
+    if (message) {
+      expectedMode = undefined;
+      expectedPr = undefined;
+      return { message };
+    }
+  });
+
   pi.registerCommand("review-repo", {
     description:
       "Adversarial review of a repository. Usage: /review-repo <path> [--lenses a,b,c]",
     handler: async (args, ctx) => {
+      expectedMode = "repo";
+      expectedPr = undefined;
       loadSkill(pi, "review-repo", argString(args), ctx.hasUI);
     },
   });
 
   pi.registerCommand("review-change", {
     description:
-      "Adversarial review of a change. Usage: /review-change <pr-url|pr-number|branch|patch-file> [base]",
+      "Review a change or verify prior findings. Usage: /review-change [target] [base] [--lenses a,b] [--verify finding-id,...]",
     handler: async (args, ctx) => {
+      const target = argString(args).split(/\s+/)[0];
+      const pr = target.match(
+        /^(?:https?:\/\/[^/]+\/[^/]+\/[^/]+\/pull\/)?(\d+)(?:[?#].*)?$/,
+      );
+      expectedPr = pr ? Number(pr[1]) : undefined;
+      expectedMode = /(?:^|\s)--verify(?:\s|=|$)/.test(argString(args))
+        ? "verification"
+        : "change";
       loadSkill(pi, "review-change", argString(args), ctx.hasUI);
     },
   });
@@ -75,6 +110,8 @@ export default function (pi: ExtensionAPI) {
     description:
       "Consolidate review findings across repos into one doc. Usage: /review-consolidate <repo> [<repo>...] --out <file.md>",
     handler: async (args, ctx) => {
+      expectedMode = undefined;
+      expectedPr = undefined;
       loadSkill(pi, "review-consolidate", argString(args), ctx.hasUI);
     },
   });
