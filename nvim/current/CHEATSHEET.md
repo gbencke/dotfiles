@@ -15,7 +15,8 @@ Neo-tree opens at startup. The start dashboard and AI plugins are disabled or re
 
 **Jump to:** [Debugging](#debugging) · [Files and search](#files-and-search) ·
 [Windows](#buffers-and-windows) · [Editing](#editing-and-completion) ·
-[Scratch](#scratch-buffers) · [LSP](#code-navigation-and-diagnostics) · [Replace](#search-and-replace) ·
+[Scratch](#scratch-buffers) · [Clipboard](#copy-information-to-the-clipboard) ·
+[LSP](#code-navigation-and-diagnostics) · [Replace](#search-and-replace) ·
 [Git](#git-and-github) · [Tests](#tests-and-coverage) ·
 [Terminals](#terminals-and-tasks) · [Sessions](#sessions) ·
 [Databases](#databases) · [HTTP](#http-requests) · [Obsidian](#obsidian-notes) ·
@@ -47,6 +48,25 @@ nvim src/main.py
 | `<leader>bd` | Delete the current buffer without disrupting the window layout. |
 | `<leader>.` / `<leader>S` | Toggle the current scratch / select a saved scratch. |
 | `<leader>dc` or `<F5>` | Start or continue debugging. See setup below. |
+
+## Copy information to the clipboard
+
+Press **Space y** to open the copy menu. These shortcuts copy text to the system
+clipboard without a trailing newline.
+
+| Key | Copies |
+| --- | --- |
+| `<leader>yF` | Current file name, including its extension. |
+| `<leader>yP` | Absolute file path, including the file name. |
+| `<leader>yC` | Name of the class enclosing the cursor. |
+| `<leader>yM` | Name of the method/function enclosing the cursor. |
+| `<leader>yR` | Absolute Git repository root for the current file; uses cwd for unnamed or special buffers. |
+
+Class/function lookup uses Tree-sitter, not the word under the cursor. It supports
+Python classes/functions, JS/TS classes/methods/functions (including named arrow
+functions), and Lua functions. Nested definitions use the innermost enclosing scope.
+A missing name, parser, file, or repository produces a warning and leaves the
+clipboard unchanged. Anonymous callbacks have no name to copy.
 
 ## Debugging
 

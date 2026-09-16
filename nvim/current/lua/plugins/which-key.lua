@@ -15,6 +15,7 @@ return {
         { "<leader>R", group = "http" }, { "<leader>j", group = "jupyter" },
         { "<leader>o", group = "overseer" }, { "<leader>p", group = "python" },
         { "<leader>m", group = "markdown" }, { "<leader>n", group = "notes (obsidian)" },
+        { "<leader>y", group = "copy" },
       },
     },
     keys = { { "<leader>?", function() require("which-key").show({ global = false }) end, desc = "Buffer keymaps" } } },
