@@ -8,7 +8,8 @@
     "npm:@juicesharp/rpiv-todo",
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@victor-software-house/pi-curated-themes",
-    "git:github.com/DietrichGebert/ponytail"
+    "git:github.com/DietrichGebert/ponytail",
+    "npm:pi-vimmode"
   ],
   "powerline": {
     "preset": "full",
