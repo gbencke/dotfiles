@@ -1,7 +1,7 @@
 {
-  "lastChangelogVersion": "0.80.2",
-  "defaultProvider": "kimi-coding",
-  "defaultModel": "k2p7",
+  "lastChangelogVersion": "0.99.1",
+  "defaultProvider": "openrouter",
+  "defaultModel": "deepseek/deepseek-v4.1-flash",
   "packages": [
     "npm:@robzolkos/pi-nocchio",
     "npm:pi-powerline-footer",
@@ -15,8 +15,8 @@
     "preset": "full",
     "fixedEditor": true
   },
-  "theme": "cursor-dark",
-  "defaultThinkingLevel": "high",
+  "theme": "github-dark-high-contrast",
+  "defaultThinkingLevel": "xhigh",
   "retry": {
     "enabled": true,
     "maxRetries": 3,
@@ -28,5 +28,14 @@
     }
   },
   "httpIdleTimeoutMs": 0,
-  "treeFilterMode": "all"
+  "treeFilterMode": "all",
+  "enabledModels": [
+    "kimi-coding/k3",
+    "openrouter/deepseek/deepseek-v4.1-flash",
+    "anthropic/claude-opus-5-5",
+    "openai-codex/gpt-6.1-sol"
+  ],
+  "skills": [
+    "~/.pi/agent/extensions/adversarial-review/skills"
+  ]
 }

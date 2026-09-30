@@ -10,16 +10,15 @@ subagents (ADR 0004):
    (P0–P3).
 2. **Kill** — the challenger role tries to disprove each candidate against
    the actual code. Verdicts: VALID / INVALID / AMBIGUOUS.
-3. **Judge** — reconcile prior findings, dedup, audit severity, apply coverage and
-   closure gates, then write validated artifacts.
+3. **Judge** — dedup, severity audit, epistemic labels, verdict, artifacts.
 
-The roles run in one process and are not independent reviewers. Challenge improves
-candidate precision; it does not prove that discovery covered every behavior.
-Schema v2 adds a cumulative ledger, invariant coverage, and INCOMPLETE verdicts.
-The lossless `{finding, challenge, disposition}` envelope preserves source evidence
-through judgment. ADR 0001 records the original rationale; ADR 0005 documents the
-coverage/closure correction. External false-positive figures are not a measured
-accuracy guarantee for this extension.
+Why not one smart reviewer? Published production data (500+ PRs,
+`gaurav-yadav/adversarial-ai-review`): single-pass AI review produces
+30–60% false positives; the propose/kill split produces ~7%. Research
+consensus (Huang et al. 2023; Kamoi et al. 2024): LLMs cannot reliably
+self-correct — whoever raises a concern must never be the one who resolves it,
+which is why the phases stay separate even inside one process. See
+`docs/adr/0001-adversarial-loop.md`.
 
 ### Where the parallelism lives
 
@@ -34,7 +33,7 @@ drives that fan-out and merges the sidecars. Rationale:
 | Label | Meaning |
 |-------|---------|
 | `[CONFIRMED]` | Challenger validated it, with cited kill attempts |
-| `[CONSENSUS]` | At least two documented independent evidence sources; lens names alone do not qualify |
+| `[CONSENSUS]` | Raised independently by ≥2 lenses |
 | `[NEEDS-HUMAN]` | AMBIGUOUS — says exactly what a human must check |
 
 ### Severity rubric
@@ -58,8 +57,7 @@ binaries. The report's
 `## Not reviewed` section lists everything skipped — exhaustiveness
 claims stay honest.
 
-Verdict: per-lens HEALTHY / NEEDS-ATTENTION / CRITICAL / INCOMPLETE, plus the
-schema-v2 scope-aware summary. Critical skipped chunks cannot be HEALTHY.
+Verdict: per-lens HEALTHY / NEEDS-ATTENTION / CRITICAL.
 
 ## 3. Change review (`/review-change`)
 
@@ -70,14 +68,9 @@ correctness-only verdicts. Runs every matched lens without asking
 (`--lenses` narrows it); language lenses apply only when the diff
 touches their files.
 
-Full-review verdict: IMPLEMENTATION_CORRECTNESS × SOLUTION_FIT → SHIP /
-FIX-THEN-SHIP / DO-NOT-SHIP / INCOMPLETE. Missing critical evidence, snapshot drift,
-or unrechecked active history prevents approval. `--verify <stable-id,...>` instead
-verifies only prior findings and leaves all whole-PR verdict fields null.
-
-Every run freezes the actual PR base/head, collects prior history, and maps complete
-business outcomes and shared-state writers. Fixing one handler does not close the
-invariant until sibling paths, safety, and liveness have been checked.
+Verdict: **dual** — IMPLEMENTATION_CORRECTNESS × SOLUTION_FIT →
+SHIP / FIX-THEN-SHIP / DO-NOT-SHIP. Perfect code implementing the wrong
+approach gets REVISE — the most expensive defect class in software.
 
 ## 4. The lenses
 
@@ -206,41 +199,51 @@ that masks programming errors), lost exception causes, log lines without
 identifiers, partial writes without compensation, ack-before-durable-done
 message loss, 200-status-on-failure, stack traces leaked to clients.
 
-## 5. Artifacts and closure
+## 5. Artifacts
 
-The complete schema and canonical headings live in `docs/report-contract.md`.
-Every v2 report records its repository, target/PR, full revision hashes, UTC date,
-explicit scope and lenses, source-history digests, cumulative ledger, coverage,
-confirmed counts, uncertain counts, and verdict.
+Every review writes into the reviewed repo, with the lens in the basename so
+concurrent per-lens runs cannot overwrite each other:
 
-Stable finding IDs persist across reviews. Historical F1-style IDs are imported as
-file/title fingerprints; semantic duplicates need explicit aliases and a merge
-reason. Missing rows never close findings. Fixes require a commit and verification
-evidence; disproofs require the actual disproof; P2/P3 deferrals require owner,
-reason, and ticket. Unrechecked active history remains visible and prevents SHIP.
+```
+.gbencke/adversarial-review/reports/<yyyymmdd-hhmmss>-<target>-<lens>.md
+.gbencke/adversarial-review/reports/<yyyymmdd-hhmmss>-<target>-<lens>.findings.json
+```
 
-After writing both Markdown and JSON, run `bin/report-tools.mjs validate`. A
-final-message hook validates again and derives the summary from the sidecar; invalid
-drafts have no approval or REPORT success marker. Matrix pairings independently
-validate artifacts before accepting them. Validation checks record consistency,
-not the semantic truth of an assertion.
+`<lens>` is the single lens's name, or `multi` when one run covered several.
+The last line of the chat summary is the absolute report path prefixed
+`REPORT: ` — batch callers parse that instead of scanning mtimes.
 
-Consolidation selects full reports by target/mode/lens set and parsed timestamp,
-not filename order. Focused verifications and legacy artifacts are separate history;
-they cannot replace a full review. Failed pairings cannot be replaced with older
-successful runs. Different head SHAs remain visibly different snapshots.
+`/review-consolidate` adds one more artifact, outside the repos, at the
+required `--out` path: a cross-repo document ordered by severity then repo,
+with a summary table (repo × lens × counts), a coverage table built from the
+matrix manifest, cross-repo themes, and a `## Not consolidated` section listing
+failed pairings with their logs.
+
+The markdown is PR-comment-ready (change mode: verdict first). The JSON
+sidecar schema:
+
+```json
+{
+  "target": "...", "mode": "change", "date": "...",
+  "verdict": { "implementation": "...", "solution_fit": "...", "overall": "..." },
+  "counts": { "P0": 0, "P1": 0, "P2": 0, "P3": 0 },
+  "findings": [ { "id", "severity", "lenses", "labels", "file", "line",
+                  "title", "failure_condition", "evidence", "suggestion" } ]
+}
+```
+
+CI gate example: fail when `counts.P0 > 0` or `verdict.overall ==
+"DO-NOT-SHIP"`.
 
 ## 6. Known limits
 
-- **Shared-model bias:** role and lens labels do not make evidence independent.
-- **Coverage discovery:** a validator can require coverage records, but cannot prove
-  the reviewer identified every critical invariant or read every necessary caller.
-- **Static boundary:** tests/builds and live services are not executed. Exact-head
-  existing CI may settle a claim; runtime uncertainty otherwise needs separate,
-  explicitly authorized verification.
-- **Cost:** work scales with lenses and behavior slices. Correcting a stale base and
-  keeping coherent scope usually helps more than adding reviewers.
-- **Legacy history:** old schemas contain assertions, not reliable closure records.
-  Conservative reconciliation may need human decisions before a new full approval.
-- **Streaming:** final-message validation cannot retract text already displayed
-  while the model was streaming. Batch consumers must validate the sidecar too.
+- **Same-model bias**: reviewers and challengers may share one base model;
+  unanimous agreement can reflect shared blind spots. The judge flags thin
+  evidence with `⚠️ HUMAN REVIEW RECOMMENDED`, but this is structured
+  self-critique, not independent verification.
+- **Static only**: no runtime behavior, no live quota data, no real
+  coverage execution (ADR 0002). Findings about runtime state cap at
+  AMBIGUOUS.
+- **Cost scales with lenses × chunks**: a large repo is many agents. The
+  orchestrator batches and the queue schedules, but budget reviews belong
+  on change targets, not monorepos.

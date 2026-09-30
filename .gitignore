@@ -15,3 +15,4 @@ sessions/
 
 
 .spotify_token.json
+*.session

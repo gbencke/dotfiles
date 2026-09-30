@@ -23,8 +23,6 @@ pi/
 │   ├── raindrop/       # Raindrop.io bookmark management
 │   ├── storm/          # Deep research via STORM methodology
 │   ├── tavily/         # AI-powered web search
-│   ├── spotify/        # Spotify Web API (catalog search + user playlists)
-│   ├── token-diagnostics/  # Agent token usage analysis and fleet reporting
 │   └── yt-dlp/         # Audio/video download via yt-dlp
 ├── bin/                # Helper binaries (e.g., fd)
 └── sessions/           # Session history — gitignored, never committed

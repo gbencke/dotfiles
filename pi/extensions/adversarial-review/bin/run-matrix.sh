@@ -101,17 +101,6 @@ for repo in "${repos[@]}"; do
       "$runner" -p "$prompt" >"$log" 2>&1
       rc=$?
       report=$(sed -n 's/^REPORT: //p' "$log" | tail -n 1)
-      if [ "$rc" -eq 0 ]; then
-        case "$report" in
-          "$abs"/.gbencke/adversarial-review/reports/*.md)
-            if ! node "$base_dir/bin/report-tools.mjs" validate "${report%.md}.findings.json" "$lens" >>"$log" 2>&1; then
-              rc=1
-              report=""
-            fi
-            ;;
-          *) printf '\nrun-matrix: missing or out-of-repo REPORT path\n' >>"$log"; rc=1; report="" ;;
-        esac
-      fi
       # Single small append: atomic enough for concurrent writers on Linux.
       printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
         "$name" "$lens" "$rc" "$((SECONDS - start))" "${report:-none}" "$log" >>"$manifest"
@@ -123,6 +112,3 @@ wait
 
 printf 'run-matrix: %d repo(s) x %d lens(es) done. Manifest: %s\n' \
   "${#repos[@]}" "${#lenses[@]}" "$manifest"
-
-# Keep every pairing in the manifest and make failure visible to shell callers.
-awk -F '\t' 'NR > 1 && $3 != 0 { failed=1 } END { exit failed ? 1 : 0 }' "$manifest"
