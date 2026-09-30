@@ -1,152 +1,199 @@
 ---
 name: review-change
 description: >
-  Adversarial review of a change: a PR, a branch diff, or a patch file. Runs
-  inline in a single process — blast radius, then per-lens propose → kill →
-  judge — and writes a PR-comment-ready report plus findings.json under
-  .gbencke/adversarial-review/reports/. Spawns no subagents.
-  Trigger: /review-change <pr-url|pr-number|branch|patch-file> [base],
-  "adversarial review of this PR/branch/patch".
-argument-hint: "<pr-url|pr-number|branch|patch-file> [base]"
+  Evidence-backed PR, branch, or patch review with cumulative finding reconciliation,
+  invariant coverage, and sequential propose → challenge → judge phases. Supports
+  focused verification without whole-PR approval. Validates reports before delivery.
+argument-hint: "[pr-url|pr-number|branch|patch-file] [base] [--lenses a,b,c] [--verify finding-id,...]"
 ---
 
-# review-change — adversarial review of a PR / branch / patch
+# review-change
 
-Run the adversarial loop yourself, in this process. You are the **reviewer, the
-challenger, and the judge, in that order** — three roles, one process, strict
-phase separation.
+Run inline, without subagents. Review only: do not apply fixes or run reviewed code.
+Read `docs/report-contract.md` and the three `agents/*.md` role packs from the
+extension directory. Schema v2 is required. Relative references in this skill are
+relative to that directory. Node helpers belong to the extension, not the target.
 
-**No subagents.** Never use the `Agent` tool in this skill. Parallelism is the
-caller's job: batch runners launch one process per (target × lens) — see
-ADR 0004.
+## 0 — Resolve and freeze the input
 
-## Phase 0 — Resolve the change
+Parse target, optional base, `--lenses`, and `--verify`. An empty target means the
+current branch; report that choice. Unrecognized prose is **not** a branch or a
+license to turn a focused allegation into a full review. Stop with usage instead.
+An explicit `--verify` selects finding verification; otherwise scope is the full
+change under the selected lenses.
 
-Parse the argument (first token = target, second = optional base, default
-`main`):
+Resolve the absolute Git root as `TARGET_DIR`. Record UTC time, repository, target,
+PR number (or null), full `base_sha`/`head_sha`, and the input's intent:
 
-- **PR URL or number** → `gh pr diff <n>` and `gh pr view <n> --json title,body`
-  (the title/body is the *change intent* — keep it for the judge). If `gh`
-  fails, tell the user and stop.
-- **Branch name** → `git diff <base>...<branch>`; intent = the branch's commit
-  messages (`git log <base>..<branch> --oneline`).
-- **Patch file path** → read the file; intent = none (solution-fit degrades to
-  correctness-only; note this in the report).
+- **PR URL/number:** use `gh pr view` for title, body, head/base names and OIDs.
+  Freeze those OIDs; use their three-dot diff when available locally. A live
+  `gh pr diff` is usable only if PR OIDs checked before/after it are unchanged.
+  GitHub's actual base wins over a stale local `main`. If `gh` fails, stop.
+- **Branch:** resolve its commit. Honor an explicit base. Without one, use the
+  matching PR's actual base OID; if there is no PR, resolve hosted `main` through
+  `gh api`. If freshness cannot be established, request an explicit base rather
+  than silently treating local `main` as current. Record commit messages as intent
+  and include matching PR title/body when available.
+- **Patch:** read it, compute SHA-256, record absolute `patch_path`, use target
+  `patch:<digest>` and null Git SHAs. Intent is unknown: solution-fit is
+  correctness-only unless the user supplies requirements. State that context is
+  limited to what can be matched to the patch, not an arbitrary checkout.
 
-Also resolve the repo root (absolute) as `TARGET_DIR`. Save the diff to a temp
-file. If the diff is empty, say so and stop.
+Save the diff in the system temp directory. Empty diff: say so and stop.
+Use a clean checkout at the frozen head for source context. Read-only Git metadata
+checks must confirm it matches; do not checkout, stash, reset, fetch, or modify
+refs to make it match. If objects/context are unavailable or the working tree
+changes, mark `snapshot_consistent: false` and deliver INCOMPLETE, not approval.
+Do not mix current working-tree source with a different reviewed revision.
 
-### Phase 0b — JIRA requirements (when credentials exist)
+### Requirements
 
-The stated requirement is what SOLUTION_FIT is judged against, so pull it when
-you can. Skip this step entirely if `$JIRA_EMAIL` or `$JIRA_TOKEN` is unset.
+With JIRA credentials, extract ticket keys from the branch, PR, and commit subjects;
+fetch API v2 summary/description/status/type/parent. Never print credentials.
+Prioritize the primary story and linked implementation spec; separate inherited
+cross-repository requirements from work owned by this PR. A PR number/issue text
+is not evidence that a requirement has shipped.
 
-1. Collect ticket keys (`[A-Z][A-Z0-9]+-\d+`) from the branch name, the commit
-   subjects from Phase 0, and the PR title/body. De-duplicate.
-2. Fetch each key. Use API v2, not v3 — v2 returns `description` as plain text
-   while v3 returns ADF JSON:
+No credentials/no key/fetch failure: record the limitation without stopping.
+Exact-head existing CI logs may be read with `gh` to settle test claims. Do not use
+old PR-description pass counts or coverage from another SHA as current evidence.
+No repository tests/builds or live service/cloud calls are allowed in this skill.
 
-   ```bash
-   curl -s -u "$JIRA_EMAIL:$JIRA_TOKEN" \
-     "https://raintreeinc.atlassian.net/rest/api/2/issue/<KEY>?fields=summary,description,status,issuetype,parent"
-   ```
+## 1 — Load the cumulative ledger
 
-3. Append each ticket to `{{INTENT}}` as `KEY [status] summary` followed by the
-   description, ahead of the commit messages. The ticket is the stronger
-   statement of intent; commit messages describe what was done, not what was
-   asked for.
+Before discovery, collect matching history:
 
-Degrade quietly and record which case applied, because it changes how the judge
-must read SOLUTION_FIT:
+```bash
+node <extension>/bin/report-tools.mjs collect <TARGET_DIR> <target> [pr-number] > /tmp/<unique>-prior.json
+```
 
-- credentials unset → note "JIRA not consulted (no credentials)" in the report
-- no ticket key found → note "no ticket key in branch or commits"
-- fetch fails or 404 → note the key and the HTTP status, keep the commit
-  messages as intent, and carry on. Never stop the review over JIRA.
+Read the resulting ledger, source paths, and relevant prior evidence. Preserve the
+collector's `prior_reports` digests. Every known ID must survive, either directly
+or as an evidence-backed alias. Do not restart F1 numbering; reuse stable IDs.
+Legacy IDs are supplied by the collector. Reconcile wording variants explicitly,
+not by guessing that findings in the same file are identical.
 
-Requirements the ticket states but the diff does not implement are
-SOLUTION_FIT findings, not correctness findings.
+Assign each prior issue one of: open, fixed_verified, disproved, deferred,
+not_rechecked. Use the closure requirements in `docs/report-contract.md`.
+Missing findings are **not** fixed findings. A clean recent report cannot erase
+older open concerns. Preserve first-seen date, confidence, severity, and evidence
+when a finding is not rechecked. Separate severity from certainty.
 
-## Phase 1 — Blast radius (mechanical first)
+For `--verify id,...`, resolve IDs against this ledger (accept a legacy report-local
+ID only when the user identifies its source report). Verify only those findings;
+carry every other finding as not_rechecked with its prior disposition. No overall
+implementation/solution-fit/SHIP verdict is allowed in verification mode.
 
-1. Extract changed symbols from the diff: function/class/type names, exported
-   identifiers, API routes, schema/migration definitions, feature flags.
-2. Build the reverse import/caller graph over `TARGET_DIR`: for each changed
-   exported symbol, find files that import or reference it. Use ast-grep
-   (`sg`) when available, `grep -rn` as fallback. Skip test files in the graph
-   but record which tests reference the changed symbols (feeds test-surface).
-3. Produce: `{symbol → direct dependents[]}`, count of affected packages/dirs.
+## 2 — Mechanical impact and behavior coverage
 
-## Phase 2 — Lens selection (never ask)
+Extract changed exported symbols, routes, flags, data contracts, and action names.
+Build the reverse importer/caller map using the repo's indexed analysis or ast-grep
+(fallback grep). Record test references separately. Restrict results to TARGET_DIR;
+parent-workspace/sibling-repo hits and stale excerpts are not trustworthy coverage.
+Record gaps; do not infer no callers or no tests from missing graph results.
 
-Read every `lenses/*/lens.md` in the extension base dir + the repo overlay
-(`.gbencke/adversarial-review/lenses/`, merge same-named). For a change review ALL
-signal-matched lenses apply, and `test-surface` + `blast-radius` ALWAYS
-apply. Language lenses (glob signals like `*.go`, `*.ts`) match only if the
-diff touches matching files.
+Then build a compact invariant/behavior matrix BEFORE proposing fixes:
 
-- **Run every matched lens. Never prompt.** There is no lens picker; the
-  matched set is the selection. State the names in chat and continue. A prompt
-  would hang non-interactive callers (`pi -p`).
-- `--lenses a,b,c` in the argument overrides the matched set with exactly those
-  lenses. That is the only way to narrow it.
-- Compute `LENS_SLUG`: the lens name when exactly one lens is selected,
-  otherwise `multi`. It goes in the report basename (Phase 5) so concurrent
-  per-lens reviews of the same target do not overwrite each other.
+- Entry point and reachable mode/flag/permission combinations.
+- Shared mutable state, **all writers**, and the final consumer/business outcome.
+- Success, rejection, cancellation, supersession, replacement, unmount, and
+  never-settling work where relevant. Check both safety and liveness.
+- Downstream effects: payload sent, state committed, user-visible result, persisted
+  operation. Do not stop at an intermediate request if a later callback books.
+- Test/assertion or exact-head CI evidence that discriminates the behavior.
 
-## Phase 3 — The loop, one lens at a time
+For each row record criticality and verified / unresolved / not_inspected /
+not_applicable, with evidence or a concrete next check. Do not enumerate impossible
+Cartesian combinations; prove render/caller eligibility before claiming a UI race.
+An inspected hunk or a listed test name does not by itself verify a behavior.
 
-Read `agents/reviewer.md`, `agents/challenger.md`, `agents/judge.md` from the
-extension base dir. These are **role packs**: the stance, contract, and output
-schema you adopt for each phase. Process lenses **sequentially**; for each:
+All diff sections remain in scope. For large changes, group into coherent behavior
+slices and explicitly inventory what each slice covers. If the budget is too small,
+mark the remaining critical rows uninspected; do not redefine the change as reviewed.
 
-1. **Propose** — adopt `agents/reviewer.md` with the lens's merged `rules.md`.
-   Scope = the FULL diff, plus the Phase-1 graph for `blast-radius`. Read any
-   file under `TARGET_DIR` for context — full-repo access is what keeps false
-   positives down. Emit findings in the role pack's JSON shape.
-2. **Kill** — switch to `agents/challenger.md` for that lens's findings: try to
-   disprove each against the actual code (callers, middleware, framework
-   defaults, config). Emit `VALID` / `INVALID` / `AMBIGUOUS` with the kill
-   attempts you actually made. No new findings while wearing this hat.
-3. Keep ONLY the challenger JSON before moving to the next lens. Your context is
-   the budget now that no subagent absorbs it; the diff stays, the context files
-   you grepped do not.
+## 3 — Select lenses and discover, then challenge
 
-## Phase 4 — Judge (dual verdict)
+Read every `lenses/*/lens.md` plus the repo overlay; append same-named overlay rules.
+Apply all matched lenses. `test-surface` and `blast-radius` always apply to change
+reviews; language lenses match changed files only. `--lenses` explicitly overrides
+the set. Never prompt for a lens picker. State the selected lenses and scope.
+`LENS_SLUG` is the sole lens name or `multi`.
 
-Adopt `agents/judge.md` and rule on the Phase-3 challenger output only — never
-re-read code to invent findings here:
+Process lenses sequentially, over the full diff and the behavior slices:
 
-- `{{MODE}}`: `change`
-- `{{INTENT}}`: the change intent from Phase 0 (or "unknown")
-- `{{FINDINGS}}`: all challenger outputs
-- `{{CONTEXT}}`: target, base, diff stat, Phase-1 blast-radius graph summary
-- Write into `<repo>/.gbencke/adversarial-review/reports/`:
-  - `<yyyymmdd-hhmmss>-<target-slug>-<LENS_SLUG>.md` — PR-comment-ready report:
-    dual verdict first (IMPLEMENTATION_CORRECTNESS × SOLUTION_FIT → overall
-    SHIP / FIX-THEN-SHIP / DO-NOT-SHIP), then findings by severity, then the
-    blast-radius section, then the NOT-REVIEWED list.
-  - `<same-basename>.findings.json` — the sidecar.
+1. **Propose:** adopt `agents/reviewer.md`. Reuse prior IDs; group by root cause.
+   Finding a stale write in one handler requires checking its sibling writers,
+   not prescribing only a patch to the cited line. Include failure condition,
+   reachability, evidence, final outcome, and a discriminating regression.
+2. **Challenge:** adopt `agents/challenger.md`. Attempt real disproof. Keep the
+   complete `{finding, challenge, disposition}` envelope; never discard the
+   original evidence/failure condition while retaining only a title and verdict.
+3. Persist only these lossless envelopes and coverage/ledger updates between slices.
+   Source excerpts need not be carried into every later lens.
 
-## Phase 5 — Summary
+Do not introduce new findings while challenging or judging. Queue uncovered sibling
+paths/new concerns for a separate discovery phase before judgment. Missing reachable
+source or inspectable CI is an evidence-gathering task, not a runtime uncertainty.
+Return to discovery once for queued gaps; if still unresolved or over budget, mark
+coverage incomplete rather than looping indefinitely or inventing a conclusion.
 
-Chat reply ONLY: dual verdict line, severity counts, top-5 findings (one line
-each), blast-radius headline (N direct dependents, risk tier), report path.
+Collect the root-cause groups before recommending repairs. For each, cover all
+relevant writers and require tests that would fail if the ownership/field guard,
+error propagation, or cancellation release were removed. Do not execute mutation
+experiments here; identify the exact check the repair/verification phase must run.
 
-Last line, on its own, absolute, prefixed exactly `REPORT: ` — batch callers
-parse that instead of guessing from directory mtimes.
+## 4 — Judge and reconcile
 
-## Hard rules
+Judge only challenged evidence, using `agents/judge.md` and the v2 contract.
+Deduplicate current findings without losing legacy aliases or prior dispositions.
+Drop INVALID from active defects but retain disproof/closure in the ledger.
+Do not count AMBIGUOUS questions as confirmed failures. Lens agreement is not
+independent verification; CONSENSUS needs separate supporting evidence.
 
-- Never use the `Agent` tool. One process, three roles, phases in order.
-- Keep the phases honest: propose, then kill, then judge. The judge role never
-  rescues a finding the challenger killed, and the kill phase is never skipped
-  because a finding "looks obvious" (ADR 0001, ADR 0004).
-- Never modify the repo except the reports dir.
-- Concurrency: other reviews of this repo may run in parallel. `mkdir -p` the
-  reports dir, write only your two files, never delete/overwrite/prune others,
-  keep scratch files in the system temp dir, and never run a mutating `git`
-  command (`add`, `stash`, `checkout`, `clean`).
-- Never execute repo code, tests, builds, or network/cloud calls
-  (`gh`/`git diff`/JIRA fetch for input gathering are the only exceptions).
-- Every finding must cite file:line and a concrete failure condition.
+Apply gates in order: confirmed P0/wrong approach → DO-NOT-SHIP; missing critical
+coverage, snapshot drift, unrechecked active history, or high-risk uncertainty →
+INCOMPLETE; confirmed P1/questionable fit → FIX-THEN-SHIP; otherwise scoped SHIP.
+Unknown-intent patches remain correctness-only. No “zero defects” claim.
+
+A focused verification instead reports the targeted finding dispositions and sets
+all three overall verdict fields to null. Other issues remain explicitly not
+rechecked; it cannot supersede the full review's approval status.
+
+## 5 — Validate and deliver
+
+Recheck the pinned source/PR OIDs (or patch digest) before publication. Recollect
+history if another report arrived; reconcile it, then stamp UTC publication time.
+Write only your two artifacts, exclusively, under:
+
+```text
+<TARGET_DIR>/.gbencke/adversarial-review/reports/<UTCstamp>-<target>-<scope>-<LENS_SLUG>.md
+<TARGET_DIR>/.gbencke/adversarial-review/reports/<same>.findings.json
+```
+
+`scope` is `full` or `verify`. Never overwrite/prune someone else's artifacts.
+The first Markdown line and complete v2 sidecar must follow `docs/report-contract.md`.
+Include confirmed findings, verification questions, prior dispositions, coverage,
+blast radius, and not-reviewed limitations. Fixed claims cite evidence, not just
+commit subjects or presence of tests.
+
+Run the extension's validator (not reviewed code):
+
+```bash
+node <extension>/bin/report-tools.mjs validate <absolute-sidecar>
+```
+
+Fix validation errors by restoring missing evidence/history or reporting INCOMPLETE.
+Never remove a prior finding or relabel skipped work to get a green result. Only
+validated artifacts receive a final `REPORT: ` line. The extension also validates
+the finalized message; the matrix runner independently checks the artifact.
+
+Chat: scoped verdict (none for verification), confirmed/uncertain counts, top five
+findings or targeted dispositions, incomplete coverage if any, and the report path.
+Last line: `REPORT: <absolute-markdown-path>`.
+
+## Hard boundaries
+
+No subagents; no source changes; no repository code/tests/builds; no live services.
+Read-only Git/gh/JIRA input gathering and the extension's data-only helpers are
+allowed. Scratch belongs in system temp. Keep phases honest and sources pinned.
+The release criterion is verified closure within scope, not an empty newest report.

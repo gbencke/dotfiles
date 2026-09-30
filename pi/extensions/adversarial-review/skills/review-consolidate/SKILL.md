@@ -1,193 +1,111 @@
 ---
 name: review-consolidate
 description: >
-  Review many repos under every lens — one OS process per (repo × lens), all in
-  parallel — then consolidate every findings.json into ONE cross-repo document
-  grouped by severity then repo. Spawns subprocesses, never subagents.
-  Trigger: /review-consolidate <repo> [<repo>...] --out <file.md>,
-  "review these repos and consolidate the findings".
+  Run repository/lens reviews in separate processes, then consolidate validated,
+  scope-aware full reports. Focused verifications and legacy reports remain history
+  and cannot replace full-review status.
 argument-hint: "<repo> [<repo>...] --out <file.md> [--lenses a,b,c] [--no-run] [--all]"
 ---
 
-# review-consolidate — run the matrix, then write one document
+# review-consolidate
 
-Two jobs, in order: **fan out the reviews as parallel subprocesses**, then
-**merge their findings into one document**. You review no code yourself.
+Read `docs/report-contract.md` from the extension directory. Consolidation arranges
+existing evidence; it does not review source, invent findings, or reclassify severity.
+No subagents. Parallelism is the existing matrix launcher.
 
-**Subprocesses, not subagents.** Never use the `Agent` tool. Every review runs
-as its own `pi -p` process, one per (repo × lens), launched by
-`bin/run-matrix.sh` in the extension base dir (ADR 0004).
+## 0 — Arguments
 
-## Phase 0 — Arguments (repos and --out are required)
+Require at least one repo and `--out`; never default either. Resolve paths to
+absolute and permit a directory prefix only when exactly one repo matches.
+`--lenses` limits the matrix, `--no-run` reads existing artifacts, and `--all`
+includes historical full snapshots in an appendix, **not** a union of old and
+current defect counts. Stop with usage when arguments are missing/ambiguous.
 
-Parse the argument string:
+Use a UTC stamp and a sibling `<out-directory>/review-matrix-<stamp>.logs` directory.
 
-- **repo paths** — one or more, positional. **Required.** At least one.
-- `--out <file>` — the consolidated document path. **Required.**
-- `--lenses a,b,c` — restrict the matrix to these lenses. Default: every lens
-  except the change-only ones (`test-surface`, `blast-radius`).
-- `--no-run` — skip Phase 1; consolidate reports already on disk.
-- `--all` — include every report found, not just the newest per (repo, lens).
-
-Stop immediately, with usage, if no repo path is given or `--out` is missing:
-
-> review-consolidate needs repos and an output path:
-> `/review-consolidate <repo> [<repo>...] --out <file.md>`
-
-Never guess a default output path and never default the repo list to the
-current directory — a consolidated doc written somewhere unexpected, or built
-from the wrong repo set, is worse than an error.
-
-Resolve every repo path to absolute. A path that does not exist is a hard error
-(name it, list the ones that do). Accept a directory prefix (`307`) only if it
-resolves to exactly one directory; if it matches zero or several, error and list
-what it matched.
-
-Pick a run stamp (`date +%Y%m%d-%H%M%S`) and a log dir next to `--out`:
-`<dirname of --out>/review-matrix-<stamp>.logs`.
-
-## Phase 1 — Run the matrix (parallel subprocesses)
-
-Skip this phase entirely when `--no-run` was passed.
-
-Run the launcher — ONE command, one bash call, it blocks until every child is
-done. Do not hand-roll the fan-out and do not launch the children one at a time:
+## 1 — Run once, unless --no-run
 
 ```bash
-<base>/bin/run-matrix.sh --log-dir <logdir> [--lenses a,b,c] <repo> [<repo>...]
+<extension>/bin/run-matrix.sh --log-dir <logdir> [--lenses a,b,c] <repos...>
 ```
 
-(`--runner pi` is the default; the Claude Code port passes `--runner claude`.)
+One process per repo/lens, all launched before waiting. Use a generous timeout;
+never restart the launcher, spawn subagents, or silently retry failed pairings.
+Read `manifest.tsv`: repo, lens, exit, seconds, report, log. The launcher validates
+v2 sidecars before accepting a REPORT path; missing/invalid reports are failures.
 
-`<base>` is the extension base dir given to you at the top of this session.
-What the script does, so you do not re-implement it:
+A failed pairing stays FAILED for this run. Do **not** substitute an older success
+and make current coverage appear complete. Historical artifacts may be linked
+separately, explicitly dated.
 
-- one `pi -p "/review-repo <repo> --lenses <lens>"` process per (repo × lens),
-  every one launched before it waits — unbounded parallelism, by design;
-- one log per pairing at `<logdir>/<repo>-<lens>.log`;
-- `<logdir>/manifest.tsv` with `repo, lens, exit, seconds, report, log`, where
-  `report` is the `REPORT: ` path each child printed (`none` if it printed none).
+## 2 — Collect by identity, revision, and scope
 
-The run is long. Use a generous timeout on the bash call and do not poll,
-interrupt, or re-run it — a second launch doubles the load on every repo.
-
-Read `manifest.tsv` when it returns. A non-zero `exit` or a `none` report is a
-failed pairing: keep its repo, lens, and log path for the **Not consolidated**
-section. Never silently drop it and never re-run it — a report that says "the
-security lens failed here" is honest; a report missing the security lens lies.
-
-## Phase 2 — Collect the sidecars
-
-For each repo, list `<repo>/.gbencke/adversarial-review/reports/*.findings.json`.
-
-- Prefer the sidecar next to each `report` path from the manifest (same basename,
-  `.findings.json`) — that is exactly this run's output.
-- With `--no-run`, or for a pairing whose manifest report is `none`, fall back to
-  the **newest sidecar per lens slug** (the
-  `<stamp>-<target>-<lens>.findings.json` basename carries both). `--all` keeps
-  every sidecar instead.
-- A repo with no reports dir or no sidecars is not an error — record it as
-  `NO REPORTS` and keep going. It is a signal (the review failed or never ran),
-  and hiding it would make the doc lie about coverage.
-- A sidecar that is not valid JSON is recorded as `UNPARSEABLE` with its path.
-  Never guess at its contents.
-
-Load them mechanically — this is data movement, not judgment:
+For successful manifest pairings, use exactly their reported paths and sidecars.
+Validate structural/history consistency; do not infer a newer report from mtimes.
+For `--no-run` use:
 
 ```bash
-for f in <repo>/.gbencke/adversarial-review/reports/*.findings.json; do
-  jq -c --arg src "$f" '{src:$src, target, mode, date, counts,
-    findings: [.findings[] | {severity, lenses, labels, file, line, title,
-      failure_condition, suggestion}]}' "$f"
-done
+node <extension>/bin/report-tools.mjs select <absolute-repo> [--all]
 ```
 
-Report the tally before writing: repos in, pairings run, sidecars read, findings
-loaded, pairings failed.
+The selector groups by target/PR, mode, and explicit lens set, then orders parsed
+UTC timestamps. It selects only **full v2** reports. Its `ignored` list includes
+legacy/focused artifacts and reasons: preserve that list in the output. Do not
+let a recent `verification`, a focused `multi`, or a legacy zero-count report
+replace a full review. These artifacts remain visible as history without a new
+whole-repository/PR approval.
 
-## Phase 3 — Merge
+The latest full report already contains its cumulative ledger. A later focused
+verification may settle its named issue, but does not silently recalculate that
+full report's verdict: list the verification separately, and require a reconciled
+full report before presenting a new approval. Do not resurrect old issues by
+unioning every historical snapshot's findings.
 
-1. Tag every finding with its repo (directory basename) and its lens (from
-   `lenses[]`, falling back to the sidecar's lens slug).
-2. **Within a repo**, collapse duplicates: same `file` + same defect (same
-   title or same root cause) → one entry, lenses merged, highest severity kept.
-   The same file gets reviewed by several lenses, so duplicates are expected.
-3. **Across repos**, never merge — each repo owns its own fix. Instead, when the
-   same defect class appears in ≥2 repos, label every occurrence
-   `[CROSS-REPO: n repos]`. That label is the reason this document exists:
-   a defect in three repos is a platform problem, not three tickets.
-4. Preserve severities as ruled. Never re-severity a finding here — the judging
-   already happened, and you no longer have the code in front of you.
+If parsing/validation fails, record the exact artifact and error as UNPARSEABLE /
+INVALID. If there is no full v2 report, record NO VALID FULL REPORT, even if legacy
+history exists. Do not claim an empty repository is healthy.
 
-## Phase 4 — Write the document to `--out`
+Report: repos, pairings run, full sidecars selected, active confirmed findings,
+verification questions, historical/focused artifacts, and failed pairings.
 
-Order is fixed: severity first, repo second. Someone reading the top of this
-document must see the worst thing across the whole estate.
+## 3 — Arrange the evidence
 
-```markdown
-# Consolidated review — <yyyy-mm-dd hh:mm>
+1. Keep target, head SHA, mode, scope, and lens identity on every row. Reports of
+   different revisions are not equivalent current checks. Flag mixed-head runs;
+   never present them as one current-revision certification.
+2. Within the same repo/target/head, merge repeated stable IDs/explicit aliases,
+   preserving evidence and lenses. If two reports conflict about disposition,
+   retain both observations and mark reconciliation required; do not adjudicate.
+3. Active means `status: open`, or `not_rechecked` with `prior_status: open`.
+   Count VALID separately from AMBIGUOUS. Fixed, disproved, and deferred records
+   belong in a disposition section, not the active-defect totals.
+4. Never merge findings across repositories. Shared defect classes may receive
+   CROSS-REPO labels, but each owner retains its own finding and evidence.
+5. Preserve judged severity. Multiple labels/lenses are not independent evidence.
 
-Repos: <n> · Lenses: <n> · Findings: <n> (P0 <n> · P1 <n> · P2 <n> · P3 <n>)
+## 4 — Write --out
 
-## Summary
+Create its parent; write only the requested output, not inside reviewed repos
+unless that is the explicit output path. Do not modify their source or reports.
 
-| Repo | Lenses | P0 | P1 | P2 | P3 | Total | Verdict |
-|------|--------|---:|---:|---:|---:|------:|---------|
+Structure:
 
-<one row per repo, then a TOTAL row. Verdict = worst per-lens health.>
+- Summary: repo/target/revision/scope, confirmed P0–P3, uncertain P0–P3, verdict.
+- Coverage: each requested pairing, report date/head, validation status and log.
+- Active confirmed findings: severity, then repo, with failure/evidence/fix.
+- Verification questions: uncertainty and the exact check needed.
+- Finding dispositions: verified fixes, disproofs, deferrals, and unrechecked issues.
+- Cross-repository themes, if supported.
+- History: focused/legacy reports and optional `--all` snapshots, clearly non-current.
+- Not consolidated: failed/missing/invalid reports, conflicting dispositions,
+  mixed revisions, and incomplete coverage. Never hide these behind zero counts.
 
-## Coverage
+A failed or incomplete pairing prevents an overall healthy/SHIP summary. Do not
+rescue an INCOMPLETE report by combining unrelated partial outputs. Read-only
+artifact collection is the only work here; no source review or application runs.
 
-| Repo | Lens | Exit | Time | Report | Status |
-|------|------|-----:|-----:|--------|--------|
+## 5 — Summary
 
-<one row per (repo, lens) from manifest.tsv: exit code, seconds, report
-filename, and OK / FAILED / NO REPORTS / UNPARSEABLE. Every requested repo
-appears here even with nothing to show.>
-
-## P0 — ship blockers
-
-### <repo>
-- **<title>** — `<file>:<line>` · lens(es) · label(s)
-  - Fails when: <failure_condition>
-  - Fix: <suggestion>
-
-## P1 — real defects
-## P2 — structural
-## P3 — nits
-
-## Cross-repo themes
-
-<Defect classes present in ≥2 repos, worst severity first: one line per theme
-with the repo list. Skip the section entirely if there are none.>
-
-## Not consolidated
-
-<Failed pairings (repo, lens, exit code, log path), repos with no reports,
-unparseable sidecars. This section keeps the coverage claim honest.>
-```
-
-Rules for the file itself:
-
-- `mkdir -p` the parent of `--out`. Overwrite `--out` if it exists (the caller
-  chose the path; a stamped path is the caller's job).
-- Write nothing into the reviewed repos yourself. The child processes own their
-  reports dirs; you only read them.
-- Empty findings across every repo is a valid document: write it with the
-  summary and coverage tables and say so. A silent no-op looks like a crash.
-
-## Phase 5 — Summary
-
-Chat reply ONLY: the counts line, pairings run / failed, the worst 5 findings
-across all repos (one line each, with repo), and the output path.
-
-Last line, on its own, absolute, prefixed exactly `CONSOLIDATED: `.
-
-## Hard rules
-
-- Never use the `Agent` tool. Parallelism is `bin/run-matrix.sh` and its child
-  processes (ADR 0004).
-- Never run the launcher twice in one invocation.
-- Never open a source file in the reviewed repos. Sidecars are the only input
-  for findings; if a sidecar is thin, the fix belongs upstream in the review.
-- Never invent, re-severity, or drop a finding. Consolidation is arrangement.
+Return counts with scope/revision qualifications, pairings run/failed, top five
+confirmed findings, outstanding verification questions, and output path.
+Last line: `CONSOLIDATED: <absolute-output-path>`.

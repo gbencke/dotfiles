@@ -1,114 +1,78 @@
 # Architecture
 
-## The pipeline
+## Pipeline
 
-```
-                ┌────────────────────────── lenses (markdown rule packs) ─────────────────────────┐
-                │ aws · docs · tests · chaos · security · performance · error-handling            │
-                │ test-surface · blast-radius (change-only)                                       │
-                └─────────────────────────────────────────────────────────────────┬───────────────┘
-                                                                                  │ rules injected
- target ──► one pi process, one lens ──► PROPOSE ──► KILL ──► JUDGE ──► report.md
- (repo | diff)   (skill = the procedure)     │          │        │       + findings.json
-                                             │  chunk by chunk   │
-                                             ▼          ▼        ▼
-                                    three role packs, no subagents (ADR 0004)
+```text
+freeze revision + collect prior ledger
+  → map invariant coverage and callers
+  → PROPOSE → CHALLENGE (lossless records)
+  → gather missing evidence / record incomplete coverage
+  → JUDGE + reconcile every prior finding
+  → report.md + schema-v2 sidecar
+  → validate → finalized scoped summary
 
- /review-consolidate <repos…> --out doc.md
-        │
-        ├── bin/run-matrix.sh ──► N × M `pi -p` processes, all parallel ──► manifest.tsv
-        │       (one per repo × lens: exit code + log + REPORT: path each)
-        └── merge every findings.json ──► one doc, severity then repo
+/review-consolidate
+  → run-matrix.sh (one process per repo/lens)
+  → validate each child output
+  → consolidate full reports by target, revision and lens set
 ```
 
-**Propose** — the reviewer role (`agents/reviewer.md` + the lens's merged
-`rules.md` + scope) produces findings as strict JSON. Every finding must cite
-`file:line`, a concrete failure condition, and evidence — unverifiable opinions
-die at birth.
-
-**Kill** — the challenger role tries to disprove each finding against the actual
-code (checks callers, middleware, framework defaults). Verdicts: `VALID`
-(survives), `INVALID` (dropped with disproof), `AMBIGUOUS` (escalated to the
-human). The challenger never raises new findings — separating proposal from
-refutation is what keeps false positives down (LLMs cannot reliably
-self-correct; see ADR 0001), and the separation is by phase, not by process.
-
-**Judge** — drops INVALID, dedups across lenses/chunks, audits severity,
-attaches epistemic labels (`[CONFIRMED]`, `[CONSENSUS]`, `[NEEDS-HUMAN]`),
-delivers the verdict, writes both artifacts.
+One process adopts the three role packs. No subagents. Multiple lenses in one
+process are not independent replication. Parallelism remains in the matrix launcher.
 
 ## Components
 
-| Path | Role |
-|------|------|
-| `index.ts` | Registers `/review-repo`, `/review-change`, `/review-consolidate`. Loads the matching SKILL.md, injects it with the extension's absolute base path and the target argument. The only TypeScript — everything else is data. |
-| `skills/review-repo/SKILL.md` | Whole-repo procedure: required path → lens selection → exhaustive chunking → propose → kill → judge. |
-| `skills/review-change/SKILL.md` | PR/branch/patch procedure: diff resolution → mechanical blast-radius graph → propose → kill → judge (dual verdict). |
-| `skills/review-consolidate/SKILL.md` | Multi-repo procedure: required repos + `--out` → run the matrix via `bin/run-matrix.sh` → merge every findings.json into one document. |
-| `bin/run-matrix.sh` | The fan-out. One `pi -p` process per (repo × lens), all parallel, then `manifest.tsv` (repo, lens, exit, seconds, report, log). |
-| `bin/test-run-matrix.sh` | Self-check for the launcher (`--dry-run`, starts no pi process). |
-| `agents/reviewer.md` | Reviewer role pack (finding contract, severity rubric, adversarial self-check, JSON output). |
-| `agents/challenger.md` | Challenger role pack (kill strategies, VALID/INVALID/AMBIGUOUS, JSON output). |
-| `agents/judge.md` | Judge role pack (dedup, labels, severity audit, dual verdict, artifact schemas). |
-| `lenses/<name>/lens.md` | Lens manifest: name, description, apply-when signals. |
-| `lenses/<name>/rules.md` | The lens's domain checklist — the actual review knowledge. |
+| Path | Responsibility |
+|---|---|
+| `index.ts` | Register commands, load skills, validate/rewrite finalized REPORT summaries through the message-end hook. |
+| `bin/report-tools.mjs` | Read-only history collection, legacy fingerprints, schema/closure/coverage/count validation, Git/patch snapshot checks, scope-safe selection. Node standard library only. |
+| `docs/report-contract.md` | Canonical v2 metadata, cumulative ledger, coverage statuses, verdict gates, and publication format. |
+| `skills/review-change/SKILL.md` | Frozen PR/branch/patch review; optional `--verify` without whole-PR approval. |
+| `skills/review-repo/SKILL.md` | Per-lens exhaustive repository chunks with explicit incomplete coverage and history. |
+| `skills/review-consolidate/SKILL.md` | Arrange validated full reports; preserve failed pairings and focused/legacy history separately. |
+| `agents/*.md` | Discovery, challenge, judgment. Preserve complete finding evidence across phases. |
+| `lenses/*` | Domain rules and signals, including project overlays. |
+| `bin/run-matrix.sh` | Parallel CLI runs and manifest; validates report paths/sidecars before accepting them. |
+| `bin/test-*.mjs`, `bin/test-run-matrix.sh` | Built-in Node tests, SDK-wiring check, launcher checks without live models. |
 
-The `agents/*.md` files are role packs, not pi-registered agent types and no
-longer subagent prompts: the reviewing process reads them and adopts one per
-phase (ADR 0004).
+## State and identity
 
-## Data flow
+The files are the ledger; there is no database, global singleton, or background
+service. Collection orders matching report timestamps, never directory mtimes.
+Each full report carries forward all findings in its declared target scope.
+Historical absence never closes an issue. Alias merges require an explanation.
 
-1. `index.ts` never touches review logic. It reads a SKILL.md and sends it to
-   the agent with `triggerTurn`. Skills are the unit of behavior.
-2. The agent runs the skill: scans lenses, matches signals, merges the repo
-   overlay (`.gbencke/adversarial-review/lenses/`), then runs **every matched
-   lens without asking** (`--lenses` narrows it; there is no lens picker, which
-   is what makes `pi -p` batch runs possible). Language lenses (`*.go`, `*.ts`
-   signals) review only matching chunks; `always` lenses review every chunk.
-3. Phases hand terse JSON to each other. Source files are dropped after each
-   chunk and only challenger JSON survives — with no subagents to absorb
-   context, the reviewing process's own context is the scaling limit.
-4. The judge writes the only two files: `reports/<ts>-<target>-<lens>.md` and
-   `reports/<ts>-<target>-<lens>.findings.json`, then prints the path on a final
-   `REPORT: ` line. The lens is in the basename because concurrent processes
-   share the directory.
-5. `/review-consolidate` sits above all of it: required repo list and `--out`,
-   one bash call to `bin/run-matrix.sh`, then a merge of every sidecar into one
-   document ordered by severity then repo. It reads no source files.
+A verification can change only named prior IDs. Other rows retain their actual
+prior status and evidence. Its overall verdict is null. Consolidation selects full
+reports independently of later focused checks and exposes reconciliation work.
+Repository lens scopes are `repo:<lens-slug>`; PR history is identified by PR number
+when available and branch target otherwise. Conflicting/mixed revisions are visible.
 
-## Scoping
+## Evidence gates
 
-- **Repo review**: exhaustive chunking (ADR 0003). Skip list always applied:
-  `.git`, vendored deps, build output, lock files, generated code, binaries.
-  Chunks follow top-level directory boundaries; oversized directories split
-  mechanically. `test-surface` and `blast-radius` are skipped (change-only).
-- **Change review**: the diff is the scope. Blast radius is computed
-  mechanically first (changed symbols → reverse import/caller graph via
-  ast-grep/grep), then the blast-radius lens adds semantic couplings
-  (events, HTTP contracts, DB schemas, config) that imports cannot see.
+The challenger can filter a proposed finding but cannot discover an omitted one.
+The invariant matrix addresses that separate coverage obligation: entry points,
+writers, consumers, reachable modes, and relevant terminal/nonterminal outcomes.
+Critical uninspected paths or unrechecked active history prevent SHIP.
 
-## Verdicts
+The judge consumes only lossless `{finding, challenge, disposition}` records plus
+coverage/history. It does not reconstruct lost evidence or invent fixes. Confirmed
+and uncertain findings have separate counts. Verified fixes and disproofs require
+closure evidence; nonblocking deferrals require owner, reason, and ticket.
 
-- **Change**: dual verdict — IMPLEMENTATION_CORRECTNESS × SOLUTION_FIT
-  (judged against the PR description / commit messages; degrades to
-  correctness-only for anonymous patches) → SHIP / FIX-THEN-SHIP /
-  DO-NOT-SHIP. Thin evidence appends `⚠️ HUMAN REVIEW RECOMMENDED`.
-- **Repo**: per-lens HEALTHY / NEEDS-ATTENTION / CRITICAL.
+## Enforcement and limitations
 
-## Design invariants
+The mandatory CLI validator checks schema and evidence-record consistency before
+publication. The Pi `message_end` hook repeats validation and derives the final
+summary from the sidecar, removing the success marker from invalid drafts. The
+matrix launcher independently rejects invalid/out-of-repo output. This guards
+finalized output; streaming text may already have appeared.
 
-1. Proposal and refutation are separate phases, never merged. (ADR 0001)
-2. No subagents. Parallelism is processes, one per (repo × lens). (ADR 0004)
-3. Reviews execute nothing in the reviewed repo. (ADR 0002)
-4. Every finding is specific: code path + failure condition + evidence.
-5. Lenses are data. Adding a topic is adding a directory, never code.
+Read-only Git checks detect a mismatched HEAD, unavailable base object, or working
+tree edits outside reports. PR base/head freshness is acquired by the skill from
+GitHub and rechecked before publication. The helper itself makes no network calls.
+Tests/builds and live cloud/service requests remain forbidden in review mode.
 
-## Research basis
-
-Architecture synthesized from: `wan-huiyan/agent-review-panel` (panel +
-debate + judge), `gaurav-yadav/adversarial-ai-review` (propose/kill pairs,
-~7% FP in production), diffray and Ellipsis write-ups (specialization vs
-context dilution, decomposition), AWS Well-Architected (SEC11-BP04, REL01),
-and the change-impact/blast-radius literature. Full reasoning in
-`docs/adr/0001-adversarial-loop.md`.
+Validation cannot establish the semantic truth of evidence or guarantee discovery
+of every defect. SHIP means no outstanding confirmed blockers within complete,
+declared coverage—not “zero defects.” See ADR 0005 for the rationale and limits.

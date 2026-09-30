@@ -65,10 +65,12 @@ matching files — see `lenses/golang/` and `lenses/typescript/`.
 
 ## Add a new skill (a new review shape)
 
-The two skills are markdown procedures. To add a third shape (e.g.
+The skills are markdown procedures with a shared validated report contract. To add a new shape (e.g.
 `review-infra-plan`), copy `skills/review-change/SKILL.md`, adjust the
 phases, and register one command in `index.ts` following the existing
-two-line pattern.
+command-registration pattern. Extend `docs/report-contract.md`, the data validator,
+and regression tests when adding a report shape; a new prompt alone must not bypass
+scope, history, or coverage gates.
 
 ## Tune the agent stances
 
@@ -97,6 +99,10 @@ every matrix run — that is the cost of adding a lens.
 - Every rule needs a cite id; findings cite them, and cite ids are how you
   measure which rules fire.
 - Test a new lens on a repo with known issues before trusting it in CI.
-- If a lens's findings keep dying to the challenger, the lens's rules are
-  too speculative — tighten them; the false-positive budget is the whole
-  point (ADR 0001).
+- If findings keep dying to the challenger, require better reachability/evidence
+  before proposal. Also measure missed known defects and incomplete sibling-path
+  fixes: precision alone does not establish coverage (ADR 0005).
+- Keep the full finding in each challenge envelope. New rules must feed invariant
+  coverage and the cumulative ledger, not only produce more comments.
+- Run the Node report tests, SDK wiring test, and matrix self-check documented in
+  README after changing schemas, stances, or publication behavior.
