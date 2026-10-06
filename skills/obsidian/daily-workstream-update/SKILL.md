@@ -62,7 +62,12 @@ operation. Do not hand-roll those.
    yet in `00.Tasks/Daily.Summary/`). Include a `## <Workstream Name>` section
    **only** for workstreams from the hierarchies reference that were actually
    discussed in today's meetings. Use the exact workstream names from the
-   hierarchies file as the `## ` headings.
+   hierarchies file as the `## ` headings — never an older name or a workstream
+   file's alias (e.g. `## SchedulerIQ - Scope.Open.Beta`, not
+   `## SchedulerIQ - Open Beta`). Write **one** section per workstream: if
+   content fits two headings that are the same workstream, merge it into one.
+   Content that fits no workstream row (one-off intake or refinement items)
+   goes under the closest workstream, not under a new ad-hoc heading.
 7. Move the file into place:
    ```bash
    python3 05.Scripts/daily_workstream_update.py move-daily-summary --date D
@@ -83,12 +88,24 @@ operation. Do not hand-roll those.
    topic, `##### Action Items`. Pull content from the corresponding
    `## <Workstream>` section in the daily summary produced in Step A. End the
    new section with a `---` separator before the previously-newest section.
-3. For every `UNKNOWN` line: no workstream file matches that heading. Print a
-   short note for the user — do not invent a file. The user decides whether to
-   create one.
-4. Re-run `verify` until it exits clean (only `OK` lines and any genuinely
+3. For every `RENAME` line: the heading resolves (via an alias) but is not the
+   hierarchies name. Rename the `## ` heading in the daily summary to the name
+   shown. If that creates two sections with the same heading, merge them:
+   combine the `> Source meetings:` lines (dedupe), the "What was discussed"
+   bodies, and the action items.
+4. For every `UNKNOWN` line: no workstream file matches that heading.
+   - If the heading is a row in the hierarchies file, create the missing file
+     as `00.Tasks/WorkStreams/<Product>/<Workstream Name>.md` (exact row name)
+     with frontmatter `category: workstream`, `description`, `creation`,
+     `last updated`, `product`, `status: open`, then a
+     `#workstream/<product>/<workstream-slug>` tag line. Re-run `verify`; it
+     now reports `MISSING`, which step 2 fills.
+   - Otherwise it is an ad-hoc heading: move its content under the closest
+     hierarchies workstream (step A.6). Only if nothing fits, print a short
+     note for the user.
+5. Re-run `verify` until it exits clean (only `OK` lines and any genuinely
    unresolvable `UNKNOWN` cases).
-5. Publish:
+6. Publish:
    ```bash
    python3 05.Scripts/daily_workstream_update.py git-publish "Daily workstream summary <D-dashed>"
    ```
@@ -136,7 +153,7 @@ Process all of today's meeting summary files through the decisions extractor.
 1. Get the list of today's summaries (same list from Step A, step 2).
 2. For each file, run:
    ```bash
-   python3 /home/gbencke/.pi/agent/skills/project-decisions/extract_decisions.py \
+   python3 /home/gbencke/git.work/331.obsidian-scripts/.pi/skills/project-decisions/extract_decisions.py \
      process "<full-path-to-summary>"
    ```
    Run files one at a time — do not batch them into a single call.
@@ -153,29 +170,61 @@ Process all of today's meeting summary files through the decisions extractor.
 
 ## Step E — Update ACTION_ITEMS.guilherme_bencke.md
 
-Extract every action item assigned to **Guilherme Bencke** from today's daily
-summary (the file written in Step A) and add each one to the action-item log.
+Extract every action item that **Guilherme Bencke** owns or co-owns from today's
+daily summary (the file written in Step A) and add each one to the action-item
+log.
 
 1. Read the daily summary from `00.Tasks/Daily.Summary/<D>.WorkstreamUpdates.Summary.md`.
-2. Collect every bullet under `### Action Items` blocks that starts with
-   `**Guilherme Bencke**:`. For each item capture:
-   - The action text (everything after `**Guilherme Bencke**: ` up to the
-     meeting source annotation).
+2. Collect every bullet under `### Action Items` blocks whose leading **bold
+   owner annotation** names Guilherme Bencke — whether he is the sole owner or
+   one of several co-owners. The owner list is the run of bold text at the start
+   of the bullet, before the `:` or `—` that introduces the action text. Match
+   all of these forms:
+   - Sole owner: `- **Guilherme Bencke**: ...` or `- **Guilherme Bencke** — ...`
+   - Co-owners in one bold, any position, any joiner (`/`, `&`, `,`):
+     `- **Guilherme Bencke / Marleny Patsi**: ...`,
+     `- **Javed Nurani / Guilherme Bencke / Enrique Ortuno**: ...`,
+     `- **Noemi Antezana, Guilherme Bencke**: ...`,
+     `- **Guilherme Bencke & Robert Lupinek** — ...`
+   - Co-owners as separate bold segments:
+     `- **Guilherme Bencke** / **Anura Adikari**: ...`
+   - A bare `**Guilherme**` when it clearly refers to him
+     (e.g. `- **Anura / Guilherme** — ...`).
+
+   Do **not** require the bold to close immediately after "Bencke", and do
+   **not** require a colon — the em-dash (`—`) separator is equally valid. Skip
+   a bullet only when its owner list contains no Guilherme.
+
+   For each matched item capture:
+   - The action text: everything after the separator (`:` or `—`) that follows
+     the owner list, up to the trailing meeting source annotation. When the item
+     is co-owned, prefix the text with the co-owners in parentheses so the log
+     records that it is shared — e.g. `(with Marleny Patsi) Deploy the
+     visit-plan config fix ...`.
    - The meeting name and timestamp from the trailing `*(Meeting, HH:MM)*`
      annotation.
 3. For each item, call:
    ```bash
-   python3 /home/gbencke/.pi/agent/skills/action-items/action_items.py add \
+   python3 /home/gbencke/git.work/331.obsidian-scripts/.pi/skills/action-items/action_items.py add \
      "ACTION TEXT" \
      --meeting "Meeting Name" \
      --time "HH:MM" \
-     --date "YYYY-MM-DD"
+     --date "YYYY-MM-DD" \
+     --subtopic "_Sub.Topic"
    ```
+   `--subtopic` is **required on every call**. Read
+   `00.Tasks/Topics/All Sub-Topics.md` once before adding items, then pick the
+   sub-topic whose description best matches the action (e.g. prior auth →
+   `_Authorization.PriorAuth`, credentialing → `_Provider.Credentialing.Disciplines`,
+   contract validation → `_Security.Reliability`). Pass `—` only when no
+   sub-topic fits (team management, hiring, one-off production tickets). The
+   script rejects unknown names; on that error, fix the name and retry — do not
+   fall back to `—`. The script keeps each date's table sorted by sub-topic.
    Skip any item whose text already appears verbatim in the file (run
    `search` first if unsure).
 4. Confirm additions:
    ```bash
-   python3 /home/gbencke/.pi/agent/skills/action-items/action_items.py show --days 1
+   python3 /home/gbencke/git.work/331.obsidian-scripts/.pi/skills/action-items/action_items.py show --days 1
    ```
 5. Publish:
    ```bash
@@ -184,11 +233,12 @@ summary (the file written in Step A) and add each one to the action-item log.
 
 ---
 
-## Step F — Update Decisions tables in Topics subtopic files
+## Step F — Update Decisions tables and Meetings lists in Topics subtopic files
 
-Every `_*.md` file under `00.Tasks/Topics/` contains a `## Decisions` table.
-Append new rows for any decisions from today's meetings that are relevant to
-that file's topic.
+Every `_*.md` file under `00.Tasks/Topics/` contains a `## Decisions` table and
+a `### Meetings` list. For each subtopic relevant to today's meetings, append
+new decision rows **and** prepend the day's meeting bullets to its `### Meetings`
+list.
 
 ### F.1 — Enumerate subtopic files
 
@@ -243,16 +293,60 @@ For each relevant subtopic file:
    ```
 5. Update the `last updated` frontmatter field to `D` (dashed format:
    `YYYY-MM-DD`).
-6. Do not modify any section other than `## Decisions` and the `last updated`
-   frontmatter field.
+6. Do not modify any section other than `## Decisions`, `### Meetings`
+   (see F.3.5), and the `last updated` frontmatter field.
+
+### F.3.5 — Update the `### Meetings` list
+
+Each subtopic file also has a `### Meetings` section: a newest-first list of
+`- [[<YYYY.MM.DD>.<Name>.Summary|<Short Alias>]] — <one-line description>`
+bullets. For every subtopic you touched in F.3, prepend a bullet for each of
+today's meetings relevant to that subtopic (the same meetings whose decisions
+you just added):
+
+1. Format each bullet as
+   `- [[<YYYY.MM.DD>.<Name>.Summary|<Short Alias>]] — <one sentence on what was
+   discussed that is relevant to this subtopic>`. Match the link/alias/em-dash
+   style already used in that file's list.
+2. Insert the new bullet(s) at the **top** of the `### Meetings` list (newest
+   first). If a subtopic saw more than one meeting today, order them by meeting
+   time, latest first.
+3. Skip any meeting whose link (`[[<YYYY.MM.DD>.<Name>.Summary`) already appears
+   in the list — the insert is idempotent.
+4. If the list holds only a `- _None yet._` placeholder, replace it.
 
 ### F.4 — Publish
 
-After all subtopic files have been updated:
+After all subtopic files have been updated (decisions and meetings):
 
 ```bash
-python3 05.Scripts/daily_workstream_update.py git-publish "Update topic decisions <D-dashed>"
+python3 05.Scripts/daily_workstream_update.py git-publish "Update topic decisions and meetings <D-dashed>"
 ```
+
+---
+
+## Keeping names, files, and indexes aligned
+
+These rules apply whenever a run (or the user) adds or renames a workstream or
+sub-topic.
+
+- **Hierarchies file is canonical.** `00.Tasks/Workstreams.SubTasks.Hierarchies.md`
+  has one row per `00.Tasks/Topics/<Product>/<Workstream>/` folder. Every row
+  needs a workstream file in `00.Tasks/WorkStreams/<Product>/` whose name
+  resolves to it (`workstream-file "<row name>"` must succeed).
+- **New sub-topic** (`_*.md`): add a row to `00.Tasks/Topics/All Sub-Topics.md`
+  and update its counts line; mention it in the workstream's description in
+  the hierarchies file. A new workstream folder also needs a hierarchies row
+  and a workstream file (template in Step B.4).
+- **Renaming a workstream file:** use `git mv`, add the old name under
+  `aliases:` in the file's frontmatter (the script and Obsidian both resolve
+  aliases), rewrite `[[Old Name]]` links, rename `## Old Name` headings in
+  `00.Tasks/Daily.Summary/`, and rewrite `[[<D>.WorkstreamUpdates.Summary#Old Name|…]]`
+  anchors in workstream files. Then run `verify` over every daily summary; it
+  must report no `RENAME` or `MISSING` lines.
+- **Moving content between sub-topics:** move the matching `### Meetings`
+  bullets and `## Decisions` rows, add a "tracked in [[_New.Subtopic]]" pointer
+  in the old file, and re-tag affected rows in `ACTION_ITEMS.guilherme_bencke.md`.
 
 ---
 
@@ -264,9 +358,11 @@ After all six steps, print a concise summary:
 - Workstream files updated in Step B: list each
 - Daily-note sections copied in Step C: `<section> → <workstream>`
 - PROJECT_DECISIONS.md: N new decisions added across M meetings
-- ACTION_ITEMS: N items added for Guilherme Bencke
-- Topics subtopic files updated: list each file and how many decisions were
-  added
+- ACTION_ITEMS: N items added (owned or co-owned by Guilherme Bencke), with the
+  sub-topic chosen for each (flag any that got `—`)
+- Topics subtopic files updated: list each file, how many decisions were added,
+  and how many `### Meetings` bullets were added
+- Headings fixed for `RENAME` and workstream files created for `UNKNOWN`
 - Anything skipped or unresolved (`UNKNOWN` workstreams, daily-note sections
   with no obvious workstream mapping, subtopic files with no relevant meeting
   content)

@@ -16,6 +16,7 @@ Workflows that read and write a personal Obsidian markdown vault — meetings, d
 | `meeting-action-items` | Generate a per-person action-items report grouped by owner across meeting summaries. |
 | `process-root-transcripts` | Convert root `*.txt` transcripts into Obsidian meeting transcript + summary pairs (offline), then commit. |
 | `project-decisions` | Maintain `PROJECT_DECISIONS.md`: a dated, categorized log of decisions extracted from meeting summaries. |
+| `reprocess-meetings` | Reprocess a day's meetings against a folder of exports: add missing meetings and append missing transcript segments. |
 | `storm` | Run the STORM deep research-and-writing pipeline to produce grounded, comprehensive articles. |
 | `telestudy` | Create a telescopic HTML study guide from a book, PDF, epub, or paper, with an ideas-dependency graph. |
 

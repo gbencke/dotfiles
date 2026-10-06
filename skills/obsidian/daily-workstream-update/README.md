@@ -7,7 +7,7 @@ Run the daily workstream update workflow for the Obsidian vault.
 - Generates today's workstream summary from meeting summaries.
 - Syncs individual workstream files.
 - Copies daily-note entries into workstream files.
-- Updates `PROJECT_DECISIONS.md`, `ACTION_ITEMS.guilherme_bencke.md`, and the Decisions tables in all Topic subtopic files.
+- Updates `PROJECT_DECISIONS.md`, `ACTION_ITEMS.guilherme_bencke.md`, and the Decisions tables and `### Meetings` lists in all Topic subtopic files.
 - Publishes the result to git.
 
 ## Files

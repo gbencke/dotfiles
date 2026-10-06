@@ -26,7 +26,7 @@ import anthropic
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 
-VAULT = Path("/home/gbencke/git.work/331.obsidian-scripts")
+VAULT = Path(__file__).resolve().parents[3]  # repo root
 SUMMARIES_DIR = VAULT / "02.Meetings/summaries"
 DECISIONS_FILE = VAULT / "00.Tasks/PROJECT_DECISIONS.md"
 STATE_FILE = Path(__file__).parent / ".decision_state.json"
