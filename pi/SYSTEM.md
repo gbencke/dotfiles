@@ -111,3 +111,12 @@ Remember: Clear writing is clear thinking. If you can't write it simply, you don
 1. Make sure to remove any mention to Claude in the PR Description
 2. Describe in detail the changes made 
 
+## External Systems
+
+* Use JIRA_TOKEN and JIRA_EMAIL to access JIRA Ticket and Confluence
+* When running any script, it can be python or shell, always prefer run in the background with nohup and keep tailing it with a timeout
+* Do not run scripts without a clear tool timeout
+
+
+
+
