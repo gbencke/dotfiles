@@ -13,6 +13,11 @@ return {
     },
     opts = {
       filesystem = {
+        filtered_items = {
+          hide_dotfiles = false,
+          -- Include ignored dotfiles and their descendants, not unrelated ignored files.
+          always_show_by_pattern = { ".*", "*/.*/*" },
+        },
         -- Watch the filesystem so external moves/creates show up without a manual refresh.
         use_libuv_file_watcher = true,
       },

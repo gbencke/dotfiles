@@ -9,6 +9,17 @@ vim.api.nvim_create_autocmd("VimEnter", {
         for _, name in ipairs({ "copilot.lua", "codecompanion.nvim", "minuet-ai.nvim" }) do
           assert(not require("lazy.core.config").plugins[name], name .. " is still configured")
         end
+        local filters = require("neo-tree.sources.manager").get_state("filesystem").filtered_items
+        local matches = require("neo-tree.utils").is_filtered_by_pattern
+        assert(not filters.hide_dotfiles, "Neo-tree hides dotfiles")
+        assert(matches(filters.always_show_by_pattern, "/repo/.env", ".env"), "Ignored dotfiles are not always shown")
+        assert(matches(filters.always_show_by_pattern, "/repo/.config/settings.json", "settings.json"),
+          "Children of dot-directories are hidden")
+        assert(matches(filters.always_show_by_pattern, "/repo/.config/nvim/lua/init.lua", "init.lua"),
+          "Nested children of dot-directories are hidden")
+        assert(not matches(filters.always_show_by_pattern, "/repo/build", "build"), "Non-dotfiles are always shown")
+        assert(not matches(filters.always_show_by_pattern, "/repo/app.v2/build/output.js", "output.js"),
+          "Contents of non-dot-directories are always shown")
         local interactive = #vim.api.nvim_list_uis() > 0
         local function tree_windows()
           return vim.tbl_filter(function(win)

@@ -50,6 +50,7 @@ return {
       { "<leader>gg", function() Snacks.lazygit() end, desc = "Lazygit" },
       -- buffer delete without layout wreck (ch.20.13)
       { "<leader>bd", function() Snacks.bufdelete() end, desc = "Delete buffer" },
+      { "<leader>bo", function() Snacks.bufdelete.other() end, desc = "Close other buffers" },
     },
   },
 }
