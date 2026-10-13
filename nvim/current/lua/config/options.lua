@@ -65,3 +65,14 @@ vim.diagnostic.config({
   update_in_insert = false,
   float = { border = "rounded", source = true },
 })
+
+-- Neovide: GeistMono 9pt; no cursor animation, trail, or particle effects
+if vim.g.neovide then
+  vim.o.guifont = "GeistMono Nerd Font:h9"
+  vim.g.neovide_cursor_animation_length = 0
+  vim.g.neovide_cursor_short_animation_length = 0
+  vim.g.neovide_cursor_trail_size = 0
+  vim.g.neovide_cursor_animate_in_insert_mode = false
+  vim.g.neovide_cursor_animate_command_line = false
+  vim.g.neovide_cursor_vfx_mode = ""
+end
