@@ -6,6 +6,7 @@ Comprehensive Bash and Zsh configurations providing consistent development envir
 
 - **bashrc** - Bash configuration with cross-platform compatibility
 - **zshrc** - Zsh configuration (post Oh-My-Zsh) optimized for macOS
+- **font-picker.py** - TUI picker for monospaced Nerd Fonts with live preview in Alacritty (↑/↓ font, ←/→ size, Enter prints `Family size`)
 
 ## Features
 
