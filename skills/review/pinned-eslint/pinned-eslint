@@ -1,0 +1,170 @@
+#!/usr/bin/env zsh
+# Run pinned ESLint, plugins, and config against a repository.
+# Defaults match https://github.com/gbencke/eslint-dockerized.
+# usage: pinned-eslint.zsh <repo> [eslint-version] [--config <file>] [--report <file>] [-- eslint-args...]
+
+set -euo pipefail
+script_name=${0:t}
+script_dir=${0:A:h}
+
+usage() {
+  print -u2 "usage: $script_name <repo> [eslint-version] [--config <file>] [--report <file>] [-- eslint-args...]"
+  exit 64
+}
+
+(( $# >= 1 )) || usage
+
+repo=${1:A}
+shift
+version=9.24.0
+if (( $# )) && [[ $1 != --* ]]; then
+  version=$1
+  shift
+fi
+config=
+report=
+custom_config=false
+
+while (( $# )); do
+  case $1 in
+    --config)
+      (( $# >= 2 )) || usage
+      config=${2:A}
+      custom_config=true
+      shift 2
+      ;;
+    --report)
+      (( $# >= 2 )) || usage
+      report=${2:A}
+      shift 2
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *) break ;;
+  esac
+done
+
+if ! $custom_config; then
+  config="$script_dir/eslint-dockerized/config/eslint.config.ts"
+  [[ -f $config ]] || config="${XDG_DATA_HOME:-$HOME/.local/share}/pinned-eslint/eslint.config.ts"
+  major=${version%%.*}
+  [[ $major == <-> && $major -ge 9 ]] || {
+    print -u2 "error: eslint-dockerized's flat config requires ESLint 9; omit the version to use 9.24.0"
+    exit 64
+  }
+fi
+
+[[ -d $repo ]] || { print -u2 "error: repository is not a directory: $repo"; exit 66; }
+[[ -f $config ]] || { print -u2 "error: ESLint config not found: $config"; exit 66; }
+command -v bwrap >/dev/null || { print -u2 "error: install bubblewrap (bwrap)"; exit 69; }
+command -v npm >/dev/null || { print -u2 "error: install npm"; exit 69; }
+command -v node >/dev/null || { print -u2 "error: install Node.js"; exit 69; }
+command -v sha256sum >/dev/null || { print -u2 "error: install sha256sum"; exit 69; }
+
+typeset -a plugins config_mount config_args bargs created
+if (( ${+PINNED_ESLINT_PLUGINS} )); then
+  plugins=( ${(z)PINNED_ESLINT_PLUGINS} )
+else
+  plugins=(
+    '@eslint/js@9.24.0'
+    'eslint-formatter-unix@9.0.1'
+    'typescript@5.8.3'
+    'typescript-eslint@8.29.0'
+    'jiti@2.4.2'
+    'eslint-plugin-promise@7.2.1'
+    'eslint-plugin-react@7.37.2'
+    'eslint-plugin-react-hooks@5.1.0'
+    'eslint-plugin-jsx-a11y@6.10.2'
+    'eslint-plugin-functional@9.0.1'
+    'eslint-plugin-unicorn@57.0.0'
+    'eslint-plugin-sonarjs@3.0.2'
+    'eslint-plugin-import-x@4.16.1'
+    'eslint-import-resolver-typescript@3.10.1'
+  )
+fi
+fingerprint=$(print -r -- "$version" "${(F)plugins}" | sha256sum)
+store=${XDG_CACHE_HOME:-$HOME/.cache}/pinned-eslint/${fingerprint%% *}
+
+if [[ ! -f $store/.complete ]]; then
+  print -u2 ">> installing eslint@$version ${plugins[*]}"
+  rm -rf -- "$store"
+  mkdir -p "$store"
+  npm install --prefix "$store" --no-save --no-audit --no-fund --loglevel=error \
+    "eslint@$version" "${plugins[@]}" >&2
+  touch "$store/.complete"
+fi
+
+if [[ -n $config ]]; then
+  mkdir -p "$store/config"
+  config_dest="$store/config/${config:t}"
+  touch "$config_dest"
+  config_mount=( --ro-bind "$config" "$config_dest" )
+  config_args=( --config "$config_dest" )
+
+  major=${version%%.*}
+  if [[ $major == <-> && $major -lt 9 && ${ESLINT_USE_FLAT_CONFIG:-false} != true ]]; then
+    config_args+=( --no-eslintrc --resolve-plugins-relative-to "$store" )
+  fi
+elif [[ -f $store/eslint.config.mjs ]]; then
+  config_args=( --config "$store/eslint.config.mjs" )
+fi
+
+bargs=(
+  --die-with-parent
+  --unshare-net
+  --ro-bind / /
+  --proc /proc
+  --dev /dev
+  --tmpfs /tmp
+  --bind "$repo" "$repo"
+  --chdir "$repo"
+)
+(( ${#config_mount} )) && bargs+=( "${config_mount[@]}" )
+
+if [[ -d $repo/node_modules ]]; then
+  for package_dir in "$store"/node_modules/*(N-/) "$store"/node_modules/@*/*(N-/); do
+    package_name=${package_dir#$store/node_modules/}
+    [[ $package_name == .bin || $package_name == @* && $package_name != */* ]] && continue
+
+    mount_point="$repo/node_modules/$package_name"
+    if [[ ! -d $mount_point ]]; then
+      parent_was_missing=false
+      [[ $package_name == */* && ! -d ${mount_point:h} ]] && parent_was_missing=true
+      mkdir -p "$mount_point"
+      created+=( "$mount_point" )
+      $parent_was_missing && created+=( "${mount_point:h}" )
+    fi
+    bargs+=( --ro-bind "$package_dir" "$mount_point" )
+  done
+  trap 'rmdir "${created[@]}" 2>/dev/null || true' EXIT
+else
+  print -u2 ">> warning: $repo has no node_modules; skipping package shadow mounts"
+fi
+
+if (( ! $# )); then
+  $custom_config && set -- --ext .ts . || set -- .
+fi
+
+if ! $custom_config; then
+  formatter_given=false
+  for arg in "$@"; do
+    if [[ $arg == --format || $arg == --format=* || $arg == -f || $arg == -f=* ]]; then
+      formatter_given=true
+    fi
+  done
+  $formatter_given || set -- --format unix "$@"
+fi
+
+if [[ -n $report ]]; then
+  mkdir -p "${report:h}"
+  bwrap "${bargs[@]}" \
+    node "$store/node_modules/eslint/bin/eslint.js" "${config_args[@]}" "$@" 2>&1 \
+    | sed "s~/data~$(pwd)~g" \
+    | tee "$report"
+else
+  bwrap "${bargs[@]}" \
+    node "$store/node_modules/eslint/bin/eslint.js" "${config_args[@]}" "$@" 2>&1 \
+    | sed "s~/data~$(pwd)~g"
+fi
