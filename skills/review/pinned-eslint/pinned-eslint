@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # Run pinned ESLint, plugins, and config against a repository.
-# Defaults match https://github.com/gbencke/eslint-dockerized.
+# The default config is eslint.config.ts next to this script; the skill is self-contained.
 # usage: pinned-eslint.zsh <repo> [eslint-version] [--config <file>] [--report <file>] [-- eslint-args...]
 
 set -euo pipefail
@@ -47,11 +47,10 @@ while (( $# )); do
 done
 
 if ! $custom_config; then
-  config="$script_dir/eslint-dockerized/config/eslint.config.ts"
-  [[ -f $config ]] || config="${XDG_DATA_HOME:-$HOME/.local/share}/pinned-eslint/eslint.config.ts"
+  config="$script_dir/eslint.config.ts"
   major=${version%%.*}
   [[ $major == <-> && $major -ge 9 ]] || {
-    print -u2 "error: eslint-dockerized's flat config requires ESLint 9; omit the version to use 9.24.0"
+    print -u2 "error: the bundled flat config requires ESLint 9; omit the version to use 9.24.0"
     exit 64
   }
 fi
@@ -161,10 +160,8 @@ if [[ -n $report ]]; then
   mkdir -p "${report:h}"
   bwrap "${bargs[@]}" \
     node "$store/node_modules/eslint/bin/eslint.js" "${config_args[@]}" "$@" 2>&1 \
-    | sed "s~/data~$(pwd)~g" \
     | tee "$report"
 else
   bwrap "${bargs[@]}" \
-    node "$store/node_modules/eslint/bin/eslint.js" "${config_args[@]}" "$@" 2>&1 \
-    | sed "s~/data~$(pwd)~g"
+    node "$store/node_modules/eslint/bin/eslint.js" "${config_args[@]}" "$@" 2>&1
 fi
