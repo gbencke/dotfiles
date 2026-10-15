@@ -5,7 +5,8 @@ description: >
   language with approved words, one meaning per word, active voice, short sentences,
   and strict rules for procedures and safety instructions. Use when user says
   "simplify to STE", "apply simplified technical english", "asd-ste100", "make this
-  STE compliant", "controlled language", or invokes /ste.
+  STE compliant", "controlled language", or invokes /ste. Also use it to write
+  STE reports and investigations that carry ASCII charts and diagrams.
 ---
 
 # ASD-STE100 Simplified Technical English Skill
@@ -111,11 +112,71 @@ Warnings and cautions protect people and equipment. They come **before** the ste
 
 ---
 
+### Pass 8 — ASCII charts and diagrams
+
+Add an ASCII chart or diagram each time the text has numbers, a sequence, a flow, a structure, or a comparison. Use as many as the text supports. A reader must see the result before reading the words. Skip a chart only when the text has nothing to draw.
+
+**When to use which visual:**
+
+| Content in the text | Visual to use |
+|---|---|
+| Counts or percentages to compare | Horizontal bar chart |
+| Parts of one total | Stacked bar (100%) or a breakdown tree |
+| Numbers over time | Vertical column chart or sparkline row |
+| Events in order, with times | Timeline |
+| A process, a pipeline, or data movement | Flow diagram with boxes and arrows |
+| Calls between systems | Sequence diagram (one column per actor) |
+| A rule or a filter that makes a decision | Decision tree |
+| Many items narrowed to fewer | Funnel |
+| Before and after a change | Two bars side by side for each item |
+| Status of many items | Grid or matrix with symbols and a legend |
+
+**Rules for every chart:**
+
+1. Put each chart in a fenced code block (```text) so the monospace alignment stays.
+2. Keep each line at 100 characters or less.
+3. Use box-drawing characters (`┌ ┐ └ ┘ ─ │ ├ ┤ ┬ ┴ ┼ ▶ ▼`) and bar blocks (`█ ▓ ▒ ░`). Use one set in all of the document.
+4. Scale the bars to the data. Calculate the bar length (`value / max × width`) with a script. Do not estimate it. Write the number and the percentage at the end of each bar.
+5. Give each chart a title line, the units, and a legend if it uses more than one symbol.
+6. Labels in a chart obey the STE word rules. Technical Names (table names, function names, IDs) stay unchanged.
+7. Put one STE sentence before each chart. The sentence gives the result that the chart shows. The chart supports the text. It does not replace the text.
+8. Every number in a chart comes from the source data. Never invent a value to make a chart look complete. If a value is not known, write `n/a` and say why in the text.
+9. Totals in a chart must agree with the totals in the text and the tables.
+
+**Examples:**
+
+```text
+Bar chart — cases by result (n = 766)
+Shows forms     ████████████████████████████████████████  486  63%
+Hidden by bug   ██████████████▌                           176  23%
+No forms        ████████▌                                 104  14%
+```
+
+```text
+Flow — one form from Classic to the UI
+┌─────────┐   ┌──────────────┐   ┌──────────────┐   ┌────────┐
+│ Classic │──▶│ PlatformSync │──▶│ Medical form │──▶│   UI   │
+└─────────┘   └──────────────┘   └──────────────┘   └────────┘
+```
+
+```text
+Decision — is the form visible for this case?
+            form.caseId = this case?
+             ├── yes ──▶ VISIBLE
+             └── no ───▶ form.caseId is empty?
+                          ├── no ───▶ HIDDEN
+                          └── yes ──▶ assignedDate >= case.createdDate?
+                                       ├── yes ──▶ VISIBLE
+                                       └── no ───▶ HIDDEN
+```
+
+---
+
 ## Output Format
 
 When you finish, deliver:
 
-1. **Rewritten text** — fully STE-compliant.
+1. **Rewritten text** — fully STE-compliant, with ASCII charts and diagrams from Pass 8 where the text has numbers, sequences, flows, or structures.
 2. **Rule log** — a short bulleted list of the main rules applied, cite the section: `[Word 1.3]`, `[Sentence 5.1]`, `[Voice 3.6]`. Pattern-level, not line-by-line.
 3. **Flagged terms** — any word you could not resolve to an approved word without more context, and any term you kept as a Technical Name / Technical Verb.
 
@@ -146,6 +207,10 @@ When you finish, deliver:
 - [ ] Paragraph ≤ 6 sentences, one topic, topic sentence first?
 - [ ] No semicolons?
 - [ ] Warnings/cautions before the step, command first then risk?
+- [ ] A chart or diagram for each set of numbers, sequence, flow, or structure?
+- [ ] Each chart in a code block, ≤ 100 characters wide, with a title, units, and legend?
+- [ ] Bars calculated from the data, with the value and percentage written at the end?
+- [ ] Chart totals agree with the text and the tables?
 
 If any box is unchecked, revise until it is.
 
