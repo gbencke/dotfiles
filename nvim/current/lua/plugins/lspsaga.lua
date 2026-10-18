@@ -10,6 +10,8 @@ return {
       finder = {
         methods = { tyd = "textDocument/typeDefinition" },
       },
+      -- The sign (priority 40) hid DAP breakpoints on the cursor line; the end-of-line bulb stays.
+      lightbulb = { sign = false },
     },
     keys = {
       { "<leader>lf", "<cmd>Lspsaga finder<cr>", desc = "Finder: references + implementations" },

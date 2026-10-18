@@ -30,12 +30,12 @@ return {
       { "Joakker/lua-json5", lazy = true, build = "./install.sh" },
     },
     keys = {
-      { "<leader>db", function() require("persistent-breakpoints.api").toggle_breakpoint() end, desc = "Toggle breakpoint" },
+      { "<leader>db", function() require("persistent-breakpoints.api").toggle_breakpoint() end, desc = "Toggle breakpoint (F9)" },
       { "<leader>dB", function() require("dap").set_breakpoint(vim.fn.input("Condition: ")) end, desc = "Conditional breakpoint" },
       { "<leader>dl", function() require("dap").set_breakpoint(nil, nil, vim.fn.input("Log: ")) end, desc = "Logpoint" },
-      { "<leader>dc", continue_or_pick, desc = "Continue / start" },
-      { "<leader>dn", function() require("dap").step_over() end, desc = "Step over" },
-      { "<leader>di", function() require("dap").step_into() end, desc = "Step into" },
+      { "<leader>dc", continue_or_pick, desc = "Continue / start (F5)" },
+      { "<leader>dn", function() require("dap").step_over() end, desc = "Step over (F10)" },
+      { "<leader>di", function() require("dap").step_into() end, desc = "Step into (F11)" },
       { "<leader>do", function() require("dap").step_out() end, desc = "Step out" },
       { "<leader>dC", function() require("dap").run_to_cursor() end, desc = "Run to cursor" },
       { "<leader>dr", function() require("dap").restart() end, desc = "Restart" },
@@ -110,6 +110,8 @@ return {
       -- nvim-dap reads .vscode/launch.json automatically when a session starts.
 
       vim.fn.sign_define("DapBreakpoint", { text = "●", texthl = "DiagnosticError" })
+      -- Unbound breakpoints (adapter has not loaded the script yet) default to "R"; keep the red dot.
+      vim.fn.sign_define("DapBreakpointRejected", { text = "●", texthl = "DiagnosticError" })
       vim.fn.sign_define("DapStopped", { text = "▶", texthl = "DiagnosticWarn" })
 
       -- JS/TS adapters: vscode-js-debug via mason's js-debug-adapter (ch.15.3)
