@@ -9,6 +9,8 @@ return {
     opts = {
       finder = {
         methods = { tyd = "textDocument/typeDefinition" },
+        -- Enter opens the selected file (or toggles a group), like `o`.
+        keys = { toggle_or_open = { "o", "<CR>" } },
       },
       -- The sign (priority 40) hid DAP breakpoints on the cursor line; the end-of-line bulb stays.
       lightbulb = { sign = false },
