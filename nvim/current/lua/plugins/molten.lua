@@ -6,7 +6,7 @@ return {
     build = ":UpdateRemotePlugins",
     dependencies = { "3rd/image.nvim" },
     init = function()
-      vim.g.molten_image_provider = "image.nvim"
+      vim.g.molten_image_provider = vim.fn.has("win32") == 1 and "none" or "image.nvim"
       vim.g.molten_output_win_max_height = 20
       vim.g.molten_virt_text_output = true
       vim.g.molten_output_virt_lines = true
@@ -27,6 +27,7 @@ return {
   },
   {
     "3rd/image.nvim",
+    cond = vim.fn.has("win32") == 0, -- no Windows support; its luarocks build fails there
     opts = {
       backend = "kitty",   -- see ch.10.8 matrix; use "ueberzug" on plain X11
       max_height_window_percentage = 50,

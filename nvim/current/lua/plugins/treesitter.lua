@@ -15,6 +15,8 @@ return {
     lazy = false,
     build = ":TSUpdate",
     config = function()
+      -- tree-sitter CLI defaults to MSVC cl.exe on Windows; use MinGW gcc instead
+      if vim.fn.has("win32") == 1 and vim.fn.executable("gcc") == 1 then vim.env.CC = "gcc" end
       require("nvim-treesitter").install(parsers)
       vim.api.nvim_create_autocmd("FileType", {
         callback = function(event)
