@@ -15,6 +15,7 @@ Each directory contains tool-specific configurations with detailed READMEs.
 ### Directories
 
 - **[git/](git/README.md)** - Git configuration and hooks
+- **[lazygit/](lazygit/README.md)** - Lazygit with difftastic and delta diff renderers
 - **[mc/](mc/README.md)** - Midnight Commander configuration
 - **[nvim/](nvim/README.md)** - Neovim setup with NvChad
 - **[vim/](vim/README.md)** - Vim configurations for multiple languages

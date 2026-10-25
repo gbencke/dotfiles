@@ -3,3 +3,12 @@
 	name = Guilherme Bencke
 [push]
 	default = simple
+	autoSetupRemote = true
+[merge]
+	conflictstyle = zdiff3
+[rerere]
+	enabled = true
+[fetch]
+	prune = true
+[rebase]
+	autoStash = true

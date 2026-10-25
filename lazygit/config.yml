@@ -1,0 +1,53 @@
+gui:
+  # Give more space to the main diff view on wide terminals.
+  sidePanelWidth: 0.25
+
+  # Give the focused side panel more vertical space.
+  expandFocusedSidePanel: true
+
+  # Use fuzzy matching when filtering with '/'.
+  filterMode: fuzzy
+
+  # Show ahead/behind divergence from the base branch.
+  showDivergenceFromBaseBranch: arrowAndNumber
+
+  showRandomTip: false
+
+git:
+  # Show five lines of context instead of the default three.
+  diffContextSize: 5
+
+  # Put recently used local branches first.
+  localBranchSortOrder: recency
+
+  log:
+    order: topo-order
+    showGraph: always
+
+    # Display commits across all refs. Set this to false if it becomes
+    # unwieldy or slow in very large repositories.
+    showWholeGraph: true
+
+  diffRenderers:
+    # Structural diffs through Difftastic.
+    - type: extDiff
+      name: difftastic
+      command: difft --color=always --background={{colorScheme}} --context={{diffContext}}
+
+    # Conventional diffs through delta. Side-by-side mode is enabled only
+    # when the diff view is wider than 160 columns.
+    - type: stdinFilter
+      name: delta
+      command: delta --{{colorScheme}} --paging=never --line-numbers {{if gt .width 160}}--side-by-side{{end}}
+
+    # Unmodified Git output as a fallback.
+    - type: rawGit
+      name: raw
+
+  # Optional safety setting: uncomment to disable force pushing.
+  # disableForcePushing: true
+
+os:
+  # Change this to your editor: vim, vscode, zed, helix, emacs, etc.
+  editPreset: nvim
+
