@@ -114,6 +114,7 @@ bin/run-lenses.sh /tmp/work/tasks   # tasks/<lens>/*.task.json, lenses in parall
 | performance | ✓ | ✓ | N+1, unbounded work, hot-path waste |
 | error-handling | ✓ | ✓ | Swallowed errors, lost context, data loss on failure |
 | sanity-checks | ✓ | ✓ | Dependencies exist and are in the expected state before mutation; every guard unit-tested |
+| formal-validation | ✓ | ✓ | Every input gives a correct result or a clean rejection; property/fuzz tests required |
 | typescript | ✓ | ✓ | Type safety, escape hatches, async correctness (TS files only) |
 | golang | ✓ | ✓ | Errors, goroutine/defer/slice safety, idioms (Go files only) |
 | python | ✓ | ✓ | Mutable defaults, async blocking, GIL misuse, typing hatches, resource lifecycle (Python files only) |

@@ -219,6 +219,18 @@ dependencies; script environment/tool/input pre-flight, migrations that
 assume schema, bulk ops without dry run. Every guard must have a unit test
 that drives the failing precondition and asserts zero writes.
 
+### formal-validation
+
+Input-domain correctness at entry points and in core logic: every input
+class (absent, empty, boundary, numeric/string/temporal/collection edges,
+unknown variants, runtime type confusion) returns the correct result or
+a clean rejection instead of a crash, poison loop, or silent coercion.
+Checks contracts,
+total functions, invariants, and state-machine gaps. Every finding needs a
+concrete counterexample input. Every reviewed function needs a
+property-based or fuzz test. Advisory P3 for cross-service protocols with
+no formal spec (TLA+, Alloy, P).
+
 ## 5. Artifacts and closure
 
 The complete schema and canonical headings live in `docs/report-contract.md`.
