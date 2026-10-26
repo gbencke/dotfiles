@@ -13,6 +13,9 @@ gui:
 
   showRandomTip: false
 
+  # Wrap long lines in the diff view instead of scrolling sideways.
+  wrapLinesInDiffView: true
+
 git:
   # Show five lines of context instead of the default three.
   diffContextSize: 5
@@ -29,16 +32,17 @@ git:
     showWholeGraph: true
 
   diffRenderers:
-    # Structural diffs through Difftastic.
+    # Structural diffs through Difftastic, wrapped to the diff view width.
     - type: extDiff
       name: difftastic
-      command: difft --color=always --background={{colorScheme}} --context={{diffContext}}
+      command: difft --color=always --background={{colorScheme}} --context={{diffContext}} --width={{width}}
 
     # Conventional diffs through delta. Side-by-side mode is enabled only
-    # when the diff view is wider than 160 columns.
+    # when the diff view is wider than 160 columns; there delta wraps long
+    # lines itself. Unified lines are wrapped by wrapLinesInDiffView.
     - type: stdinFilter
       name: delta
-      command: delta --{{colorScheme}} --paging=never --line-numbers {{if gt .width 160}}--side-by-side{{end}}
+      command: delta --{{colorScheme}} --paging=never --line-numbers --width={{width}} --wrap-max-lines=unlimited {{if gt .width 160}}--side-by-side{{end}}
 
     # Unmodified Git output as a fallback.
     - type: rawGit
