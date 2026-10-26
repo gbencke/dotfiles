@@ -394,6 +394,8 @@ buffers across the top. Neovim tab pages are separate window layouts.
 | `]b` / `[b` | Next / previous buffer. |
 | `<leader>bd` | Close the current buffer. |
 | `<leader>bo` | Close all other buffers; prompts for unsaved changes and keeps the window layout. |
+| `<leader>bN` | Open a new empty buffer as a bufferline tab. |
+| `<leader>bs` | Save the current buffer under a new name (`:saveas`); the tab takes the new name. |
 | `<C-h>` / `<C-j>` / `<C-k>` / `<C-l>` | Focus the left / lower / upper / right window. |
 | `<C-Up>` / `<C-Down>` | Increase / decrease window height. |
 | `<C-Right>` / `<C-Left>` | Increase / decrease window width. |

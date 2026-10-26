@@ -63,7 +63,7 @@ local ok, err = pcall(function()
   end
 
   local global = {
-    ["<leader>e"] = true, ["<leader>bd"] = true, ["<leader>bo"] = true, ["]b"] = true, ["[b"] = true,
+    ["<leader>e"] = true, ["<leader>bd"] = true, ["<leader>bo"] = true, ["<leader>bN"] = true, ["<leader>bs"] = true, ["]b"] = true, ["[b"] = true,
     ["]d"] = true, ["[d"] = true, ["<leader>ff"] = true, ["<leader>fa"] = true,
     ["<leader>fg"] = true, ["<leader>fb"] = true, ["<leader>fr"] = true,
     ["<leader>fh"] = true, ["<leader>fk"] = true, ["<leader>fc"] = true,

@@ -19,6 +19,16 @@ map("n", "[b", ":bprevious<CR>", { silent = true, desc = "Prev buffer" })
 map("n", "<leader>bn", ":bnext<CR>", { silent = true, desc = "Next buffer" })
 map("n", "<leader>bp", ":bprevious<CR>", { silent = true, desc = "Prev buffer" })
 map("n", "<leader>bd", ":bdelete<CR>", { silent = true, desc = "Delete buffer" })
+-- :enew makes a listed buffer, so bufferline shows it as a new tab.
+map("n", "<leader>bN", "<cmd>enew<CR>", { desc = "New buffer" })
+map("n", "<leader>bs", function()
+  local buf = vim.api.nvim_get_current_buf()
+  vim.ui.input({ prompt = "Save as: ", default = vim.api.nvim_buf_get_name(buf), completion = "file" }, function(name)
+    if not name or name == "" or not vim.api.nvim_buf_is_valid(buf) then return end
+    local ok, err = pcall(vim.api.nvim_buf_call, buf, function() vim.cmd.saveas(vim.fn.fnameescape(name)) end)
+    if not ok then vim.notify("Save as failed: " .. tostring(err), vim.log.levels.ERROR) end
+  end)
+end, { desc = "Save buffer as" })
 
 -- Copy file/project information and enclosing symbol names to the system clipboard.
 local function file_path()

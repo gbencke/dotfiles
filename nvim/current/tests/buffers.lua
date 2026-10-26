@@ -31,6 +31,21 @@ local ok, err = pcall(function()
   assert(vim.api.nvim_buf_is_valid(unlisted), "Unlisted utility buffer was deleted")
   assert(table.concat(vim.fn.readfile("CHEATSHEET.md"), "\n"):find("`<leader>bo`", 1, true),
     "Cheatsheet is missing close-other-buffers mapping")
+
+  -- New buffer shows up in bufferline (listed), save-as renames it to the chosen file.
+  local before = #vim.fn.getbufinfo({ buflisted = 1 })
+  vim.api.nvim_feedkeys(vim.g.mapleader .. "bN", "x", false)
+  assert(#vim.fn.getbufinfo({ buflisted = 1 }) == before + 1, "New buffer is not listed")
+  local fresh = vim.api.nvim_get_current_buf()
+  vim.api.nvim_buf_set_lines(fresh, 0, -1, false, { "saved" })
+  local target = vim.fn.tempname() .. "/saved file.txt"
+  vim.fn.mkdir(vim.fn.fnamemodify(target, ":h"), "p")
+  local input = vim.ui.input
+  vim.ui.input = function(_, on_confirm) on_confirm(target) end
+  vim.fn.maparg(vim.g.mapleader .. "bs", "n", false, true).callback()
+  vim.ui.input = input
+  assert(vim.api.nvim_buf_get_name(fresh) == target, "Buffer was not renamed by save-as")
+  assert(vim.fn.readfile(target)[1] == "saved", "Save-as did not write the file")
 end)
 vim.fn.confirm = confirm
 if not ok then io.stderr:write(tostring(err) .. "\n") end
