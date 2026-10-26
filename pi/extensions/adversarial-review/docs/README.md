@@ -5,7 +5,9 @@ proposes findings, an adversarial challenger tries to kill each one, and a judge
 rules on the evidence. Active defects survive cross-examination; the cumulative
 ledger also preserves fixes, disproofs, deferrals, and issues not rechecked.
 
-Three phases, one process, no subagents. Scale comes from processes:
+Three phases, each step in its own fresh `pi -p` process with a context built
+for it (`bin/run-phase.mjs`, ADR 0006). Lenses run in parallel
+(`bin/run-lenses.sh`). Scale comes from processes too:
 `/review-consolidate` launches one review per (repo × lens) in parallel and
 merges everything into a single document (ADR 0004).
 
@@ -16,7 +18,7 @@ recall or zero defects. See ADR 0005 and `docs/report-contract.md`.
 
 ## Requirements
 
-- pi on `PATH` (`/review-consolidate` shells out to `pi -p` per repo × lens).
+- pi on `PATH`: every phase step is a `pi -p` child, and `/review-consolidate` runs one per repo × lens.
 - Node.js 20+ for the dependency-free report tools; Node.js 22+ for the SDK wiring test.
 - bash for the matrix launcher. `gh` for PR metadata and exact-head CI evidence.
 
@@ -85,13 +87,18 @@ The launcher runs standalone too, and self-checks without starting pi:
 ```
 bin/run-matrix.sh --log-dir /tmp/logs ~/repo-a ~/repo-b
 bin/test-run-matrix.sh
-node --test bin/test-report-tools.mjs
+node --test bin/test-report-tools.mjs bin/test-run-phase.mjs
 node --experimental-default-type=module --experimental-strip-types --test bin/test-extension.mjs
 
 # Read-only helpers; paths are absolute:
 node bin/report-tools.mjs collect /path/to/repo feature-branch 412
 node bin/report-tools.mjs validate /path/to/repo/.gbencke/adversarial-review/reports/report.findings.json
 node bin/report-tools.mjs select /path/to/repo
+
+# Phase steps, normally driven by the skills (task fields: header of the script):
+node bin/run-phase.mjs propose /tmp/work/chunk-01-design-propose.task.json
+node bin/run-phase.mjs pair /tmp/work/tasks/design/01-chunk.task.json
+bin/run-lenses.sh /tmp/work/tasks   # tasks/<lens>/*.task.json, lenses in parallel
 ```
 
 ## What it reviews (v1 lenses)
@@ -130,5 +137,6 @@ Reviews never execute repo code, test suites, chaos experiments, or cloud
 API calls (rationale: `docs/adr/0002-execution-boundary.md`). Static analysis
 plus reading existing artifacts (coverage reports, diffs, exact-head CI logs).
 Extension-owned Node helpers execute only data processing and read-only Git
-metadata checks. Matrix processes launch pi reviewers, never reviewed application
-code. A claimed test result must identify its revision and evidence.
+metadata checks. Matrix and phase processes launch pi reviewers, never reviewed
+application code. Phase children run with a read-only tool allowlist
+(the judge: `read` only), no extensions, and no project `.pi` files. A claimed test result must identify its revision and evidence.

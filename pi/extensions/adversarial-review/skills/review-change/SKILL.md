@@ -2,17 +2,29 @@
 name: review-change
 description: >
   Evidence-backed PR, branch, or patch review with cumulative finding reconciliation,
-  invariant coverage, and sequential propose → challenge → judge phases. Supports
-  focused verification without whole-PR approval. Validates reports before delivery.
+  invariant coverage, and propose → challenge → judge steps that each run in a fresh
+  pi process via bin/run-phase.mjs. Supports focused verification without whole-PR
+  approval. Validates reports before delivery.
 argument-hint: "[pr-url|pr-number|branch|patch-file] [base] [--lenses a,b,c] [--verify finding-id,...]"
 ---
 
 # review-change
 
-Run inline, without subagents. Review only: do not apply fixes or run reviewed code.
-Read `docs/report-contract.md` and the three `agents/*.md` role packs from the
-extension directory. Schema v2 is required. Relative references in this skill are
-relative to that directory. Node helpers belong to the extension, not the target.
+You are the orchestrator. Review only: do not apply fixes or run reviewed code.
+Read `docs/report-contract.md` from the extension directory. Schema v2 is required.
+Relative references in this skill are relative to that directory. Node helpers
+belong to the extension, not the target.
+
+You freeze input, collect history, and map coverage. You do **not** play the
+reviewer, challenger, or judge: each of those steps runs in a fresh `pi -p`
+process launched by `bin/run-phase.mjs`, which injects the `agents/*.md` role pack,
+lens rules, and your notes into that child's context. pi has no subagents; a
+process per step keeps the phases independent (ADR 0006). Lenses run in parallel
+through `bin/run-lenses.sh`, one worker per lens; within a lens, steps run one at a
+time. No `Agent` tool.
+
+Create the work dir first, in system temp and never inside the target:
+`WORK=$(mktemp -d -t adversarial-review-XXXXXX)`. Task files and child logs live there.
 
 ## 0 — Resolve and freeze the input
 
@@ -39,7 +51,7 @@ PR number (or null), full `base_sha`/`head_sha`, and the input's intent:
   correctness-only unless the user supplies requirements. State that context is
   limited to what can be matched to the patch, not an arbitrary checkout.
 
-Save the diff in the system temp directory. Empty diff: say so and stop.
+Save the diff as `$WORK/change.diff`. Empty diff: say so and stop.
 Use a clean checkout at the frozen head for source context. Read-only Git metadata
 checks must confirm it matches; do not checkout, stash, reset, fetch, or modify
 refs to make it match. If objects/context are unavailable or the working tree
@@ -64,7 +76,7 @@ No repository tests/builds or live service/cloud calls are allowed in this skill
 Before discovery, collect matching history:
 
 ```bash
-node <extension>/bin/report-tools.mjs collect <TARGET_DIR> <target> [pr-number] > /tmp/<unique>-prior.json
+node <extension>/bin/report-tools.mjs collect <TARGET_DIR> <target> [pr-number] > "$WORK/prior.json"
 ```
 
 Read the resulting ledger, source paths, and relevant prior evidence. Preserve the
@@ -113,87 +125,130 @@ mark the remaining critical rows uninspected; do not redefine the change as revi
 
 ## 3 — Select lenses and discover, then challenge
 
-Read every `lenses/*/lens.md` plus the repo overlay; append same-named overlay rules.
+Read every `lenses/*/lens.md` plus the repo overlay (`run-phase.mjs` appends
+same-named overlay rules to each child's context).
 Apply all matched lenses. `test-surface` and `blast-radius` always apply to change
 reviews; language lenses match changed files only. `--lenses` explicitly overrides
 the set. Never prompt for a lens picker. State the selected lenses and scope.
 `LENS_SLUG` is the sole lens name or `multi`.
 
-Process lenses sequentially, over the full diff and the behavior slices:
+Run lenses in parallel; within a lens, behavior slices run in order.
 
-1. **Propose:** adopt `agents/reviewer.md`. Reuse prior IDs; group by root cause.
-   Finding a stale write in one handler requires checking its sibling writers,
-   not prescribing only a patch to the cited line. Include failure condition,
-   reachability, evidence, final outcome, and a discriminating regression.
-2. **Challenge:** adopt `agents/challenger.md`. Attempt real disproof. Keep the
-   complete `{finding, challenge, disposition}` envelope; never discard the
-   original evidence/failure condition while retaining only a title and verdict.
-3. Persist only these lossless envelopes and coverage/ledger updates between slices.
-   Source excerpts need not be carried into every later lens.
+1. **Write every task first.** For each lens, for each slice it applies to,
+   write `$WORK/tasks/<lens>/<NN>-<slice>.task.json` (`NN` = zero-padded slice
+   order):
 
-Do not introduce new findings while challenging or judging. Queue uncovered sibling
-paths/new concerns for a separate discovery phase before judgment. Missing reachable
-source or inspectable CI is an evidence-gathering task, not a runtime uncertainty.
-Return to discovery once for queued gaps; if still unresolved or over budget, mark
-coverage incomplete rather than looping indefinitely or inventing a conclusion.
+   ```json
+   {
+     "id": "<slice>-<lens>",
+     "mode": "change",
+     "target_dir": "<TARGET_DIR>",
+     "work_dir": "<WORK>",
+     "lens": "<lens>",
+     "scope": "Slice <slice>: <what it covers>. Diff: <WORK>/change.diff. <source line>",
+     "paths": ["<changed files in the slice>"],
+     "context": "<intent and requirements; ledger rows and stable IDs to reuse; invariant rows; blast-radius callers; queued gaps>"
+   }
+   ```
 
-Collect the root-cause groups before recommending repairs. For each, cover all
-relevant writers and require tests that would fail if the ownership/field guard,
-error propagation, or cancellation release were removed. Do not execute mutation
-experiments here; identify the exact check the repair/verification phase must run.
+   `<slice>` and `<lens>` are slugs (letters, digits, `.`, `_`, `-`). The
+   `<source line>` tells the child where pinned source lives:
+   - Git target, clean checkout at head: `Checkout is at head <head_sha> (base
+     <base_sha>); read files directly; git show <sha>:<path> for base versions.`
+   - Patch: `Patch <patch_path> (sha256 <digest>); no pinned SHAs. Context is the
+     working tree only where it matches the patch.`
 
-## 4 — Judge and reconcile
+2. **Run all lenses at once:**
 
-Judge only challenged evidence, using `agents/judge.md` and the v2 contract.
-Deduplicate current findings without losing legacy aliases or prior dispositions.
-Drop INVALID from active defects but retain disproof/closure in the ledger.
-Do not count AMBIGUOUS questions as confirmed failures. Lens agreement is not
-independent verification; CONSENSUS needs separate supporting evidence.
+   ```bash
+   nohup <extension>/bin/run-lenses.sh "$WORK/tasks" > "$WORK/tasks.log" 2>&1 &
+   ```
 
-Apply gates in order: confirmed P0/wrong approach → DO-NOT-SHIP; missing critical
-coverage, snapshot drift, unrechecked active history, or high-risk uncertainty →
-INCOMPLETE; confirmed P1/questionable fit → FIX-THEN-SHIP; otherwise scoped SHIP.
-Unknown-intent patches remain correctness-only. No “zero defects” claim.
+   Poll `$WORK/tasks.log` (sleep between checks, each check under your tool
+   timeout) until its `run-lenses: … done` line appears. A lens worker runs up
+   to two children per slice, each limited to 30 minutes (`timeout_seconds`),
+   so a single foreground call can outlive any tool timeout.
 
-A focused verification instead reports the targeted finding dispositions and sets
-all three overall verdict fields to null. Other issues remain explicitly not
-rechecked; it cannot supersede the full review's approval status.
+   Each worker runs `run-phase.mjs pair` per task: a **propose** child
+   (`<id>-propose`), then — only if it proposed something — a **challenge**
+   child (`<id>-challenge`) that gets the proposal verbatim. Never start the
+   judge before every worker is done.
+3. **Read `$WORK/tasks/manifest.tsv`** (lens, task, exit, result, log). Rows with
+   exit 0: append `result` (envelopes; `[]` when nothing was proposed) to
+   `ENVELOPES`. Read result JSON only to update coverage and queue gaps. Never
+   add, rescue, or drop a finding yourself.
 
-## 5 — Validate and deliver
+**`--verify id,...`:** skip propose and `run-lenses.sh`. For each ID, write
+`$WORK/<id>-verify.findings.json` holding that ledger finding verbatim (a
+one-element array) and one challenge task: `"id": "<id>-verify-challenge"`,
+`"mode": "verification"`, `"lens"`: the finding's first recorded lens (use
+`blast-radius` if none is recorded), `"scope": "Verify prior finding <id> at <source
+line>"`, `"paths"`: its file plus the files of any claimed fix, `"findings_file"`,
+and the claimed fix commit and closure evidence to check in `context`. One child
+per finding ID, run one after another with `run-phase.mjs challenge <task>`
+(tool timeout ≥ 35 minutes); every envelope goes into `ENVELOPES`.
 
-Recheck the pinned source/PR OIDs (or patch digest) before publication. Recollect
-history if another report arrived; reconcile it, then stamp UTC publication time.
-Write only your two artifacts, exclusively, under:
+A non-zero manifest row or exit is a failed step: record those coverage rows as
+`not_inspected` with next check `rerun; see <log>` and the matching `.err` files
+in `$WORK`. Never retry silently or do the failed phase yourself. Exit 2 means a
+bad task file: fix it and rerun that one task (`run-phase.mjs pair <task>`).
 
-```text
-<TARGET_DIR>/.gbencke/adversarial-review/reports/<UTCstamp>-<target>-<scope>-<LENS_SLUG>.md
-<TARGET_DIR>/.gbencke/adversarial-review/reports/<same>.findings.json
+Queue uncovered sibling paths/new concerns for one extra pass before judgment:
+tasks under `$WORK/tasks-gaps/<lens>/` (new ids), run with `run-lenses.sh` the
+same way. Missing reachable source or inspectable CI is an
+evidence-gathering task, not a runtime uncertainty. If still unresolved or over
+budget, mark coverage incomplete rather than looping or inventing a conclusion.
+
+Put root-cause grouping expectations in the judge `context`: all relevant writers
+covered, tests that would fail if the ownership/field guard, error propagation, or
+cancellation release were removed. No mutation experiments here.
+
+## 4 — Judge child
+
+Recheck the pinned source/PR OIDs (or patch digest) and recollect history if
+another report arrived. Write `$WORK/<LENS_SLUG>-judge.task.json`:
+
+```json
+{
+  "id": "<LENS_SLUG>-judge",
+  "mode": "change | verification",
+  "target_dir": "<TARGET_DIR>",
+  "work_dir": "<WORK>",
+  "envelope_files": ["<every ENVELOPES path>"],
+  "prior_file": "<WORK>/prior.json",
+  "intent": "<PR title/body, ticket summary, or 'unknown intent (patch)'>",
+  "report_md": "<TARGET_DIR>/.gbencke/adversarial-review/reports/<UTCstamp>-<target>-<scope>-<LENS_SLUG>.md",
+  "context": "<repository, target, pr_number, full base/head SHAs or patch path + digest, UTC date, snapshot_consistent, lenses, scope (full | verify + finding IDs), coverage matrix, blast radius, failed steps with logs, not-reviewed limitations>"
+}
 ```
 
-`scope` is `full` or `verify`. Never overwrite/prune someone else's artifacts.
-The first Markdown line and complete v2 sidecar must follow `docs/report-contract.md`.
-Include confirmed findings, verification questions, prior dispositions, coverage,
-blast radius, and not-reviewed limitations. Fixed claims cite evidence, not just
-commit subjects or presence of tests.
+`scope` in the filename is `full` or `verify`. Run `run-phase.mjs judge <task>`.
+The judge child applies `agents/judge.md` and the v2 gates; the launcher writes
+both files exclusively and validates them, printing `REPORT: <md>` only on
+success. On a validation failure it removes both files; run at most one more
+judge with a new `id`, a new timestamp, and the validator errors appended to
+`context`. Never remove a prior finding or relabel skipped work to get a green
+result. A second failure ends the review without a `REPORT:` line.
 
-Run the extension's validator (not reviewed code):
+## 5 — Deliver
+
+Confirm the published sidecar is still valid (another run may have reported
+since), then read it:
 
 ```bash
 node <extension>/bin/report-tools.mjs validate <absolute-sidecar>
 ```
 
-Fix validation errors by restoring missing evidence/history or reporting INCOMPLETE.
-Never remove a prior finding or relabel skipped work to get a green result. Only
-validated artifacts receive a final `REPORT: ` line. The extension also validates
-the finalized message; the matrix runner independently checks the artifact.
-
-Chat: scoped verdict (none for verification), confirmed/uncertain counts, top five
-findings or targeted dispositions, incomplete coverage if any, and the report path.
-Last line: `REPORT: <absolute-markdown-path>`.
+If this fails, emit no `REPORT:` line and say why. Chat: scoped verdict (none
+for verification), confirmed/uncertain counts, top five findings or targeted
+dispositions, incomplete coverage if any, and the report path.
+Last line: `REPORT: <absolute-markdown-path>`. The extension validates the
+finalized message again; the matrix runner independently checks the artifact.
 
 ## Hard boundaries
 
-No subagents; no source changes; no repository code/tests/builds; no live services.
-Read-only Git/gh/JIRA input gathering and the extension's data-only helpers are
-allowed. Scratch belongs in system temp. Keep phases honest and sources pinned.
+No subagents: every propose/challenge/judge step is a `run-phase.mjs` child. No
+source changes; no repository code/tests/builds; no live services. Read-only
+Git/gh/JIRA input gathering and the extension's data-only helpers are allowed.
+Scratch belongs in `$WORK`. Keep phases honest and sources pinned.
 The release criterion is verified closure within scope, not an empty newest report.

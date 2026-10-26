@@ -82,14 +82,14 @@ it. Template slots: `{{LENS_NAME}}`, `{{RULES}}`, `{{SCOPE}}`,
 
 ## Model and concurrency
 
-All three roles run inline in the reviewing process, on whatever default model
-that process was started with — no subagents, so nothing here picks a model
-(ADR 0004). For higher-stakes reviews, start the process on a stronger default
-model rather than hardcoding one here; ADR 0001 explains why the judge's model
-matters most.
+Each role runs in its own `pi -p` phase process (ADR 0006) on pi's configured
+default model. A task file may set `"model"` to override it per step; ADR 0001
+explains why the judge's model matters most. Children load no extensions, so
+the model's provider must not come from an extension.
 
-Concurrency is processes: `bin/run-matrix.sh` runs one review per
-(repo × lens), all at once. A new lens therefore adds one process per repo to
+Concurrency is processes: inside a review, `bin/run-lenses.sh` runs one worker
+per lens at once (steps within a lens in order), and `bin/run-matrix.sh` runs one
+review per (repo × lens), all at once. A new lens therefore adds one process per repo to
 every matrix run — that is the cost of adding a lens.
 
 ## Guidelines
@@ -104,5 +104,5 @@ every matrix run — that is the cost of adding a lens.
   fixes: precision alone does not establish coverage (ADR 0005).
 - Keep the full finding in each challenge envelope. New rules must feed invariant
   coverage and the cumulative ledger, not only produce more comments.
-- Run the Node report tests, SDK wiring test, and matrix self-check documented in
-  README after changing schemas, stances, or publication behavior.
+- Run the Node report and phase-runner tests, SDK wiring test, and matrix
+  self-check documented in README after changing schemas, stances, or publication behavior.

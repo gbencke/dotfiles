@@ -7,8 +7,8 @@
  *   /review-consolidate <repos…>   — one cross-repo document from existing findings.json
  *
  * Each command loads the matching skill from this package and hands it to the
- * agent. Skills run the whole review inline in this process and spawn no
- * subagents; parallelism is the caller's job (see docs/adr/0004-no-subagents.md).
+ * agent, which orchestrates. Every propose/challenge/judge step runs in its own
+ * `pi -p` child via bin/run-phase.mjs (docs/adr/0006-phase-processes.md).
  */
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { readFileSync, existsSync } from "node:fs";

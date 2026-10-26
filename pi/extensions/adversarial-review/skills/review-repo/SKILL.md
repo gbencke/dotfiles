@@ -1,24 +1,27 @@
 ---
 name: review-repo
 description: >
-  Adversarial review of an entire repository, run inline in a single process:
-  propose → kill → judge, one lens per run. Writes a report plus findings.json
-  under .gbencke/adversarial-review/reports/. Spawns no subagents.
+  Adversarial review of an entire repository: propose → kill → judge, one lens
+  per run, each phase step in its own fresh pi process via bin/run-phase.mjs.
+  Writes a report plus findings.json under .gbencke/adversarial-review/reports/.
   Trigger: /review-repo <path> [--lenses a,b,c], "adversarial review of this repo".
 argument-hint: "<path> [--lenses a,b,c]"
 ---
 
 # review-repo — adversarial whole-repository review
 
-Run the adversarial loop yourself, in this process (see CONTEXT.md at the
-extension base dir for the glossary). You are the **reviewer, the challenger,
-and the judge, in that order** — three roles, one process, strict phase
-separation.
+You are the **orchestrator** (see CONTEXT.md at the extension base dir for the
+glossary). You freeze the revision, select lenses, chunk, and map invariants.
+You do **not** play the reviewer, challenger, or judge: every propose,
+challenge, and judge step runs in a fresh `pi -p` process launched by
+`bin/run-phase.mjs`, which builds that process's context on the fly. pi has no
+subagents, so a separate process per step is what keeps the phases
+independent (ADR 0006).
 
-**No subagents.** Never use the `Agent` tool in this skill. Parallelism is the
-caller's job: batch runners launch one process per (repo × lens) — see
-ADR 0004. Spawning agents here would multiply concurrency by the number of
-lenses and chunks.
+**Lenses run in parallel; steps within a lens run one at a time.**
+`bin/run-lenses.sh` starts one worker per lens. Batch runners already launch
+one review per (repo × lens) — see ADR 0004 — so a matrix child has a single
+lens and a single worker; parallel chunks would multiply that fan-out.
 
 ## Phase 0 — Target and scope
 
@@ -35,10 +38,10 @@ finding list or completed lens counter proves the whole repository is healthy.
    failing.
 2. Resolve the path to absolute (`TARGET_DIR`). Confirm it exists and is a repo
    (has `.git` or source files). If not, stop and say which check failed.
-3. Read `agents/reviewer.md`, `agents/challenger.md`, `agents/judge.md` from the
-   extension base dir. These are **role packs**: the stance, contract, and
-   output schema you adopt for each phase below. Fill their slots mentally; you
-   are the audience now, not a subagent.
+3. Create a work dir in the system temp dir, never inside `TARGET_DIR`:
+   `WORK=$(mktemp -d -t adversarial-review-XXXXXX)`. Every task file and child
+   log lives there. The role packs in `agents/` are injected into each child by
+   `run-phase.mjs`; you do not adopt them.
 
 ## Phase 1 — Lens selection (never ask)
 
@@ -65,7 +68,7 @@ finding list or completed lens counter proves the whole repository is healthy.
    Set target to `repo:<LENS_SLUG>`, then run:
 
    ```bash
-   node <extension>/bin/report-tools.mjs collect <TARGET_DIR> <target> > /tmp/<unique>-prior.json
+   node <extension>/bin/report-tools.mjs collect <TARGET_DIR> <target> > "$WORK/prior.json"
    ```
 
    Reconcile every prior ID in this declared scope using the v2 lifecycle contract.
@@ -90,100 +93,124 @@ finding list or completed lens counter proves the whole repository is healthy.
    evidence/next checks as defined in the v2 contract. Cross-chunk ownership must
    not disappear at a chunk boundary.
 
-## Phase 3 — The loop, one chunk at a time
+## Phase 3 — Propose and challenge: lenses in parallel
 
-Process chunks **sequentially**. For each chunk, for each lens that matches it:
+1. **Write every task first.** For each lens, for each chunk that lens matches,
+   write `$WORK/tasks/<lens>/<NN>-<chunk>.task.json` (`NN` = zero-padded chunk
+   order, so the worker keeps that order):
 
-1. **Propose** — adopt `agents/reviewer.md` for that lens: read the chunk's
-   files under the lens's merged `rules.md` and produce findings as the JSON in
-   that role pack. Every finding needs `file:line`, a failure condition, and
-   evidence. Run the role pack's adversarial self-check and drop what dies.
-2. **Kill** — switch to `agents/challenger.md` for the same findings: try to
-   disprove each one against the actual code (callers, middleware, framework
-   defaults, parent config). Emit `VALID` / `INVALID` / `AMBIGUOUS` with the
-   kill attempts you actually made, preserving the complete finding in a lossless
-   `{finding, challenge, disposition}` envelope. Do not raise new findings while
-   wearing this hat; queue them for the chunk that owns the code, or a separate
-   discovery pass if that chunk was already visited.
-3. **Discard the file contents.** Keep the lossless challenge envelopes, cumulative
-   finding dispositions, and coverage updates for this chunk.
-   Your own context is the budget now that there are no subagents to absorb it
-   — carrying source across chunks is what makes a large repo run out of room.
-   If context is still tight, append each chunk's challenger JSON to a scratch
-   file in the system temp dir and re-read it in Phase 4.
+   ```json
+   {
+     "id": "<chunk>-<lens>",
+     "mode": "repo",
+     "target_dir": "<TARGET_DIR>",
+     "work_dir": "<WORK>",
+     "lens": "<lens>",
+     "scope": "Chunk <chunk> of a repository review at <head_sha>",
+     "paths": ["<every file in the chunk, relative to TARGET_DIR>"],
+     "context": "<ledger rows and invariant/coverage rows that touch these paths; queued gaps owned by this chunk>"
+   }
+   ```
 
-Never batch all chunks into one reading pass: one chunk in context at a time is
-what keeps findings specific instead of vague.
+   `<chunk>` and `<lens>` are slugs (letters, digits, `.`, `_`, `-`).
+2. **Run all lenses at once:**
 
-If a chunk cannot be read or blows the budget, record uninspected coverage with a
-next check and carry on. Before judgment, handle queued discovery gaps once or
-leave them explicit. A critical skipped chunk requires INCOMPLETE, not HEALTHY
-with a footnote. Missing inspectable source/CI returns to evidence gathering;
-genuine runtime/domain uncertainty remains separate from confirmed defects.
+   ```bash
+   nohup <extension>/bin/run-lenses.sh "$WORK/tasks" > "$WORK/tasks.log" 2>&1 &
+   ```
 
-## Phase 4 — Judge
+   Poll `$WORK/tasks.log` (sleep between checks, each check under your tool
+   timeout) until its `run-lenses: … done` line appears. A lens worker runs up
+   to two children per chunk, each limited to 30 minutes (`timeout_seconds`),
+   so a single foreground call can outlive any tool timeout.
 
-Now adopt `agents/judge.md` with:
+   Each worker runs `run-phase.mjs pair` per task: a **propose** child
+   (`<id>-propose`), then — only if it proposed something — a **kill** child
+   (`<id>-challenge`) that gets the proposal verbatim. Never run the same lens
+   twice at once, and never start the judge before every worker is done.
+3. **Read `$WORK/tasks/manifest.tsv`** (lens, task, exit, result, log). Rows
+   with exit 0: append `result` (an envelopes file, `[]` when nothing was
+   proposed) to `ENVELOPES` in lens then chunk order, and record the chunk as
+   inspected under that lens. Read the result JSON only to update coverage and
+   queue gaps (`next_check` items, sibling paths in other chunks). Do not read
+   the chunk's source to add or drop findings — that is the children's job.
 
-- `{{MODE}}`: `repo`
-- `{{FINDINGS}}`: every chunk's challenger JSON from Phase 3
-- `{{CONTEXT}}`: repo name, selected lenses, chunk count, skipped chunks
+A non-zero row is a failed pair: record the chunk as `not_inspected` for that
+lens with the next check `rerun; see <log>` and the `<id>-propose.err` /
+`<id>-challenge.err` files in `$WORK`. Never retry silently and never do the
+failed phase yourself. Exit 2 in a log means the task file is wrong: fix it and
+rerun that one task with `node <extension>/bin/run-phase.mjs pair <task>`.
 
-Rule on challenger output only — do not re-read code to invent new findings.
-Exclude INVALID from active defects while retaining evidenced historical closure.
-Dedup without losing prior IDs/aliases; reconcile every prior issue, audit severity,
-and apply the v2 coverage/closure gates. Use null solution_fit for repo mode and
-show a per-lens health table. Recheck source revision and recollect history if a
-concurrent report arrived. Then write BOTH artifacts into
-`<TARGET_DIR>/.gbencke/adversarial-review/reports/`:
+Before judgment, handle queued discovery gaps once: write their tasks under
+`$WORK/tasks-gaps/<lens>/` (new ids) and run `run-lenses.sh` on that dir the same
+way, or leave the gaps explicit. A critical
+uninspected chunk requires INCOMPLETE, not HEALTHY with a footnote.
 
-- `<UTC-yyyymmdd-hhmmss>-repo-<LENS_SLUG>.md` — the report
-- `<UTC-yyyymmdd-hhmmss>-repo-<LENS_SLUG>.findings.json` — the sidecar (same basename)
+## Phase 4 — Judge child
 
-The lens slug is required, not cosmetic: reviews of one repo run concurrently
-(one process per repo × lens), so a lens-less basename collides whenever two
-runs finish in the same second.
+Recheck the source revision and recollect history if a concurrent report
+arrived. Then write `$WORK/<LENS_SLUG>-judge.task.json`:
+
+```json
+{
+  "id": "<LENS_SLUG>-judge",
+  "mode": "repo",
+  "target_dir": "<TARGET_DIR>",
+  "work_dir": "<WORK>",
+  "envelope_files": ["<every ENVELOPES path, in chunk order>"],
+  "prior_file": "<the collector output from Phase 1>",
+  "report_md": "<TARGET_DIR>/.gbencke/adversarial-review/reports/<UTC-yyyymmdd-hhmmss>-repo-<LENS_SLUG>.md",
+  "context": "<repo name; target repo:<LENS_SLUG>; head SHA, null base, UTC date, snapshot_consistent; selected lenses; chunk count; the full coverage matrix; failed or skipped chunks with their logs>"
+}
+```
+
+Run `run-phase.mjs judge <task>`. The child returns the markdown and the v2
+sidecar as JSON; the launcher writes both files exclusively (never overwriting
+another lens's report) and validates them. Its last line is `REPORT: <md>` only
+when validation passed. On a validation failure it removes both files; you may
+run one more judge with a new `id`, a new timestamp, and the validator errors
+appended to `context`. A second failure ends the review without a `REPORT:`
+line — say which errors remained.
+
+The lens slug in the basename is required, not cosmetic: reviews of one repo
+run concurrently (one process per repo × lens).
 
 ### Concurrency safety
 
 Other reviews of this same repo are probably running right now in other
 processes, under other lenses. Therefore:
 
-- `mkdir -p` the reports dir; never clear, prune, or rotate it.
-- Write only the two files named above. Never delete or overwrite a report you
-  did not just create.
-- Never lock the repo, never write scratch files inside `TARGET_DIR` (use the
-  system temp dir), never run a mutating `git` command (`add`, `stash`,
-  `checkout`, `clean`).
+- Never clear, prune, or rotate the reports dir; only the launcher writes there.
+- Never lock the repo, never write scratch files inside `TARGET_DIR`, never run
+  a mutating `git` command (`add`, `stash`, `checkout`, `clean`).
 - Never infer "the latest report" from the directory listing — the newest file
   there probably belongs to another lens's run.
 
-## Phase 5 — Validate and summarize
+## Phase 5 — Summarize
 
-Run the extension's data-only validator before emitting a success marker:
+Confirm the published sidecar is still valid (another run may have reported
+since), then read it:
 
 ```bash
 node <extension>/bin/report-tools.mjs validate <absolute-sidecar>
 ```
 
-Validation errors require reconciliation or an honest INCOMPLETE result, never
-omitting history or claiming uninspected code is verified. The finalized-message
-hook and matrix launcher independently enforce the same contract.
-
-Reply in chat with ONLY: per-lens health verdicts, severity counts
-(P0/P1/P2/P3), top-5 findings (one line each), skipped chunks (if any), and the
-report path. Nothing else — the report is the deliverable.
+If this fails, emit no `REPORT:` line and say why. Reply in chat with ONLY:
+per-lens health verdicts, severity counts (P0/P1/P2/P3), top-5 findings (one
+line each), skipped or failed chunks (if any), and the report path. Nothing
+else — the report is the deliverable.
 
 Last line, on its own, absolute, prefixed exactly `REPORT: ` — batch callers
-parse that line instead of guessing from directory mtimes.
+parse that line instead of guessing from directory mtimes. The finalized-message
+hook and matrix launcher validate it again.
 
 ## Hard rules
 
-- Never use the `Agent` tool. One process, three roles, phases in order.
-- Keep the phases honest: propose, then kill, then judge. Never let the judge
-  role rescue a finding the challenger killed, and never skip the kill phase
-  because a finding "looks obvious" — proposal and refutation stay separate
-  even inside one process (ADR 0001, ADR 0004).
+- Never use the `Agent` tool. Every propose, challenge, and judge step is a
+  `run-phase.mjs` child. Lenses run in parallel through `run-lenses.sh`; within
+  a lens, propose → challenge per chunk in order; the judge runs last (ADR 0006).
+- Keep the phases honest: never produce, rescue, or drop a finding yourself,
+  and never skip the kill step because a finding "looks obvious" (ADR 0001).
 - Never modify the reviewed repo except writing into
   `.gbencke/adversarial-review/reports/`.
 - Never execute repo code, test suites, builds, or cloud/API calls (see

@@ -2,8 +2,9 @@
 
 ## 1. The adversarial loop
 
-Every review, both shapes, runs the same loop — three phases, one process, no
-subagents (ADR 0004):
+Every review, both shapes, runs the same loop. The skill's process orchestrates;
+each step below runs in its own fresh `pi -p` process launched by
+`bin/run-phase.mjs` with a context pack built for that step (ADR 0006):
 
 1. **Propose** — the reviewer role finds candidate findings for one lens. The
    finding contract: `file:line` + failure condition + evidence + severity
@@ -13,7 +14,8 @@ subagents (ADR 0004):
 3. **Judge** — reconcile prior findings, dedup, audit severity, apply coverage and
    closure gates, then write validated artifacts.
 
-The roles run in one process and are not independent reviewers. Challenge improves
+Separate processes keep each phase from inheriting another's reasoning, but they
+share one model and are not independent reviewers. Challenge improves
 candidate precision; it does not prove that discovery covered every behavior.
 Schema v2 adds a cumulative ledger, invariant coverage, and INCOMPLETE verdicts.
 The lossless `{finding, challenge, disposition}` envelope preserves source evidence
@@ -23,7 +25,9 @@ accuracy guarantee for this extension.
 
 ### Where the parallelism lives
 
-Not in subagents — in processes. `bin/run-matrix.sh` launches one `pi -p`
+Not in subagents — in processes. Inside a review, `bin/run-lenses.sh` runs all
+lenses at once, one worker per lens; each worker's steps run in order. Across
+reviews, `bin/run-matrix.sh` launches one `pi -p`
 review per (repo × lens), all at once, each scoped to a single lens, and each
 leaves an exit code, a log, and a report path behind. `/review-consolidate`
 drives that fan-out and merges the sidecars. Rationale:
@@ -51,8 +55,8 @@ cwd fallback, because batch runs invoke this from an unrelated directory.
 The review chunks the repo along directory boundaries (splitting oversized
 directories mechanically), matches lens signals, **runs every matched lens
 without asking** (`--lenses a,b,c` narrows it; there is no lens picker), and
-runs propose → kill → judge chunk by chunk, keeping only challenger JSON
-between chunks. Language lenses review only their language's chunks. Always
+runs a propose child and a challenge child per chunk × lens — lenses in
+parallel, chunks in order — keeping only challenger JSON, then one judge child. Language lenses review only their language's chunks. Always
 skips: `.git`, vendored dependencies, build output, lock files, generated code,
 binaries. The report's
 `## Not reviewed` section lists everything skipped — exhaustiveness

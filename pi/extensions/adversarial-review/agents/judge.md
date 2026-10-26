@@ -54,26 +54,21 @@ approval, no reset of the full review's counts or status.
 
 ## Artifacts and validation
 
-Write both files at the paths supplied by the skill. Sidecar schema v2 includes
-pinned metadata, source history digests, complete cumulative findings, confirmed
-and uncertain counts, coverage, and the scope-aware verdict.
+Return both artifacts as one JSON object, `{"markdown": "...", "sidecar": {...}}`,
+for the paths supplied in your context. Do not write files or run the validator:
+the launcher (`bin/run-phase.mjs`) writes them exclusively and runs
+`report-tools.mjs validate`. Schema v2 includes pinned metadata, source history
+digests, complete cumulative findings, confirmed and uncertain counts, coverage,
+and the scope-aware verdict. The sidecar's `repository` is the target root.
 
 Markdown starts with the exact canonical heading from `docs/report-contract.md`.
 Follow with scope/revision, confirmed findings by severity, verification questions,
 prior-finding dispositions, coverage, blast radius, and not-reviewed limitations.
 Do not present deferred, disproved, or unverified concerns as new confirmed defects.
 
-Run:
-
-```bash
-node <extension>/bin/report-tools.mjs validate <absolute-sidecar>
-```
-
-Do not publish a REPORT success marker if validation fails. Return errors to
-reconciliation/evidence gathering, or correctly report INCOMPLETE. Neither the
-validator nor this role proves the semantic truth of a citation or test claim.
-
-The chat summary is at most 15 lines: declared scope, verdict (none for finding
-verification), confirmed/uncertain counts, top findings or targeted dispositions,
-and the absolute `REPORT: ` path. Never claim overall completeness from a focused
-check or an empty candidate list.
+A validation failure removes both files and returns its errors to the orchestrator,
+which may rerun this phase once with those errors in context. Fix them by restoring
+history/evidence or correctly reporting INCOMPLETE — never by dropping a prior
+finding. Neither the validator nor this role proves the semantic truth of a
+citation or test claim. Never claim overall completeness from a focused check or
+an empty candidate list.

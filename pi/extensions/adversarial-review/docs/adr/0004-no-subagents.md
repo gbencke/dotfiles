@@ -1,5 +1,8 @@
 # Roles run inline; parallelism is processes, not subagents
 
+> Partly superseded by ADR 0006: the roles no longer run inline. Each phase
+> step is its own `pi -p` child. The matrix fan-out below still holds.
+
 Reviews no longer spawn subagents. One pi process runs propose → kill → judge
 itself, adopting `agents/reviewer.md`, `agents/challenger.md`, and
 `agents/judge.md` as sequential role packs, and is normally scoped to a single
