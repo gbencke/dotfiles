@@ -210,6 +210,15 @@ that masks programming errors), lost exception causes, log lines without
 identifiers, partial writes without compensation, ack-before-durable-done
 message loss, 200-status-on-failure, stack traces leaked to clients.
 
+### sanity-checks
+
+Preconditions before mutation: parent/target existence, current-state
+guards on transitions, unconditional writes, checks that run late, are
+swallowed, read eventually consistent sources, or cover only some
+dependencies; script environment/tool/input pre-flight, migrations that
+assume schema, bulk ops without dry run. Every guard must have a unit test
+that drives the failing precondition and asserts zero writes.
+
 ## 5. Artifacts and closure
 
 The complete schema and canonical headings live in `docs/report-contract.md`.
