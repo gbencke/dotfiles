@@ -18,7 +18,7 @@ import webbrowser
 HERE = os.path.dirname(os.path.abspath(__file__))
 TOKEN_FILE = os.path.join(HERE, ".spotify_token.json")
 REDIRECT = "http://127.0.0.1:8888/callback"
-SCOPES = "playlist-read-private playlist-read-collaborative"
+SCOPES = "playlist-read-private playlist-read-collaborative user-read-recently-played user-top-read"
 
 
 class Handler(http.server.BaseHTTPRequestHandler):

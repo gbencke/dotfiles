@@ -39,14 +39,17 @@ Useful endpoint paths (append IDs from search results):
 
 `spotify_auth.py` was run once: a refresh token is stored at
 `.spotify_token.json` (chmod 600, gitignored). `spotify.py` uses it
-automatically (scopes: playlist-read-private, playlist-read-collaborative),
-so user endpoints like `/v1/me/playlists` work. Without the token file it
+automatically (scopes: playlist-read-private, playlist-read-collaborative,
+user-read-recently-played, user-top-read), so user endpoints like
+`/v1/me/playlists`, `/v1/me/top/artists` and `/v1/me/player/recently-played`
+work. Without the token file it
 falls back to client-credentials (public catalog only). To re-authorize or
 add scopes: edit `SCOPES` in `spotify_auth.py` and re-run it.
 
 ## Notes
 
-- User endpoints available with current scopes: `/v1/me/playlists`, playlist contents.
+- User endpoints available with current scopes: `/v1/me/playlists`, playlist contents, `/v1/me/top/artists`, `/v1/me/top/tracks`, `/v1/me/player/recently-played`.
+- Note: `/v1/browse/new-releases` can return stale data; `tag:new` search only reaches ~2 weeks back. For a longer window, pull `/v1/artists/{id}/albums` for the user's top artists and filter by `release_date`.
 - More scopes (saved tracks, playback, etc.) require re-running `spotify_auth.py`.
 - Pipe through `jq` to trim noise: `... | jq '.tracks.items[] | {name, artists: [.artists[].name]}'`.
 - Token is refreshed per invocation; fine for interactive use.
