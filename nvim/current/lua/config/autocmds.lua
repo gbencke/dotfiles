@@ -75,6 +75,12 @@ vim.api.nvim_create_autocmd("TermOpen", {
     vim.opt_local.number = false
     vim.opt_local.relativenumber = false
     vim.opt_local.signcolumn = "no"
+    if vim.bo.filetype == "glowpreview" then
+      -- Read-only preview: terminal mode would pin the view to the bottom, and the
+      -- default 10000-line scrollback drops the top of long documents (100000 is the max).
+      vim.opt_local.scrollback = 100000
+      return
+    end
     vim.cmd("startinsert")
   end,
 })
