@@ -145,6 +145,9 @@ report's full head SHA (or patch digest) for any freshly assessed disposition.
 | `deferred` | P2/P3 only; `deferral.reason`, `deferral.owner`, `deferral.ticket`. Do not defer a blocker into approval. |
 | `not_rechecked` | Preserve evidence, severity, confidence, and last-checked revision; add `prior_status` containing the last actual status, never another `not_rechecked`. |
 
+`labels` may include `CONSENSUS` only with `independent_evidence`: an array of at
+least two distinct sources. Several lenses agreeing is not independent evidence.
+
 When combining legacy identities, list them in `aliases`, explain `merge_reason`,
 and keep their earliest first-seen date. Every prior ID must appear either as a
 canonical ID or as an alias. A scope change or a missing row is not a disposition.
@@ -195,7 +198,9 @@ expansion of this verification's scope.
 
 ## Markdown and publication
 
-First line must exactly match one of:
+The launcher (`bin/run-phase.mjs`) renders the Markdown from the sidecar plus the
+judge's short `notes` prose, so the heading always matches the verdict. First line
+must exactly match one of:
 
 ```text
 # Adversarial review — SHIP
@@ -205,9 +210,10 @@ First line must exactly match one of:
 # Finding verification — NO WHOLE-PR VERDICT
 ```
 
-Then include pinned scope/revision, dual verdict (full reviews only), confirmed
-findings, verification questions, cumulative dispositions, coverage, blast radius,
-and not-reviewed sections. State what the assertions actually verify, not just
+Rendered from the sidecar: pinned scope/revision, dual verdict (full reviews only),
+counts, confirmed findings, verification questions, cumulative dispositions, and
+coverage. From the judge's notes: verdict reasoning, per-lens health (repo
+reviews), blast radius, and not-reviewed sections. State what the assertions actually verify, not just
 how many tests exist. Describe safety **and** liveness where state crosses awaits.
 
 Validate after writing both artifacts and before emitting `REPORT: `. Correct

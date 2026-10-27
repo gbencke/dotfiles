@@ -5,12 +5,12 @@
 ```text
 freeze revision + collect prior ledger
   → map invariant coverage and callers
-  → run-lenses.sh: one worker per lens, all lenses at once
-      → per chunk/slice, in order: run-phase.mjs pair = propose → challenge
+  → run-lenses.sh: one slot per lens, one shared queue of (lens, chunk) tasks
+      → per task: run-phase.mjs pair = propose → challenge
       (each a fresh pi -p child; lossless JSON records + manifest.tsv in $WORK)
   → gather missing evidence / record incomplete coverage
-  → run-phase.mjs judge (child returns markdown + sidecar as JSON)
-  → launcher writes both exclusively → validate → REPORT
+  → run-phase.mjs judge (child returns sidecar + prose notes as JSON)
+  → launcher renders markdown, writes both exclusively → validate → REPORT
   → orchestrator: finalized scoped summary
 
 /review-consolidate
@@ -20,8 +20,8 @@ freeze revision + collect prior ledger
 ```
 
 The skill's process orchestrates; each phase step is a separate, locked-down
-`pi -p` child built from a per-task context pack. Lenses run in parallel, steps
-within a lens in order, the judge last (ADR 0006).
+`pi -p` child built from a per-task context pack. All (lens, chunk) tasks share
+one pool, the judge last (ADR 0006).
 Fresh processes still share one model, so they are not independent replication.
 Parallelism remains in the matrix launcher.
 
@@ -37,8 +37,8 @@ Parallelism remains in the matrix launcher.
 | `skills/review-consolidate/SKILL.md` | Arrange validated full reports; preserve failed pairings and focused/legacy history separately. |
 | `agents/*.md` | Discovery, challenge, judgment. Preserve complete finding evidence across phases. |
 | `lenses/*` | Domain rules and signals, including project overlays. |
-| `bin/run-phase.mjs` | Build a context pack per task, run one locked-down `pi -p` phase child, check its JSON (lossless envelopes), and for the judge write + validate artifacts exclusively. |
-| `bin/run-lenses.sh` | One background worker per lens running its `run-phase.mjs pair` tasks in order; writes `manifest.tsv`, exits 1 on any failed pair. |
+| `bin/run-phase.mjs` | Build a context pack per task, run one locked-down `pi -p` phase child, check its JSON (lossless envelopes), and for the judge render the markdown from the sidecar, then write + validate artifacts exclusively. |
+| `bin/run-lenses.sh` | Shared pool, one slot per lens, running every `run-phase.mjs pair` task; writes `manifest.tsv` (completion order), exits 1 on any failed pair. |
 | `bin/run-matrix.sh` | Parallel CLI runs and manifest; validates report paths/sidecars before accepting them. |
 | `bin/test-*.mjs`, `bin/test-run-matrix.sh` | Built-in Node tests, SDK-wiring check, launcher and phase-runner checks with a fake `pi`. |
 

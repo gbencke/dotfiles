@@ -22,9 +22,24 @@ rules govern every artifact. Never reread source to invent a finding here.
 6. P0 requires demonstrated impact. Record any severity adjustment with its reason.
    P2/P3 deferrals need an owner, reason, and ticket; do not defer a blocker into SHIP.
 
-Labels: CONFIRMED means supported by the cited challenge, not necessarily executed.
-NEEDS-HUMAN means AMBIGUOUS. CONSENSUS requires at least two documented independent
-evidence sources; multiple lens names from one process alone do not qualify.
+## Labels (one wrong label fails the whole report)
+
+- CONFIRMED: supported by the cited challenge, not necessarily executed.
+- NEEDS-HUMAN: the challenge is AMBIGUOUS.
+- CONSENSUS: only when the row has `independent_evidence`, an array of at least two
+  distinct sources (two separate code traces, or a trace plus an exact-head CI log).
+  Several lenses or several envelopes reporting the same root cause are **not**
+  independent: they came from the same pipeline. No `independent_evidence`, no label.
+
+Wrong (lens names alone; the validator rejects it):
+```json
+{"labels": ["CONFIRMED", "CONSENSUS"], "lenses": ["concurrency", "reactjs"]}
+```
+Right: drop `CONSENSUS`, or add the evidence:
+```json
+{"labels": ["CONFIRMED", "CONSENSUS"], "lenses": ["concurrency", "reactjs"],
+ "independent_evidence": ["src/a.ts:42 writes the stale slot", "CI run 123 at head: booking.test.ts fails"]}
+```
 
 ## Verdict
 
@@ -54,17 +69,21 @@ approval, no reset of the full review's counts or status.
 
 ## Artifacts and validation
 
-Return both artifacts as one JSON object, `{"markdown": "...", "sidecar": {...}}`,
-for the paths supplied in your context. Do not write files or run the validator:
-the launcher (`bin/run-phase.mjs`) writes them exclusively and runs
+Return one JSON object, `{"sidecar": {...}, "notes": "..."}`, for the paths
+supplied in your context. Do not write files or run the validator: the launcher
+(`bin/run-phase.mjs`) renders the Markdown, writes both files exclusively, and runs
 `report-tools.mjs validate`. Schema v2 includes pinned metadata, source history
 digests, complete cumulative findings, confirmed and uncertain counts, coverage,
 and the scope-aware verdict. The sidecar's `repository` is the target root.
 
-Markdown starts with the exact canonical heading from `docs/report-contract.md`.
-Follow with scope/revision, confirmed findings by severity, verification questions,
-prior-finding dispositions, coverage, blast radius, and not-reviewed limitations.
-Do not present deferred, disproved, or unverified concerns as new confirmed defects.
+The launcher renders every Markdown section the sidecar already holds: heading,
+scope/revision, verdict and counts, confirmed findings by severity, verification
+questions, prior-finding dispositions, and the coverage table. Do not write those.
+`notes` is Markdown with only the prose the sidecar cannot carry, as `##` sections:
+why the verdict landed where it did (gates hit or cleared), the per-lens health
+table (repository reviews), blast radius (change reviews), and not-reviewed
+limitations. Keep it short and list no findings. Do not present deferred,
+disproved, or unverified concerns as new confirmed defects.
 
 A validation failure removes both files and returns its errors to the orchestrator,
 which may rerun this phase once with those errors in context. Fix them by restoring

@@ -18,10 +18,11 @@ challenge, and judge step runs in a fresh `pi -p` process launched by
 subagents, so a separate process per step is what keeps the phases
 independent (ADR 0006).
 
-**Lenses run in parallel; steps within a lens run one at a time.**
-`bin/run-lenses.sh` starts one worker per lens. Batch runners already launch
-one review per (repo × lens) — see ADR 0004 — so a matrix child has a single
-lens and a single worker; parallel chunks would multiply that fan-out.
+**Lenses and chunks share one pool of slots.** `bin/run-lenses.sh` runs as
+many tasks at once as there are lenses; a free slot takes the next
+(lens, chunk) task whatever its lens, so fast lenses do not leave slots idle.
+Batch runners already launch one review per (repo × lens) — see ADR 0004 — so a
+matrix child has a single lens and a single slot; the matrix fan-out does not grow.
 
 ## Phase 0 — Target and scope
 
@@ -93,7 +94,7 @@ finding list or completed lens counter proves the whole repository is healthy.
    evidence/next checks as defined in the v2 contract. Cross-chunk ownership must
    not disappear at a chunk boundary.
 
-## Phase 3 — Propose and challenge: lenses in parallel
+## Phase 3 — Propose and challenge: one shared pool
 
 1. **Write every task first.** For each lens, for each chunk that lens matches,
    write `$WORK/tasks/<lens>/<NN>-<chunk>.task.json` (`NN` = zero-padded chunk
@@ -120,17 +121,18 @@ finding list or completed lens counter proves the whole repository is healthy.
    ```
 
    Poll `$WORK/tasks.log` (sleep between checks, each check under your tool
-   timeout) until its `run-lenses: … done` line appears. A lens worker runs up
-   to two children per chunk, each limited to 30 minutes (`timeout_seconds`),
+   timeout) until its `run-lenses: … done` line appears. Each task runs up
+   to two children, each limited to 30 minutes (`timeout_seconds`),
    so a single foreground call can outlive any tool timeout.
 
-   Each worker runs `run-phase.mjs pair` per task: a **propose** child
+   Each slot runs `run-phase.mjs pair` per task: a **propose** child
    (`<id>-propose`), then — only if it proposed something — a **kill** child
-   (`<id>-challenge`) that gets the proposal verbatim. Never run the same lens
-   twice at once, and never start the judge before every worker is done.
+   (`<id>-challenge`) that gets the proposal verbatim. Never start the judge
+   before every task is done.
 3. **Read `$WORK/tasks/manifest.tsv`** (lens, task, exit, result, log). Rows
    with exit 0: append `result` (an envelopes file, `[]` when nothing was
-   proposed) to `ENVELOPES` in lens then chunk order, and record the chunk as
+   proposed) to `ENVELOPES` in lens then chunk order (manifest rows arrive in
+   completion order: sort by lens, then task name), and record the chunk as
    inspected under that lens. Read the result JSON only to update coverage and
    queue gaps (`next_check` items, sibling paths in other chunks). Do not read
    the chunk's source to add or drop findings — that is the children's job.
@@ -164,8 +166,9 @@ arrived. Then write `$WORK/<LENS_SLUG>-judge.task.json`:
 }
 ```
 
-Run `run-phase.mjs judge <task>`. The child returns the markdown and the v2
-sidecar as JSON; the launcher writes both files exclusively (never overwriting
+Run `run-phase.mjs judge <task>`. The child returns the v2 sidecar and short
+prose notes as JSON; the launcher renders the markdown from them, writes both
+files exclusively (never overwriting
 another lens's report) and validates them. Its last line is `REPORT: <md>` only
 when validation passed. On a validation failure it removes both files; you may
 run one more judge with a new `id`, a new timestamp, and the validator errors
@@ -207,8 +210,8 @@ hook and matrix launcher validate it again.
 ## Hard rules
 
 - Never use the `Agent` tool. Every propose, challenge, and judge step is a
-  `run-phase.mjs` child. Lenses run in parallel through `run-lenses.sh`; within
-  a lens, propose → challenge per chunk in order; the judge runs last (ADR 0006).
+  `run-phase.mjs` child. All (lens, chunk) tasks share the `run-lenses.sh` pool;
+  each task is propose → challenge; the judge runs last (ADR 0006).
 - Keep the phases honest: never produce, rescue, or drop a finding yourself,
   and never skip the kill step because a finding "looks obvious" (ADR 0001).
 - Never modify the reviewed repo except writing into

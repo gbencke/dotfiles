@@ -366,7 +366,7 @@ export function validateReport(
       check(
         strings(f.independent_evidence) &&
           new Set(f.independent_evidence).size >= 2,
-        `${label}: lens labels alone are not independent consensus`,
+        `${label}: CONSENSUS needs independent_evidence with 2+ distinct sources; lens labels alone are not independent consensus (drop the label or add the evidence)`,
       );
   }
   for (const old of prior.findings ?? []) {

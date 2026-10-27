@@ -42,7 +42,7 @@ import {
 } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { validateFile } from "./report-tools.mjs";
+import { reportHeading, validateFile } from "./report-tools.mjs";
 
 const BASE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PHASES = {
@@ -132,7 +132,7 @@ export function buildContext(phase, task) {
   const output = {
     propose: "a JSON array of complete findings (empty array if none survive)",
     challenge: "a JSON array with exactly one lossless envelope per input finding, same order",
-    judge: 'one JSON object {"markdown": "<full report markdown>", "sidecar": {<complete schema-v2 sidecar>}}',
+    judge: 'one JSON object {"sidecar": {<complete schema-v2 sidecar>}, "notes": "<markdown prose sections only>"}',
   }[phase];
   const s = [
     `# adversarial-review — ${phase} phase (${task.id})`,
@@ -220,9 +220,83 @@ export function checkResult(phase, result, task) {
       if (!STATES.has(e?.challenge?.state)) throw new Error(`envelope ${i} challenge.state must be VALID, INVALID, or AMBIGUOUS`);
       if (!e.disposition || typeof e.disposition !== "object") throw new Error(`envelope ${i} has no disposition`);
     });
-  } else if (typeof result?.markdown !== "string" || !result.sidecar || typeof result.sidecar !== "object") {
-    throw new Error('judge output must be {"markdown": string, "sidecar": object}');
+  } else if (typeof result?.notes !== "string" || !result.sidecar || typeof result.sidecar !== "object") {
+    throw new Error('judge output must be {"sidecar": object, "notes": string}');
   }
+}
+
+const SEVERITIES = ["P0", "P1", "P2", "P3"];
+const cell = (v) => String(v ?? "").replace(/\s*\n\s*/g, " ").replace(/\|/g, "\\|");
+const where = (f) => (f.file ? ` (${f.file}${f.line ? `:${f.line}` : ""})` : "");
+const effective = (f) => (f.status === "not_rechecked" ? f.prior_status : f.status);
+
+// The judge writes only the sidecar plus prose notes; every section derivable
+// from the sidecar is rendered here, so the judge spends no output tokens on it
+// and the heading always matches the verdict.
+export function renderMarkdown(s, notes) {
+  const findings = Array.isArray(s.findings) ? s.findings : [];
+  const open = (state) => findings.filter((f) => effective(f) === "open" && (f.challenge?.state === "AMBIGUOUS") === (state === "AMBIGUOUS"));
+  const tally = (counts) => SEVERITIES.map((k) => `${k} ${counts?.[k] ?? 0}`).join(" · ");
+  const scope = s.scope?.kind === "finding" ? `finding verification of ${(s.scope.finding_ids ?? []).join(", ")}` : (s.scope?.kind ?? "unknown");
+  const out = [
+    reportHeading(s),
+    "",
+    "## Scope and revision",
+    "",
+    `- Repository: ${s.repository}`,
+    `- Target: ${s.target}${s.pr_number ? ` (PR #${s.pr_number})` : ""} · mode ${s.mode} · scope ${scope}`,
+    `- Lenses: ${(s.lenses ?? []).join(", ")}`,
+    s.patch_sha256 ? `- Patch: ${s.patch_path} (sha256 ${s.patch_sha256})` : `- Head: ${s.head_sha} · base: ${s.base_sha ?? "none"}`,
+    `- Date: ${s.date} · snapshot consistent: ${s.snapshot_consistent}`,
+    "",
+    "## Verdict",
+    "",
+  ];
+  if (s.mode === "verification") out.push("- No whole-PR verdict: this verifies only the listed findings.");
+  else
+    out.push(
+      `- Overall: **${s.verdict?.overall}**, within the declared scope and lenses`,
+      `- Implementation: ${s.verdict?.implementation} · solution fit: ${s.verdict?.solution_fit ?? "n/a (repository review)"}`,
+    );
+  out.push(`- Confirmed active: ${tally(s.counts)}`, `- Uncertain active: ${tally(s.uncertain_counts)}`);
+  if (notes.trim()) out.push("", notes.trim());
+
+  out.push("", "## Confirmed findings");
+  const confirmed = open("VALID");
+  if (!confirmed.length) out.push("", "None in scope.");
+  for (const sev of SEVERITIES) {
+    const rows = confirmed.filter((f) => f.severity === sev);
+    if (!rows.length) continue;
+    out.push("", `### ${sev} (${rows.length})`, "");
+    for (const f of rows) out.push(`- **${f.id}**${where(f)}: ${cell(f.title)}. ${cell(f.failure_condition)}`);
+  }
+
+  out.push("", "## Verification questions (uncertain, not counted as confirmed)", "");
+  const uncertain = open("AMBIGUOUS");
+  if (!uncertain.length) out.push("None.");
+  for (const f of uncertain) out.push(`- **${f.id}** [${f.severity}]${where(f)}: ${cell(f.title)}. Next check: ${cell(f.challenge?.next_check)}`);
+
+  out.push("", "## Prior-finding dispositions", "");
+  const closed = findings.filter((f) => f.status !== "open");
+  if (!closed.length) out.push("None.");
+  else {
+    out.push("| ID | Status | Severity | Title | Basis |", "|---|---|---|---|---|");
+    for (const f of closed) {
+      const status = f.status === "not_rechecked" ? `not_rechecked (was ${f.prior_status})` : f.status;
+      const basis = f.closure?.evidence?.join("; ") ?? f.deferral?.reason ?? f.challenge?.reason;
+      out.push(`| ${cell(f.id)} | ${status} | ${f.severity} | ${cell(f.title)} | ${cell(basis)} |`);
+    }
+  }
+
+  out.push("", "## Coverage", "");
+  const coverage = Array.isArray(s.coverage) ? s.coverage : [];
+  if (!coverage.length) out.push("No coverage rows.");
+  else {
+    out.push("| ID | Critical | Status | Invariant | Evidence or next check |", "|---|---|---|---|---|");
+    for (const c of coverage)
+      out.push(`| ${cell(c.id)} | ${c.critical ? "yes" : "no"} | ${c.status} | ${cell(c.invariant)} | ${cell(c.evidence?.join("; ") || c.next_check || c.reason)} |`);
+  }
+  return out.join("\n") + "\n";
 }
 
 // Exclusive create: concurrent lens runs share the reports dir; never overwrite.
@@ -230,7 +304,7 @@ export function publish(task, result) {
   const md = task.report_md;
   const sidecar = md.replace(/\.md$/, ".findings.json");
   mkdirSync(dirname(md), { recursive: true });
-  writeFileSync(md, result.markdown, { flag: "wx" });
+  writeFileSync(md, renderMarkdown(result.sidecar, result.notes), { flag: "wx" });
   try {
     writeFileSync(sidecar, JSON.stringify(result.sidecar, null, 2) + "\n", { flag: "wx" });
   } catch (error) {

@@ -26,7 +26,8 @@ accuracy guarantee for this extension.
 ### Where the parallelism lives
 
 Not in subagents — in processes. Inside a review, `bin/run-lenses.sh` runs all
-lenses at once, one worker per lens; each worker's steps run in order. Across
+lenses at once from one shared pool, one slot per lens; a free slot takes the next
+task of any lens. Across
 reviews, `bin/run-matrix.sh` launches one `pi -p`
 review per (repo × lens), all at once, each scoped to a single lens, and each
 leaves an exit code, a log, and a report path behind. `/review-consolidate`

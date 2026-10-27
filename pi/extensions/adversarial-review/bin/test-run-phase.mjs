@@ -7,6 +7,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { countsFor, reportHeading } from "./report-tools.mjs";
+import { renderMarkdown } from "./run-phase.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const cli = join(here, "run-phase.mjs");
@@ -143,21 +144,49 @@ test("judge gets read only, writes validated artifacts exclusively, prints REPOR
   const s = sidecar();
   const md = join(reports, "20260101-000000-x-full-design.md");
   const task = { mode: "change", envelope_files: [findingsFile], report_md: md };
-  const r = run("judge", task, { markdown: reportHeading(s) + "\n", sidecar: s });
+  const r = run("judge", task, { sidecar: s, notes: "## Blast radius\n\nNOTES-MARKER" });
   assert.equal(r.status, 0, r.stderr);
   assert.equal(r.stdout.trim(), `REPORT: ${md}`);
+  const written = readFileSync(md, "utf8");
+  assert.equal(written.split("\n")[0], reportHeading(s), "launcher renders the canonical heading");
+  assert.match(written, /NOTES-MARKER[\s\S]*## Confirmed findings[\s\S]*## Coverage\n\n\| ID .*\n.*\n\| c1 \| yes \| verified/);
   assert.match(r.args, /^--tools\nread\n/m);
   assert.match(r.context, /### .*findings\.json/);
   assert.ok(existsSync(md.replace(/\.md$/, ".findings.json")));
-  const again = run("judge", task, { markdown: reportHeading(s) + "\n", sidecar: s });
+  const again = run("judge", task, { sidecar: s, notes: "" });
   assert.equal(again.status, 1);
   assert.match(again.stderr, /EEXIST/);
+});
+
+test("judge output without notes is rejected before anything is written", () => {
+  const md = join(reports, "20260101-000002-x-full-design.md");
+  const r = run("judge", { mode: "change", envelope_files: [findingsFile], report_md: md }, { markdown: "# x\n", sidecar: sidecar() });
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /"notes": string/);
+  assert.ok(!existsSync(md));
+});
+
+test("rendered markdown lists confirmed, uncertain, and carried findings in their own sections", () => {
+  const f = (id, extra) => ({ id, severity: "P2", title: `t-${id}`, file: "a.ts", line: 3, failure_condition: "fc", status: "open", challenge: { state: "VALID" }, ...extra });
+  const md = renderMarkdown(
+    sidecar({
+      findings: [
+        f("conf"),
+        f("unsure", { challenge: { state: "AMBIGUOUS", next_check: "NEXT-CHECK" } }),
+        f("old", { status: "not_rechecked", prior_status: "fixed_verified", closure: { evidence: ["pipe|cell"] } }),
+      ],
+    }),
+    "",
+  );
+  assert.match(md, /## Confirmed findings\n\n### P2 \(1\)\n\n- \*\*conf\*\* \(a\.ts:3\): t-conf\. fc\n/);
+  assert.match(md, /- \*\*unsure\*\* \[P2\] \(a\.ts:3\): t-unsure\. Next check: NEXT-CHECK/);
+  assert.match(md, /\| old \| not_rechecked \(was fixed_verified\) \| P2 \| t-old \| pipe\\\|cell \|/);
 });
 
 test("judge output that fails validation leaves no artifacts", () => {
   const md = join(reports, "20260101-000001-x-full-design.md");
   const s = sidecar({ counts: { ...countsFor([]), P0: 1 } });
-  const r = run("judge", { mode: "change", envelope_files: [findingsFile], report_md: md }, { markdown: reportHeading(s) + "\n", sidecar: s });
+  const r = run("judge", { mode: "change", envelope_files: [findingsFile], report_md: md }, { sidecar: s, notes: "" });
   assert.equal(r.status, 1);
   assert.match(r.stderr, /failed validation/);
   assert.ok(!existsSync(md));
@@ -203,6 +232,19 @@ test("run-lenses runs lens workers in parallel and records every pair", () => {
   const rows = readFileSync(join(dir, "manifest.tsv"), "utf8").trim().split("\n").slice(1);
   assert.deepEqual(rows.map((row) => row.split("\t")[0]).sort(), ["design", "python"]);
   assert.ok(rows.every((row) => row.split("\t")[2] === "0" && row.split("\t")[3].endsWith("-challenge.json")));
+});
+
+test("run-lenses shares slots across lenses: a free slot takes another lens's chunk", () => {
+  const dir = join(root, "tasks-pool");
+  for (const c of ["01-a", "02-b", "03-c"]) taskFile(join(dir, "design"), c, { id: `pool-${c}-design` });
+  taskFile(join(dir, "python"), "01-a", { id: "pool-01-a-python", lens: "python" });
+  const start = Date.now();
+  const r = spawnSync(lenses, [dir], { encoding: "utf8", env: fakeEnv({}, { FAKE_SLEEP: "2" }) });
+  const seconds = (Date.now() - start) / 1000;
+  assert.equal(r.status, 0, r.stderr);
+  // 4 tasks of 2s on 2 slots: ~4s pooled; per-lens workers would take 6s; >2 slots would take 2s.
+  assert.ok(seconds >= 3.9 && seconds < 5.5, `4 x 2s tasks on 2 slots took ${seconds}s`);
+  assert.equal(readFileSync(join(dir, "manifest.tsv"), "utf8").trim().split("\n").length, 5);
 });
 
 test("run-lenses marks failed pairs and exits nonzero; empty dir is a usage error", () => {

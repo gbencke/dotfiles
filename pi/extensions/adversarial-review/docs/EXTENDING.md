@@ -87,8 +87,8 @@ default model. A task file may set `"model"` to override it per step; ADR 0001
 explains why the judge's model matters most. Children load no extensions, so
 the model's provider must not come from an extension.
 
-Concurrency is processes: inside a review, `bin/run-lenses.sh` runs one worker
-per lens at once (steps within a lens in order), and `bin/run-matrix.sh` runs one
+Concurrency is processes: inside a review, `bin/run-lenses.sh` runs one slot
+per lens from a shared (lens, chunk) queue, and `bin/run-matrix.sh` runs one
 review per (repo × lens), all at once. A new lens therefore adds one process per repo to
 every matrix run — that is the cost of adding a lens.
 

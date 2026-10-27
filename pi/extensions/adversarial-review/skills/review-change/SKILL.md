@@ -19,9 +19,9 @@ You freeze input, collect history, and map coverage. You do **not** play the
 reviewer, challenger, or judge: each of those steps runs in a fresh `pi -p`
 process launched by `bin/run-phase.mjs`, which injects the `agents/*.md` role pack,
 lens rules, and your notes into that child's context. pi has no subagents; a
-process per step keeps the phases independent (ADR 0006). Lenses run in parallel
-through `bin/run-lenses.sh`, one worker per lens; within a lens, steps run one at a
-time. No `Agent` tool.
+process per step keeps the phases independent (ADR 0006). All (lens, slice)
+tasks share one pool in `bin/run-lenses.sh`, one slot per lens; a free slot takes
+the next task of any lens. No `Agent` tool.
 
 Create the work dir first, in system temp and never inside the target:
 `WORK=$(mktemp -d -t adversarial-review-XXXXXX)`. Task files and child logs live there.
@@ -132,7 +132,7 @@ reviews; language lenses match changed files only. `--lenses` explicitly overrid
 the set. Never prompt for a lens picker. State the selected lenses and scope.
 `LENS_SLUG` is the sole lens name or `multi`.
 
-Run lenses in parallel; within a lens, behavior slices run in order.
+All (lens, slice) tasks run from one shared pool.
 
 1. **Write every task first.** For each lens, for each slice it applies to,
    write `$WORK/tasks/<lens>/<NN>-<slice>.task.json` (`NN` = zero-padded slice
@@ -165,17 +165,17 @@ Run lenses in parallel; within a lens, behavior slices run in order.
    ```
 
    Poll `$WORK/tasks.log` (sleep between checks, each check under your tool
-   timeout) until its `run-lenses: … done` line appears. A lens worker runs up
-   to two children per slice, each limited to 30 minutes (`timeout_seconds`),
+   timeout) until its `run-lenses: … done` line appears. Each task runs up
+   to two children, each limited to 30 minutes (`timeout_seconds`),
    so a single foreground call can outlive any tool timeout.
 
-   Each worker runs `run-phase.mjs pair` per task: a **propose** child
+   Each slot runs `run-phase.mjs pair` per task: a **propose** child
    (`<id>-propose`), then — only if it proposed something — a **challenge**
    child (`<id>-challenge`) that gets the proposal verbatim. Never start the
-   judge before every worker is done.
+   judge before every task is done.
 3. **Read `$WORK/tasks/manifest.tsv`** (lens, task, exit, result, log). Rows with
    exit 0: append `result` (envelopes; `[]` when nothing was proposed) to
-   `ENVELOPES`. Read result JSON only to update coverage and queue gaps. Never
+   `ENVELOPES`, sorted by lens then task name (rows arrive in completion order). Read result JSON only to update coverage and queue gaps. Never
    add, rescue, or drop a finding yourself.
 
 **`--verify id,...`:** skip propose and `run-lenses.sh`. For each ID, write
@@ -223,8 +223,9 @@ another report arrived. Write `$WORK/<LENS_SLUG>-judge.task.json`:
 ```
 
 `scope` in the filename is `full` or `verify`. Run `run-phase.mjs judge <task>`.
-The judge child applies `agents/judge.md` and the v2 gates; the launcher writes
-both files exclusively and validates them, printing `REPORT: <md>` only on
+The judge child applies `agents/judge.md` and the v2 gates and returns the sidecar
+plus short prose notes; the launcher renders the markdown, writes both files
+exclusively and validates them, printing `REPORT: <md>` only on
 success. On a validation failure it removes both files; run at most one more
 judge with a new `id`, a new timestamp, and the validator errors appended to
 `context`. Never remove a prior finding or relabel skipped work to get a green
