@@ -4,6 +4,27 @@ local function continue_or_pick()
   require("dap").continue()
 end
 
+-- Pick only from ./.vscode/launch.json (F5 mixes it with the built-in profiles).
+local function pick_launch_json()
+  local path = vim.fn.getcwd() .. "/.vscode/launch.json"
+  if vim.fn.filereadable(path) == 0 then
+    vim.notify("No .vscode/launch.json in " .. vim.fn.getcwd(), vim.log.levels.WARN, { title = "DAP" })
+    return
+  end
+  local dap = require("dap") -- loads the plugin config (adapters, json5 decoder) first
+  local ok, configs = pcall(require("dap.ext.vscode").getconfigs, path)
+  if not ok then
+    vim.notify("Can't read " .. path .. ":\n" .. configs, vim.log.levels.ERROR, { title = "DAP" })
+    return
+  end
+  if #configs == 0 then
+    vim.notify(path .. " has no configurations", vim.log.levels.WARN, { title = "DAP" })
+    return
+  end
+  vim.ui.select(configs, { prompt = "launch.json: ", format_item = function(c) return c.name end },
+    function(config) if config then dap.run(config) end end)
+end
+
 return {
   {
     "mfussenegger/nvim-dap",
@@ -34,6 +55,7 @@ return {
       { "<leader>dB", function() require("dap").set_breakpoint(vim.fn.input("Condition: ")) end, desc = "Conditional breakpoint" },
       { "<leader>dl", function() require("dap").set_breakpoint(nil, nil, vim.fn.input("Log: ")) end, desc = "Logpoint" },
       { "<leader>dc", continue_or_pick, desc = "Continue / start (F5)" },
+      { "<leader>dL", pick_launch_json, desc = "Pick launch.json config" },
       { "<leader>dn", function() require("dap").step_over() end, desc = "Step over (F10)" },
       { "<leader>di", function() require("dap").step_into() end, desc = "Step into (F11)" },
       { "<leader>do", function() require("dap").step_out() end, desc = "Step out" },

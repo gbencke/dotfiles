@@ -218,6 +218,7 @@ different launch profile.
 | `<leader>dB` | Set a conditional breakpoint; enter an expression such as `count > 5`. |
 | `<leader>dl` | Set a logpoint; enter text such as `count={count}`. |
 | `<leader>dc` / `<F5>` | Start / continue. |
+| `<leader>dL` | Pick and start a configuration from `./.vscode/launch.json` only. |
 | `<leader>dn` / `<F10>` | Step over. |
 | `<leader>di` / `<F11>` | Step into. |
 | `<leader>do` | Step out. No Shift+F11 mapping is configured. |
