@@ -24,6 +24,7 @@ fi
 config=
 report=
 custom_config=false
+print_store=false
 
 while (( $# )); do
   case $1 in
@@ -37,6 +38,10 @@ while (( $# )); do
       (( $# >= 2 )) || usage
       report=${2:A}
       shift 2
+      ;;
+    --print-store)
+      print_store=true
+      shift
       ;;
     --)
       shift
@@ -93,6 +98,12 @@ if [[ ! -f $store/.complete ]]; then
   npm install --prefix "$store" --no-save --no-audit --no-fund --loglevel=error \
     "eslint@$version" "${plugins[@]}" >&2
   touch "$store/.complete"
+fi
+
+# Editors (Neovim's eslint LSP) use this to point at the pinned eslint + plugins.
+if $print_store; then
+  print -r -- "$store"
+  exit 0
 fi
 
 if [[ -n $config ]]; then

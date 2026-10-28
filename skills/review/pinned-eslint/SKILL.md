@@ -15,6 +15,7 @@ description: Lint any JS/TS repository with a pinned ESLint 9 + plugin set (type
 <skill-dir>/pinned-eslint <repo> --report /tmp/eslint.txt          # also save output to a file
 <skill-dir>/pinned-eslint <repo> --config ./eslint.config.mjs -- . # use a different config
 <skill-dir>/pinned-eslint <repo> -- --fix src/                     # autofix (WRITES to the repo)
+<skill-dir>/pinned-eslint <repo> --print-store                     # install if needed, print the pinned install dir, exit
 ```
 
 - `<repo>` must be a directory. Use `.` for the cwd.
