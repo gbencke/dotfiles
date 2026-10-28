@@ -13,6 +13,16 @@ return {
     },
     opts = {
       filesystem = {
+        components = {
+          -- Color file/dir names by their worst diagnostic (eslint, vtsls...); stock name ignores them.
+          name = function(config, node, state)
+            local common = require("neo-tree.sources.common.components")
+            local result = common.name(config, node, state)
+            local diag = common.diagnostics({}, node, state)
+            if diag.highlight then result.highlight = diag.highlight end
+            return result
+          end,
+        },
         filtered_items = {
           hide_dotfiles = false,
           -- Include ignored dotfiles and their descendants, not unrelated ignored files.

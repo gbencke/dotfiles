@@ -144,6 +144,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
       group = eslint_group,
       buffer = event.buf,
       callback = function()
+        -- The pinned strict set reports only; never let it rewrite code on save.
+        if require("config.eslint_project").mode() == "pinned" then return end
         vim.lsp.buf.code_action({
           context = { only = { "source.fixAll.eslint" }, diagnostics = {} },
           apply = true,

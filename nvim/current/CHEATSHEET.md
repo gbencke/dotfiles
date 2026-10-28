@@ -491,7 +491,10 @@ server support.
 | `:Lspsaga finder` | Open Finder directly; use `incoming_calls` or `outgoing_calls` for call hierarchy. |
 | `<leader>pv` | Select a Python environment. |
 | `]d` / `[d` | Next / previous diagnostic; does not require an LSP. |
-| `<leader>xx` / `<leader>xX` | Toggle all / current-buffer diagnostics in Trouble. |
+| `<leader>xx` / `<leader>xX` | Toggle all / current-buffer diagnostics in Trouble. In repos with an `eslint.config.*` and a local eslint, `<leader>xx` also lists ESLint problems in unopened files (refreshed on start and on each save). |
+| `:EslintProject` | Re-run the project-wide ESLint scan now, e.g. after a `git pull`. |
+| `<leader>xe` / `:EslintMode [local\|pinned]` | Switch ESLint per project: `local` = repo eslint + `eslint.config.*`; `pinned` = the pinned-eslint strict set (scan runs in bubblewrap; no fix-on-save). |
+| `<leader>xR` / `:EslintRules` | Checkbox dialog of the current mode's rules, with problem counts. `<Space>`/`x` toggle (Visual too), `a` all, `n` none, `r` defaults, `q` close. Local starts all on; pinned starts with only the complexity/size rules on. |
 | `<leader>xs` | Toggle the symbol outline. |
 | `<leader>xr` | Toggle LSP references/definitions in Trouble. |
 | `<leader>xq` | Toggle the quickfix list in Trouble. |
