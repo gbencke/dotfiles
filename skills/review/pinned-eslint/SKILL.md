@@ -53,6 +53,20 @@ Report every violation as an error. Do not suggest raising a limit or adding `es
 
 `@typescript-eslint/no-restricted-types` bans `Omit`, `Pick` and `Partial`. Fix by writing an explicit, purpose-specific type (e.g. `type UserUpdate = { name?: string }` instead of `Partial<User>`). The rule bans the types outright; it does not measure "too much" use.
 
+## Write code that passes
+
+Follow these when writing TS/JS, so the first draft is lint-clean:
+
+- **Size:** lines ≤ 80 columns, functions ≤ 50 lines and ≤ 10 statements, ≤ 3 params (pass an object), nesting ≤ 3, cyclomatic complexity ≤ 10, cognitive ≤ 15, files ≤ 300 lines. Split early.
+- **Immutability:** `const` only, no `let`. No mutation (`push`, `obj.x =`, `delete`); build new values with spread, `map`, `filter`, `reduce`. Use `readonly` (keyword, not `Readonly<T>`) on properties, arrays and params.
+- **Types:** no `Omit`, `Pick`, `Partial`; write explicit types. Interfaces use property signatures (`readonly find: (id: string) => User`), not methods. Explicit return types on exported functions. `import { type X }` inline for type-only imports. No `any`, no non-null `!`.
+- **Logic:** `??` not `||` for defaults, `?.` not `&&` chains. No always-true/false conditions. `async` only if it awaits; `return await` inside `try`. Handle every promise (`await`, `.catch`, or return it).
+- **Modules:** named exports only (default exports allowed in `*.config.*`). No import cycles. `node:` prefix for built-ins (`node:fs`). ESM only, no `require`.
+- **Style:** `for...of`, not indexed `for`. `includes`/`some`/`flatMap`/`slice` over older forms. `throw new Error('message')`. No negated `if/else`. Full names (`event`, `error`, not `e`, `err`). File names camelCase, PascalCase or kebab-case.
+- **React (.tsx/.jsx):** hooks rules and exhaustive deps are errors. No components defined inside components, no index keys, `<>` fragments, self-closing empty tags, all jsx-a11y recommended rules.
+
+Never add `eslint-disable`. Fix the code.
+
 ## Output
 
 Unix format: `path:line:col: message [Error/rule-id]`, then a problem count. The exit code is non-zero when errors are found; that is normal, not a script failure.

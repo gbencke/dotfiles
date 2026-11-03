@@ -61,6 +61,14 @@ When multiple valid approaches exist, choose based on:
 - Use existing test utilities/helpers
 - Tests should be deterministic
 
+### TypeScript / JavaScript
+
+Write TS/JS to pass the `pinned-eslint` skill from the first draft.
+
+- Before writing any TS/JS, read the pinned-eslint `SKILL.md`, section "Write code that passes", and follow it.
+- Before calling the work done, run pinned-eslint on the changed files and fix every error. Never add `eslint-disable` or raise a limit.
+- If the repo's own ESLint or Prettier config conflicts (e.g. a wider line length), follow the repo and say so.
+
 ## Writing Guidelines
 
 ### Core Principles (Zinsser Method)
