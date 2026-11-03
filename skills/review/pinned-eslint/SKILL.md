@@ -45,6 +45,7 @@ The default config enforces these on all TS/JS files, with no exceptions for com
 | `max-nested-callbacks` | 3 |
 | `complexity` (cyclomatic) | 10 |
 | `sonarjs/cognitive-complexity` | 15 |
+| `max-len` (columns per line, no exceptions) | 80 |
 
 Report every violation as an error. Do not suggest raising a limit or adding `eslint-disable`; the fix is to split the file or function.
 

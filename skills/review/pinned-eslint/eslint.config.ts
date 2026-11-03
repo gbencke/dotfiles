@@ -489,6 +489,9 @@ export default tseslint.config(
       'max-params': ['error', 3],
       'max-nested-callbacks': ['error', 3],
       complexity: ['error', 10],
+      // Core max-len is deprecated in ESLint 9 but still works in the pinned 9.24.
+      // shortcut: switch to @stylistic/max-len before moving to ESLint 10.
+      'max-len': ['error', { code: 80 }],
     },
   },
 
