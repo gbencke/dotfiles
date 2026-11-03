@@ -125,6 +125,16 @@ export default tseslint.config(
       // Usually indicates a copy-paste error or incomplete type refactoring.
       '@typescript-eslint/no-redundant-type-constituents': 'error',
 
+      // Ban generic utility types; define purpose-specific types instead.
+      // Partial<User> / Omit<User, 'password'> hide intent and couple types.
+      '@typescript-eslint/no-restricted-types': ['error', {
+        types: {
+          Omit: 'Define the type explicitly instead.',
+          Pick: 'Define the type explicitly instead.',
+          Partial: 'Define the type explicitly instead.',
+        },
+      }],
+
       // Allow numbers and booleans in template literal expressions.
       // ${count}, ${isValid}, ${price} are idiomatic and readable.
       // The default only allows strings, which is too restrictive in practice.

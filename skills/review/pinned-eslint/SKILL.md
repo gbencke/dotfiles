@@ -48,6 +48,10 @@ The default config enforces these on all TS/JS files, with no exceptions for com
 
 Report every violation as an error. Do not suggest raising a limit or adding `eslint-disable`; the fix is to split the file or function.
 
+## Banned utility types (errors)
+
+`@typescript-eslint/no-restricted-types` bans `Omit`, `Pick` and `Partial`. Fix by writing an explicit, purpose-specific type (e.g. `type UserUpdate = { name?: string }` instead of `Partial<User>`). The rule bans the types outright; it does not measure "too much" use.
+
 ## Output
 
 Unix format: `path:line:col: message [Error/rule-id]`, then a problem count. The exit code is non-zero when errors are found; that is normal, not a script failure.
