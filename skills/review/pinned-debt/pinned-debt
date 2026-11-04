@@ -1,0 +1,102 @@
+#!/usr/bin/env zsh
+# Run a pinned debt analysis (cognitive complexity, duplication, change
+# amplification, hotspots) against one or more git repositories.
+# Tools install once into a cache; analysis runs in bwrap with no network
+# and every repo mounted read-only. Only the report dir is writable.
+# usage: pinned-debt <repo>... [--out <dir>] [--since <git date>] [--print-store]
+
+set -euo pipefail
+script_name=${0:t}
+script_dir=${0:A:h}
+
+usage() {
+  print -u2 "usage: $script_name <repo>... [--out <dir>] [--since <git date>] [--print-store]"
+  exit 64
+}
+
+typeset -a repos bargs plugins
+out=/tmp/pinned-debt-$(date +%F)
+since='12 months ago'
+print_store=false
+
+while (( $# )); do
+  case $1 in
+    --out)
+      (( $# >= 2 )) || usage
+      out=${2:A}
+      shift 2
+      ;;
+    --since)
+      (( $# >= 2 )) || usage
+      since=$2
+      shift 2
+      ;;
+    --print-store)
+      print_store=true
+      shift
+      ;;
+    -*) usage ;;
+    *)
+      [[ -d $1 ]] || { print -u2 "error: repository is not a directory: $1"; exit 66; }
+      repos+=( ${1:A} )
+      shift
+      ;;
+  esac
+done
+
+(( ${#repos} )) || $print_store || usage
+for tool in bwrap npm node python3 git sha256sum; do
+  command -v $tool >/dev/null || { print -u2 "error: install $tool"; exit 69; }
+done
+
+if (( ${+PINNED_DEBT_PLUGINS} )); then
+  plugins=( ${(z)PINNED_DEBT_PLUGINS} )
+else
+  plugins=(
+    'eslint@9.24.0'
+    'typescript@5.8.3'
+    'typescript-eslint@8.29.0'
+    'eslint-plugin-sonarjs@3.0.2'
+    'jscpd@4.0.5'
+  )
+fi
+py_packages=( ${(z)${PINNED_DEBT_PY:-complexipy==8.3.0}} )
+fingerprint=$(print -r -- "${(F)plugins}" "${py_packages[*]}" "$(python3 --version)" | sha256sum)
+store=${XDG_CACHE_HOME:-$HOME/.cache}/pinned-debt/${fingerprint%% *}
+
+if [[ ! -f $store/.complete ]]; then
+  print -u2 ">> installing ${plugins[*]} ${py_packages[*]}"
+  rm -rf -- "$store"
+  mkdir -p "$store"
+  npm install --prefix "$store" --no-save --no-audit --no-fund --loglevel=error \
+    "${plugins[@]}" >&2
+  python3 -m venv "$store/py"
+  "$store/py/bin/pip" install --quiet --disable-pip-version-check "${py_packages[@]}" >&2
+  touch "$store/.complete"
+fi
+
+if $print_store; then
+  print -r -- "$store"
+  exit 0
+fi
+
+# The config must sit in the store so its imports resolve to the pinned plugins.
+mkdir -p "$store/config" "$out"
+cp "$script_dir/eslint.debt.config.mjs" "$store/config/"
+
+bargs=(
+  --die-with-parent
+  --unshare-net
+  --ro-bind / /
+  --proc /proc
+  --dev /dev
+  --tmpfs /tmp
+  --bind "$out" "$out"
+  --setenv PINNED_DEBT_STORE "$store"
+)
+for repo in "${repos[@]}"; do
+  bargs+=( --ro-bind "$repo" "$repo" )
+done
+
+bwrap "${bargs[@]}" \
+  python3 "$script_dir/debt_analysis.py" --out "$out" --since "$since" "${repos[@]}"
