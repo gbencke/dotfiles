@@ -218,11 +218,21 @@ another report arrived. Write `$WORK/<LENS_SLUG>-judge.task.json`:
   "prior_file": "<WORK>/prior.json",
   "intent": "<PR title/body, ticket summary, or 'unknown intent (patch)'>",
   "report_md": "<TARGET_DIR>/.gbencke/adversarial-review/reports/<UTCstamp>-<target>-<scope>-<LENS_SLUG>.md",
+  "meta": {"target": "<target>", "pr_number": <n or null>, "date": "<UTC ISO, Z>", "head_sha": "<full SHA or null>", "base_sha": "<full SHA or null>", "patch_sha256": "<digest or null>", "patch_path": "<absolute, patch reviews only>", "snapshot_consistent": true, "lenses": ["<selected lenses>"]},
   "context": "<repository, target, pr_number, full base/head SHAs or patch path + digest, UTC date, snapshot_consistent, lenses, scope (full | verify + finding IDs), coverage matrix, blast radius, failed steps with logs, not-reviewed limitations>"
 }
 ```
 
-`scope` in the filename is `full` or `verify`. Run `run-phase.mjs judge <task>`.
+`scope` in the filename is `full` or `verify`.
+`meta` repeats the pinned identity as data. The launcher needs it only when the
+judge input is over its budget (about 150 KB of envelopes plus prior ledger):
+then shard judges decide in parallel, code assembles the ledger and applies the
+gates, and one final judge adds cross-shard merges, coverage and notes (ADR 0007).
+A shard that fails is retried once on its own; a second failure ends the judge
+step. Same `run-phase.mjs judge <task>` command either way. Verification
+judges are never sharded.
+
+Run `run-phase.mjs judge <task>`.
 The judge child applies `agents/judge.md` and the v2 gates and returns the sidecar
 plus short prose notes; the launcher renders the markdown, writes both files
 exclusively and validates them, printing `REPORT: <md>` only on

@@ -87,7 +87,7 @@ The launcher runs standalone too, and self-checks without starting pi:
 ```
 bin/run-matrix.sh --log-dir /tmp/logs ~/repo-a ~/repo-b
 bin/test-run-matrix.sh
-node --test bin/test-report-tools.mjs bin/test-run-phase.mjs
+node --test bin/test-report-tools.mjs bin/test-run-phase.mjs bin/test-judge-shards.mjs
 node --experimental-default-type=module --experimental-strip-types --test bin/test-extension.mjs
 
 # Read-only helpers; paths are absolute:

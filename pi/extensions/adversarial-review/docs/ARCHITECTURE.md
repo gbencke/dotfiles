@@ -9,7 +9,8 @@ freeze revision + collect prior ledger
       → per task: run-phase.mjs pair = propose → challenge
       (each a fresh pi -p child; lossless JSON records + manifest.tsv in $WORK)
   → gather missing evidence / record incomplete coverage
-  → run-phase.mjs judge (child returns sidecar + prose notes as JSON)
+  → run-phase.mjs judge (child returns sidecar + prose notes as JSON;
+    over budget: shard judges in parallel → code assembles → final judge, ADR 0007)
   → launcher renders markdown, writes both exclusively → validate → REPORT
   → orchestrator: finalized scoped summary
 
@@ -38,6 +39,7 @@ Parallelism remains in the matrix launcher.
 | `agents/*.md` | Discovery, challenge, judgment. Preserve complete finding evidence across phases. |
 | `lenses/*` | Domain rules and signals, including project overlays. |
 | `bin/run-phase.mjs` | Build a context pack per task, run one locked-down `pi -p` phase child, check its JSON (lossless envelopes), and for the judge render the markdown from the sidecar, then write + validate artifacts exclusively. |
+| `bin/judge-shards.mjs` | Sharded judge data path (no model): partition envelopes + prior ledger, check shard decisions, assemble the ledger, apply final merges, build the sidecar with computed counts and verdict. |
 | `bin/run-lenses.sh` | Shared pool, one slot per lens, running every `run-phase.mjs pair` task; writes `manifest.tsv` (completion order), exits 1 on any failed pair. |
 | `bin/run-matrix.sh` | Parallel CLI runs and manifest; validates report paths/sidecars before accepting them. |
 | `bin/test-*.mjs`, `bin/test-run-matrix.sh` | Built-in Node tests, SDK-wiring check, launcher and phase-runner checks with a fake `pi`. |

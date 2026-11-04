@@ -257,3 +257,57 @@ test("run-lenses marks failed pairs and exits nonzero; empty dir is a usage erro
   mkdirSync(join(root, "tasks-none"));
   assert.equal(spawnSync(lenses, [join(root, "tasks-none")]).status, 2);
 });
+
+test("a judge input over budget runs shard judges, assembles in code, and publishes a valid report", () => {
+  const full = { ...finding, lens: "design", severity: "P2", title: "t", root_cause: "rc", suggestion: "s" };
+  const envFile = join(root, "sharded-envelopes.json");
+  writeFileSync(envFile, JSON.stringify([{ ...envelope, finding: full }]));
+  const md = join(reports, "20260101-000003-repo-sharded.md");
+  const meta = { target: "repo:sharded", date: new Date().toISOString().replace(/\.\d+Z$/, "Z"), head_sha: head, base_sha: null, snapshot_consistent: true, lenses: ["design"] };
+  const task = taskFile(join(root, "sharded"), "judge", { id: "sharded-judge", envelope_files: [envFile], report_md: md, meta, judge_shard_bytes: 1 });
+  const shardRows = [{ id: "deep-module", sources: ["E1"], base: "E1", status: "open", severity: "P2" }];
+  const final = { merges: [], coverage: sidecar().coverage, solution_fit: null, notes: "## Per-lens health\n\nFINAL-NOTES" };
+  const r = spawnSync("node", [cli, "judge", task], { encoding: "utf8", env: fakeEnv({ "judge-shard": shardRows, "judge-final": final }) });
+  assert.equal(r.status, 0, r.stderr);
+  assert.equal(r.stdout.trim(), `REPORT: ${md}`);
+  assert.match(r.stderr, /1 shard\(s\)/);
+  const s = JSON.parse(readFileSync(md.replace(/\.md$/, ".findings.json"), "utf8"));
+  assert.equal(s.findings[0].root_cause, "rc", "finding text copied by code, not by the model");
+  assert.deepEqual(s.counts, { ...countsFor([]), P2: 1 });
+  assert.equal(s.verdict.overall, "SHIP");
+  assert.match(readFileSync(md, "utf8"), /FINAL-NOTES/);
+  const work = join(root, "work");
+  assert.match(readFileSync(join(work, "sharded-judge-shard-01.context.md"), "utf8"), /### E1 \(.*sharded-envelopes\.json#0\)/);
+  assert.match(readFileSync(join(work, "sharded-judge-final.context.md"), "utf8"), /deep-module \| open \| P2 \| VALID \| design/);
+
+  const md2 = join(reports, "20260101-000004-repo-sharded.md");
+  const task2 = taskFile(join(root, "sharded"), "judge2", { id: "sharded-bad", envelope_files: [envFile], report_md: md2, meta, judge_shard_bytes: 1 });
+  const bad = spawnSync("node", [cli, "judge", task2], { encoding: "utf8", env: fakeEnv({ "judge-shard": [], "judge-final": final }) });
+  assert.equal(bad.status, 1);
+  assert.match(bad.stderr, /sharded-bad-shard-01-retry failed[\s\S]*failed twice/);
+  assert.ok(!existsSync(md2), "no report when a shard fails twice");
+  const noMeta = taskFile(join(root, "sharded"), "judge3", { id: "sharded-nometa", envelope_files: [envFile], report_md: md2, judge_shard_bytes: 1 });
+  assert.equal(spawnSync("node", [cli, "judge", noMeta], { encoding: "utf8", env: fakeEnv({}) }).status, 2);
+});
+
+test("reuse_from reuses saved shard decisions when the shard input is unchanged", () => {
+  const full = { ...finding, lens: "design", severity: "P2", title: "t", root_cause: "rc", suggestion: "s" };
+  const envFile = join(root, "reuse-envelopes.json");
+  writeFileSync(envFile, JSON.stringify([{ ...envelope, finding: full }]));
+  const meta = { target: "repo:reuse", date: new Date().toISOString().replace(/\.\d+Z$/, "Z"), head_sha: head, base_sha: null, snapshot_consistent: true, lenses: ["design"] };
+  const shardRows = [{ id: "deep-module", sources: ["E1"], base: "E1", status: "open", severity: "P2" }];
+  const goodFinal = { merges: [], coverage: sidecar().coverage, solution_fit: null, notes: "" };
+  const badFinal = { ...goodFinal, coverage: [{ ...goodFinal.coverage[0], evidence: [] }] };
+  const md1 = join(reports, "20260101-000005-repo-reuse.md");
+  const first = taskFile(join(root, "reuse"), "first", { id: "reuse-1", envelope_files: [envFile], report_md: md1, meta, judge_shard_bytes: 1 });
+  const r1 = spawnSync("node", [cli, "judge", first], { encoding: "utf8", env: fakeEnv({ "judge-shard": shardRows, "judge-final": badFinal }) });
+  assert.equal(r1.status, 1);
+  assert.match(r1.stderr, /failed validation/);
+  rmSync(join(root, "work", "reuse-1-final.json")); // the final decision was the bad part: rerun only it
+  const md2 = join(reports, "20260101-000006-repo-reuse.md");
+  const second = taskFile(join(root, "reuse"), "second", { id: "reuse-2", envelope_files: [envFile], report_md: md2, meta, judge_shard_bytes: 1, reuse_from: "reuse-1" });
+  const r2 = spawnSync("node", [cli, "judge", second], { encoding: "utf8", env: fakeEnv({ "judge-shard": [], "judge-final": goodFinal }) });
+  assert.equal(r2.status, 0, r2.stderr);
+  assert.match(r2.stderr, /reused reuse-1-shard-01 decisions/);
+  assert.ok(!existsSync(join(root, "work", "reuse-2-shard-01.context.md")), "no shard child ran");
+});

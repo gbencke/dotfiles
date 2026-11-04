@@ -162,11 +162,22 @@ arrived. Then write `$WORK/<LENS_SLUG>-judge.task.json`:
   "envelope_files": ["<every ENVELOPES path, in chunk order>"],
   "prior_file": "<the collector output from Phase 1>",
   "report_md": "<TARGET_DIR>/.gbencke/adversarial-review/reports/<UTC-yyyymmdd-hhmmss>-repo-<LENS_SLUG>.md",
+  "meta": {"target": "repo:<LENS_SLUG>", "pr_number": null, "date": "<UTC ISO, Z>", "head_sha": "<full head SHA>", "base_sha": null, "patch_sha256": null, "snapshot_consistent": true, "lenses": ["<selected lenses>"]},
   "context": "<repo name; target repo:<LENS_SLUG>; head SHA, null base, UTC date, snapshot_consistent; selected lenses; chunk count; the full coverage matrix; failed or skipped chunks with their logs>"
 }
 ```
 
-Run `run-phase.mjs judge <task>`. The child returns the v2 sidecar and short
+`meta` repeats the pinned identity as data. The launcher needs it only when the
+judge input is over its budget (about 150 KB of envelopes plus prior ledger):
+then shard judges decide in parallel, code assembles the ledger and applies the
+gates, and one final judge adds cross-shard merges, coverage and notes (ADR 0007).
+A shard that fails is retried once on its own; a second failure ends the judge
+step. Same `run-phase.mjs judge <task>` command either way. If the failure came from the
+launcher, not from a child's decisions, the retry may set `reuse_from` to the failed
+judge id to reuse its saved decisions without new model calls.
+
+Run `run-phase.mjs judge <task>` in the background (`nohup … &`) and poll its log:
+a sharded judge outlives a tool timeout. The child returns the v2 sidecar and short
 prose notes as JSON; the launcher renders the markdown from them, writes both
 files exclusively (never overwriting
 another lens's report) and validates them. Its last line is `REPORT: <md>` only

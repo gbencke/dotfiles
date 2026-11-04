@@ -185,6 +185,38 @@ export function countsFor(findings, uncertain = false) {
   );
 }
 
+export function expectedVerdict(report) {
+  const findings = Array.isArray(report?.findings) ? report.findings : [];
+  const coverage = Array.isArray(report?.coverage) ? report.coverage : [];
+  const criticalGap =
+    report?.snapshot_consistent !== true ||
+    coverage.some(
+      (c) => c.critical && ["unresolved", "not_inspected"].includes(c.status),
+    ) ||
+    findings.some(
+      (f) =>
+        active(f) &&
+        (f.status === "not_rechecked" ||
+          (["P0", "P1"].includes(f.severity) &&
+            f.challenge?.state === "AMBIGUOUS")),
+    );
+  const valid = findings.filter(
+    (f) => active(f) && f.challenge?.state === "VALID",
+  );
+  const p0 = valid.some((f) => f.severity === "P0");
+  const p1 = valid.some((f) => f.severity === "P1");
+  const fit = report?.verdict?.solution_fit;
+  const overall =
+    p0 || fit === "WRONG-APPROACH"
+      ? "DO-NOT-SHIP"
+      : criticalGap
+        ? "INCOMPLETE"
+        : p1 || fit === "QUESTIONABLE"
+          ? "FIX-THEN-SHIP"
+          : "SHIP";
+  return { overall, criticalGap, p0, p1, valid: valid.length };
+}
+
 export function validateReport(
   report,
   prior = { findings: [], prior_reports: [] },
@@ -459,18 +491,7 @@ export function validateReport(
       check(text(item.reason), `${item.id}: not_applicable needs a reason`);
   }
 
-  const criticalGap =
-    report?.snapshot_consistent !== true ||
-    coverage.some(
-      (c) => c.critical && ["unresolved", "not_inspected"].includes(c.status),
-    ) ||
-    findings.some(
-      (f) =>
-        active(f) &&
-        (f.status === "not_rechecked" ||
-          (["P0", "P1"].includes(f.severity) &&
-            f.challenge?.state === "AMBIGUOUS")),
-    );
+  const { criticalGap, p0, p1, overall: expected } = expectedVerdict(report);
   const verdict = report?.verdict ?? {};
   if (report?.mode === "verification") {
     check(
@@ -515,19 +536,6 @@ export function validateReport(
       report?.scope?.kind === "full",
       "full reviews require scope.kind=full (within the explicitly listed lenses)",
     );
-    const valid = findings.filter(
-      (f) => active(f) && f.challenge?.state === "VALID",
-    );
-    const p0 = valid.some((f) => f.severity === "P0");
-    const p1 = valid.some((f) => f.severity === "P1");
-    const expected =
-      p0 || verdict.solution_fit === "WRONG-APPROACH"
-        ? "DO-NOT-SHIP"
-        : criticalGap
-          ? "INCOMPLETE"
-          : p1 || verdict.solution_fit === "QUESTIONABLE"
-            ? "FIX-THEN-SHIP"
-            : "SHIP";
     check(
       verdict.overall === expected,
       `overall must be ${expected}; scope/closure gates take precedence over zero new findings`,

@@ -6,6 +6,10 @@
 //
 // Usage: run-phase.mjs <propose|challenge|judge|pair> <task.json>
 //
+// `judge` over its input budget runs `judge-shard` children in parallel, then one
+// `judge-final` child; bin/judge-shards.mjs does the copying and the gates
+// (docs/adr/0007-sharded-judge.md).
+//
 // `pair` = propose, then challenge the result (skipped when empty) for one
 // slice. Ids become <id>-propose / <id>-challenge; prints the envelopes path.
 // bin/run-lenses.sh runs pairs for several lenses in parallel.
@@ -24,12 +28,15 @@
 //   prior_file    collector output (report-tools.mjs collect)            (judge)
 //   intent        change intent text                                     (judge)
 //   report_md     <target>/.gbencke/adversarial-review/reports/<name>.md (judge)
+//   meta          pinned identity {target, date, head_sha, base_sha, …}  (sharded judge)
+//   judge_shard_bytes, judge_slots  optional sharding budget / parallelism
+//   reuse_from    earlier judge id: reuse its saved shard/final decisions (launcher fixes only)
 //   model, timeout_seconds  optional
 //
 // Writes <work_dir>/<id>.context.md, .out, .err, .json. Prints `RESULT: <json>`
 // (propose/challenge) or `REPORT: <md>` (judge, only after validation).
 // Exit: 0 ok, 1 child/output/validation failure, 2 bad usage or task.
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import {
   closeSync,
   existsSync,
@@ -43,13 +50,19 @@ import {
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { reportHeading, validateFile } from "./report-tools.mjs";
+import { applyMerges, assemble, buildSidecar, checkShard, indexLines, lensCounts, numberEnvelopes, partition } from "./judge-shards.mjs";
 
 const BASE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PHASES = {
   propose: { role: "reviewer", contract: false },
   challenge: { role: "challenger", contract: true },
   judge: { role: "judge", contract: true },
+  "judge-shard": { role: "judge-shard", contract: true },
+  "judge-final": { role: "judge-final", contract: true },
 };
+const isJudge = (phase) => phase.startsWith("judge");
+const SHARD_BYTES = 150_000; // judge input above this is sharded (docs/adr/0007-sharded-judge.md)
+const SHARD_SLOTS = 8;
 const STATES = new Set(["VALID", "INVALID", "AMBIGUOUS"]);
 
 class UsageError extends Error {}
@@ -83,7 +96,7 @@ export function loadTask(phase, path) {
   mkdirSync(task.work_dir, { recursive: true });
   task.work_dir = realpathSync(task.work_dir);
   if (inside(task.work_dir, task.target_dir)) throw new UsageError(scratchError);
-  if (phase !== "judge") {
+  if (!isJudge(phase)) {
     need("lens", (v) => typeof v === "string" && /^[\w-]+$/.test(v));
     need("scope");
   }
@@ -92,8 +105,10 @@ export function loadTask(phase, path) {
     if (resolve(task.findings_file) === join(task.work_dir, `${task.id}.json`))
       throw new UsageError("challenge task.id must differ from the propose id; it would overwrite its own input");
   }
-  if (phase === "judge") {
-    need("envelope_files", (v) => Array.isArray(v) && v.every(absDir)); // empty: no chunk had a candidate
+  if (phase === "judge-shard") need("shard_file", absDir);
+  if (phase === "judge-final") need("assembled_file", absDir);
+  if (phase === "judge" || phase === "judge-final") {
+    if (phase === "judge") need("envelope_files", (v) => Array.isArray(v) && v.every(absDir)); // empty: no chunk had a candidate
     need("report_md", (v) => absDir(v) && v.endsWith(".md"));
     const reports = join(task.target_dir, ".gbencke", "adversarial-review", "reports");
     if (dirname(task.report_md) !== reports)
@@ -120,7 +135,7 @@ export function buildContext(phase, task) {
     RULES: "the “Lens rules” section below",
     SCOPE: "the “Scope” section below",
     TARGET_DIR: task.target_dir,
-    FINDINGS: phase === "judge" ? "the “Challenged envelopes” section below" : "the “Findings to challenge” section below",
+    FINDINGS: isJudge(phase) ? "the “Challenged envelopes” section below" : "the “Findings to challenge” section below",
     MODE: task.mode,
     INTENT: task.intent || "unknown — see the “Orchestrator context” section",
     CONTEXT: "the “Orchestrator context” section below",
@@ -133,6 +148,8 @@ export function buildContext(phase, task) {
     propose: "a JSON array of complete findings (empty array if none survive)",
     challenge: "a JSON array with exactly one lossless envelope per input finding, same order",
     judge: 'one JSON object {"sidecar": {<complete schema-v2 sidecar>}, "notes": "<markdown prose sections only>"}',
+    "judge-shard": "a JSON array of decision rows, one per root cause, covering every envelope ref of this shard",
+    "judge-final": 'one JSON object {"merges": [...], "coverage": [...], "solution_fit": <string or null>, "notes": "<markdown prose sections only>"}',
   }[phase];
   const s = [
     `# adversarial-review — ${phase} phase (${task.id})`,
@@ -145,7 +162,7 @@ export function buildContext(phase, task) {
     `- Review mode: ${task.mode}`,
     "- Never modify any file. Never execute reviewed code, tests, builds, or live services.",
     "- Never ask questions; nobody is there to answer.",
-    phase === "judge"
+    isJudge(phase)
       ? "- Do NOT write the artifacts or run the validator: the launcher writes your JSON to disk and validates it."
       : "- Read source yourself with your tools; only the paths listed below are in scope.",
     `- Reply with ${output} inside a single fenced \`\`\`json block. Nothing after it; the launcher parses the last json block.`,
@@ -160,7 +177,33 @@ export function buildContext(phase, task) {
   if (task.context) s.push("", "## Orchestrator context", "", task.context);
   if (phase === "challenge")
     s.push("", "## Findings to challenge (verbatim proposer output)", "", fenced(readJSON(task.findings_file)));
-  if (phase === "judge") {
+  if (phase === "judge-shard") {
+    const shard = readJSON(task.shard_file);
+    s.push("", "## Prior ledger rows owned by this shard (verbatim)", "", shard.priors.length ? fenced(shard.priors) : "(none)");
+    s.push("", "## Prior ids owned by other shards (never use one as a row id)", "", shard.foreign_prior_ids.join(", ") || "(none)");
+    s.push("", "## Challenged envelopes of this shard (verbatim; cite them by ref)");
+    for (const e of shard.envelopes) s.push("", `### ${e.ref} (${e.source})`, "", fenced(e.envelope));
+  }
+  if (phase === "judge-final") {
+    const assembled = readJSON(task.assembled_file);
+    s.push(
+      "",
+      "## Assembled ledger",
+      "",
+      `Full rows: ${task.assembled_file} (read it, or the envelope files named in each row's \`envelope_refs\`, when a merge or coverage call needs detail).`,
+      "",
+      "Index — id | status | severity | challenge | lenses | file:line | title:",
+      "",
+      "```text",
+      ...indexLines(assembled.findings),
+      "```",
+      "",
+      "Active rows per lens (confirmed by severity, uncertain, not_rechecked):",
+      "",
+      fenced(lensCounts(assembled.findings)),
+    );
+  }
+  if (phase === "judge" || phase === "judge-final") {
     const md = task.report_md;
     s.push(
       "",
@@ -169,17 +212,17 @@ export function buildContext(phase, task) {
       `- Markdown: ${md}`,
       `- Sidecar: ${md.replace(/\.md$/, ".findings.json")} — its \`repository\` must be ${task.target_dir}`,
     );
-    if (task.prior_file) s.push("", "## Prior ledger (collector output, verbatim)", "", fenced(readJSON(task.prior_file)));
-    s.push("", "## Challenged envelopes (verbatim challenger outputs)");
-    if (!task.envelope_files.length) s.push("", "(none — no slice produced a candidate finding)");
-    for (const file of task.envelope_files) s.push("", `### ${file}`, "", fenced(readJSON(file)));
+    if (phase === "judge" && task.prior_file) s.push("", "## Prior ledger (collector output, verbatim)", "", fenced(readJSON(task.prior_file)));
+    if (phase === "judge") s.push("", "## Challenged envelopes (verbatim challenger outputs)");
+    if (phase === "judge" && !task.envelope_files.length) s.push("", "(none — no slice produced a candidate finding)");
+    for (const file of phase === "judge" ? task.envelope_files : []) s.push("", `### ${file}`, "", fenced(readJSON(file)));
   }
   if (PHASES[phase].contract) s.push("", "## Report contract (docs/report-contract.md)", "", read(join(BASE, "docs", "report-contract.md")));
   return s.join("\n") + "\n";
 }
 
 export function piArgs(phase, task, contextPath) {
-  const tools = phase === "judge" ? "read" : task.mode === "repo" ? "read,grep,find,ls" : "read,grep,find,ls,bash";
+  const tools = isJudge(phase) ? "read" : task.mode === "repo" ? "read,grep,find,ls" : "read,grep,find,ls,bash";
   return [
     "-p",
     "--no-session",
@@ -220,6 +263,12 @@ export function checkResult(phase, result, task) {
       if (!STATES.has(e?.challenge?.state)) throw new Error(`envelope ${i} challenge.state must be VALID, INVALID, or AMBIGUOUS`);
       if (!e.disposition || typeof e.disposition !== "object") throw new Error(`envelope ${i} has no disposition`);
     });
+  } else if (phase === "judge-shard") {
+    const shard = readJSON(task.shard_file);
+    checkShard(result, shard, shard.foreign_prior_ids);
+  } else if (phase === "judge-final") {
+    if (typeof result?.notes !== "string" || !Array.isArray(result.coverage) || !result.coverage.length || !Array.isArray(result.merges ?? []))
+      throw new Error('judge-final output must be {"merges": [], "coverage": [non-empty], "solution_fit": ..., "notes": string}');
   } else if (typeof result?.notes !== "string" || !result.sidecar || typeof result.sidecar !== "object") {
     throw new Error('judge output must be {"sidecar": object, "notes": string}');
   }
@@ -363,11 +412,139 @@ export function runPair(taskPath) {
   return `RESULT: ${empty}`;
 }
 
+const SELF = fileURLToPath(import.meta.url);
+const log = (message) => console.error(`run-phase: ${message}`);
+
+function spawnPhase(phase, taskPath) {
+  return new Promise((done) => {
+    const child = spawn(process.execPath, [SELF, phase, taskPath], { stdio: ["ignore", "pipe", "pipe"] });
+    let out = "";
+    let err = "";
+    child.stdout.on("data", (d) => (out += d));
+    child.stderr.on("data", (d) => (err += d));
+    child.on("error", (e) => done({ code: 1, out, err: err + e.message }));
+    child.on("close", (code) => done({ code, out, err }));
+  });
+}
+
+async function pool(items, slots, work) {
+  const results = new Array(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next++;
+      results[i] = await work(items[i], i);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(slots, items.length) }, worker));
+  return results;
+}
+
+export function checkMeta(meta) {
+  const sha = (v) => v == null || /^[a-f0-9]{40}$/.test(v);
+  const ok =
+    meta &&
+    typeof meta.target === "string" &&
+    typeof meta.date === "string" &&
+    /Z$/.test(meta.date) &&
+    Array.isArray(meta.lenses) &&
+    meta.lenses.length > 0 &&
+    typeof meta.snapshot_consistent === "boolean" &&
+    sha(meta.head_sha) &&
+    sha(meta.base_sha);
+  if (!ok)
+    throw new UsageError(
+      "a sharded judge needs task.meta {target, date (UTC Z), lenses[], snapshot_consistent, head_sha, base_sha, pr_number, patch_sha256}",
+    );
+}
+
+/**
+ * The judge step. Small inputs: one judge child writes the whole sidecar (ADR 0006).
+ * Large inputs: shard judges decide in parallel, code assembles the ledger and
+ * applies the gates, one final judge merges across shards and writes coverage and
+ * notes (ADR 0007). Either way publish() writes and validates the artifacts.
+ */
+export async function runJudge(taskPath) {
+  const task = loadTask("judge", taskPath);
+  const files = task.envelope_files.map((path) => ({ path, envelopes: readJSON(path) }));
+  const prior = task.prior_file ? readJSON(task.prior_file) : { findings: [], prior_reports: [] };
+  const budget = task.judge_shard_bytes ?? SHARD_BYTES;
+  const total = JSON.stringify(files).length + JSON.stringify(prior.findings ?? []).length;
+  if (task.mode === "verification" || total <= budget) return runPhase("judge", taskPath);
+  checkMeta(task.meta);
+
+  const base = { mode: task.mode, target_dir: task.target_dir, work_dir: task.work_dir, context: task.context, model: task.model, timeout_seconds: task.timeout_seconds };
+  const writeTask = (id, extra) => {
+    const path = join(task.work_dir, `${id}.task.json`);
+    writeFileSync(path, JSON.stringify({ ...base, id, ...extra }, null, 2));
+    return path;
+  };
+  const shards = partition(numberEnvelopes(files), prior.findings ?? [], budget);
+  // reuse_from: an earlier judge id in this work dir. Its saved decisions are reused
+  // where the shard input is byte-identical, e.g. after a launcher fix; no model reruns.
+  const reused = (oldId, data) => {
+    if (!task.reuse_from) return null;
+    const oldShard = join(task.work_dir, `${oldId}.shard.json`);
+    if (!existsSync(oldShard) || read(oldShard) !== JSON.stringify(data, null, 2)) return null;
+    for (const attempt of [oldId, `${oldId}-retry`]) {
+      const file = join(task.work_dir, `${attempt}.json`);
+      if (!existsSync(file)) continue;
+      const rows = readJSON(file);
+      checkShard(rows, data, data.foreign_prior_ids);
+      log(`judge: reused ${attempt} decisions`);
+      return rows;
+    }
+    return null;
+  };
+  const allPriorIds = (prior.findings ?? []).flatMap((p) => [p.id, ...(p.aliases ?? [])]);
+  log(`judge: ${total} bytes -> ${shards.length} shard(s), ${Math.min(SHARD_SLOTS, shards.length)} at a time`);
+  const decisions = await pool(shards, task.judge_slots ?? SHARD_SLOTS, async (shard, i) => {
+    const id = `${task.id}-shard-${String(i + 1).padStart(2, "0")}`;
+    const own = new Set(shard.priors.flatMap((p) => [p.id, ...(p.aliases ?? [])]));
+    const shardFile = join(task.work_dir, `${id}.shard.json`);
+    const data = { ...shard, foreign_prior_ids: allPriorIds.filter((x) => !own.has(x)) };
+    writeFileSync(shardFile, JSON.stringify(data, null, 2));
+    const saved = reused(`${id.replace(task.id, task.reuse_from)}`, data);
+    if (saved) return saved;
+    for (const attempt of [id, `${id}-retry`]) {
+      const r = await spawnPhase("judge-shard", writeTask(attempt, { shard_file: shardFile }));
+      const result = r.out.match(/^RESULT: (.+)$/m)?.[1];
+      if (r.code === 0 && result) {
+        log(`judge: ${attempt} ok (${shard.envelopes.length} envelopes, ${shard.priors.length} prior rows)`);
+        return readJSON(result);
+      }
+      log(`judge: ${attempt} failed: ${r.err.trim().split("\n").slice(-3).join(" | ")}`);
+    }
+    throw new Error(`shard ${id} failed twice; see ${join(task.work_dir, `${id}-retry.err`)}`);
+  });
+
+  const findings = assemble(shards, decisions, prior.findings ?? [], task.meta);
+  const assembledFile = join(task.work_dir, `${task.id}-assembled.json`);
+  writeFileSync(assembledFile, JSON.stringify({ findings }, null, 2));
+  log(`judge: assembled ${findings.length} ledger rows; running the final judge`);
+  const savedFinal = task.reuse_from && join(task.work_dir, `${task.reuse_from}-final.json`);
+  const final = savedFinal && existsSync(savedFinal)
+    ? (log(`judge: reused ${task.reuse_from}-final decisions`), readJSON(savedFinal))
+    : readJSON(runPhase("judge-final", writeTask(`${task.id}-final`, { assembled_file: assembledFile, report_md: task.report_md })).slice("RESULT: ".length));
+  checkResult("judge-final", final, task);
+  const sidecar = buildSidecar({
+    meta: task.meta,
+    mode: task.mode,
+    repository: task.target_dir,
+    priorReports: prior.prior_reports ?? [],
+    findings: applyMerges(findings, final.merges),
+    coverage: final.coverage,
+    solutionFit: final.solution_fit,
+  });
+  return `REPORT: ${publish(task, { sidecar, notes: final.notes })}`;
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [phase, taskPath, ...rest] = process.argv.slice(2);
   try {
-    if (!phase || !taskPath || rest.length) throw new UsageError("usage: run-phase.mjs <propose|challenge|judge|pair> <task.json>");
-    console.log(phase === "pair" ? runPair(resolve(taskPath)) : runPhase(phase, resolve(taskPath)));
+    if (!phase || !taskPath || rest.length) throw new UsageError("usage: run-phase.mjs <propose|challenge|judge|judge-shard|judge-final|pair> <task.json>");
+    const path = resolve(taskPath);
+    console.log(phase === "pair" ? runPair(path) : phase === "judge" ? await runJudge(path) : runPhase(phase, path));
   } catch (error) {
     console.error(`run-phase: ${error.message}`);
     process.exitCode = error instanceof UsageError ? 2 : 1;
