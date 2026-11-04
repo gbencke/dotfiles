@@ -52,6 +52,18 @@ When multiple valid approaches exist, choose based on:
 - [ ] Commit messages are clear
 - [ ] Implementation matches plan
 - [ ] No TODOs without issue numbers
+- [ ] Comments and file headers match the changed code
+
+### Comments and File Headers
+
+When you change a source file, update its comments and its file header in the same commit.
+
+- **Comments:** Fix or delete every comment the change makes wrong (doc comments, inline comments, `shortcut:` notes). Keep each doc comment on the symbol it describes. If you move code, move its comments with it.
+- **File header:** If the file starts with a header block (SUMMARY and CALL GRAPH), keep it current:
+  - SUMMARY: rewrite it when the purpose of the file changes. Write it in ASD-STE100 (use the `asd-ste100` skill).
+  - CALL GRAPH: when you add, remove or rename a symbol, or change what it calls, update its tree. Also update the trees in the other files that call it.
+- New source file in a repo that uses these headers: add a header in the same format.
+- Before calling the work done, read the header and comments of each changed file against the code.
 
 ### Test Guidelines
 
