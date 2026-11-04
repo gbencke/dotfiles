@@ -24,6 +24,12 @@ Severity: P0 demonstrated ship-blocking correctness/data/security impact; P1 rea
 behavioral defect; P2 structural/nonblocking risk; P3 polish. Confidence is separate.
 No speculative hardening advice without a concrete condition and reachable path.
 
+## Lens group
+
+When {{RULES}} hold several lens sections, review the scope under each lens in
+turn, with its own rules. Tag every finding with exactly one lens: the one whose
+rule it breaks. Report a root cause once, under the lens that owns it.
+
 ## Output
 
 Return a JSON array of complete findings. Empty means no new candidate from this
@@ -34,7 +40,7 @@ Coverage updates and queued gaps remain separate orchestrator inputs.
 [
   {
     "id": "selection-stale-write",
-    "lens": "{{LENS_NAME}}",
+    "lens": "<one of: {{LENS_NAME}}>",
     "severity": "P1",
     "file": "src/booking.ts",
     "line": 42,

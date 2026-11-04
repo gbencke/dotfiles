@@ -24,6 +24,11 @@ Missing inspectable evidence returns to discovery; only irreducible runtime/doma
 uncertainty is AMBIGUOUS. New concerns noticed here go to the discovery queue, not
 this challenge output. Mark uninspected coverage if they cannot be investigated.
 
+## Lens group
+
+When several lens sections are given, challenge each finding under the rules of
+the lens in its own `lens` field. Never change that field.
+
 ## Lossless output
 
 Return one envelope per input finding, in order. Preserve **every original finding
@@ -35,7 +40,7 @@ The judge keeps these envelopes; dropping the finding would lose its evidence.
   {
     "finding": {
       "id": "selection-stale-write",
-      "lens": "{{LENS_NAME}}",
+      "lens": "<one of: {{LENS_NAME}}>",
       "severity": "P1",
       "file": "src/booking.ts",
       "line": 42,

@@ -19,7 +19,8 @@
 //   mode          repo | change | verification                           (all)
 //   target_dir    reviewed repository root                               (all)
 //   work_dir      scratch dir OUTSIDE target_dir                         (all)
-//   lens          lens name                                (propose, challenge)
+//   lens          lens name, or a lens group: list of names, one rules
+//                 section each, findings tagged with one of them (propose, challenge)
 //   scope         what this child reviews (chunk / slice / finding IDs)
 //   paths         files in scope (child reads them itself)
 //   context       orchestrator notes: ledger rows, invariant rows, diff path…
@@ -31,10 +32,13 @@
 //   meta          pinned identity {target, date, head_sha, base_sha, …}  (sharded judge)
 //   judge_shard_bytes, judge_slots  optional sharding budget / parallelism
 //   reuse_from    earlier judge id: reuse its saved shard/final decisions (launcher fixes only)
-//   model, timeout_seconds  optional
+//   model         optional, judge phases only; propose/challenge always run LENS_MODEL
+//   timeout_seconds  optional
 //
-// Writes <work_dir>/<id>.context.md, .out, .err, .json. Prints `RESULT: <json>`
-// (propose/challenge) or `REPORT: <md>` (judge, only after validation).
+// Writes <work_dir>/<id>.context.md, .out, .err, .json. The child's pi
+// session goes to ~/.pi/agent/sessions/--adversarial-review--/ so its cost
+// is on record. Prints `RESULT: <json>` (propose/challenge) or
+// `REPORT: <md>` (judge, only after validation).
 // Exit: 0 ok, 1 child/output/validation failure, 2 bad usage or task.
 import { spawn, spawnSync } from "node:child_process";
 import {
@@ -47,6 +51,7 @@ import {
   unlinkSync,
   writeFileSync,
 } from "node:fs";
+import { homedir } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { reportHeading, validateFile } from "./report-tools.mjs";
@@ -61,6 +66,9 @@ const PHASES = {
   "judge-final": { role: "judge-final", contract: true },
 };
 const isJudge = (phase) => phase.startsWith("judge");
+// Lens children run on Sonnet, the judge on the default model (docs/adr/0008-lens-groups.md).
+export const LENS_MODEL = "amazon-bedrock/us.anthropic.claude-sonnet-5-5";
+const lensList = (task) => [task.lens ?? []].flat();
 const SHARD_BYTES = 150_000; // judge input above this is sharded (docs/adr/0007-sharded-judge.md)
 const SHARD_SLOTS = 8;
 const STATES = new Set(["VALID", "INVALID", "AMBIGUOUS"]);
@@ -97,7 +105,8 @@ export function loadTask(phase, path) {
   task.work_dir = realpathSync(task.work_dir);
   if (inside(task.work_dir, task.target_dir)) throw new UsageError(scratchError);
   if (!isJudge(phase)) {
-    need("lens", (v) => typeof v === "string" && /^[\w-]+$/.test(v));
+    const slug = (v) => typeof v === "string" && /^[\w-]+$/.test(v);
+    need("lens", (v) => slug(v) || (Array.isArray(v) && v.length > 0 && v.every(slug)));
     need("scope");
   }
   if (phase === "challenge") {
@@ -131,7 +140,7 @@ const fenced = (value) => "```json\n" + JSON.stringify(value, null, 2) + "\n```"
 export function buildContext(phase, task) {
   const pack = read(join(BASE, "agents", `${PHASES[phase].role}.md`));
   const slots = {
-    LENS_NAME: task.lens ?? "multi",
+    LENS_NAME: task.lens ? lensList(task).join(", ") : "multi",
     RULES: "the “Lens rules” section below",
     SCOPE: "the “Scope” section below",
     TARGET_DIR: task.target_dir,
@@ -171,7 +180,7 @@ export function buildContext(phase, task) {
     "",
     filled,
   ];
-  if (task.lens) s.push("", `## Lens rules (${task.lens})`, "", lensRules(task.lens, task.target_dir));
+  for (const lens of lensList(task)) s.push("", `## Lens rules (${lens})`, "", lensRules(lens, task.target_dir));
   if (task.scope || task.paths?.length)
     s.push("", "## Scope", "", task.scope ?? "", ...(task.paths ?? []).map((p) => `- ${p}`));
   if (task.context) s.push("", "## Orchestrator context", "", task.context);
@@ -221,11 +230,20 @@ export function buildContext(phase, task) {
   return s.join("\n") + "\n";
 }
 
+export const SESSION_DIR = join(
+  homedir(), ".pi", "agent", "sessions", "--adversarial-review--",
+);
+
 export function piArgs(phase, task, contextPath) {
   const tools = isJudge(phase) ? "read" : task.mode === "repo" ? "read,grep,find,ls" : "read,grep,find,ls,bash";
+  const model = isJudge(phase) ? task.model : LENS_MODEL;
   return [
     "-p",
-    "--no-session",
+    // saved (not --no-session) so child token cost shows up in session logs
+    "--session-dir",
+    SESSION_DIR,
+    "--name",
+    `adversarial-review ${phase} ${task.id} ${new Date().toISOString()}`, // UTC
     "--no-extensions", // keeps this extension (and its message guard) out of the child
     "--no-skills",
     "--no-prompt-templates",
@@ -234,7 +252,7 @@ export function piArgs(phase, task, contextPath) {
     "--no-mcp",
     "--tools",
     tools,
-    ...(task.model ? ["--model", task.model] : []),
+    ...(model ? ["--model", model] : []),
     `@${contextPath}`,
     `Run the ${phase} phase described in the attached file and reply with only the JSON block it specifies.`,
   ];
@@ -248,6 +266,13 @@ export function parseOutput(text) {
   } catch (error) {
     throw new Error(`child output has no parseable json block: ${error.message}`);
   }
+}
+
+// Per-lens health needs every finding tagged with exactly one lens of its task.
+function checkLensTags(findings, task) {
+  const lenses = lensList(task);
+  const bad = findings.find((f) => !lenses.includes(f.lens));
+  if (bad) throw new Error(`finding ${bad.id} has lens ${JSON.stringify(bad.lens)}; it must be one of: ${lenses.join(", ")}`);
 }
 
 export function checkResult(phase, result, task) {
@@ -393,6 +418,7 @@ export function runPhase(phase, taskPath) {
   if (child.status !== 0) throw new Error(`pi exited ${child.status ?? child.signal}; log ${file("err")}`);
   const result = parseOutput(read(file("out")));
   checkResult(phase, result, task);
+  if (!isJudge(phase)) checkLensTags(phase === "challenge" ? result.map((e) => e.finding) : result, task);
   writeFileSync(file("json"), JSON.stringify(result, null, 2) + "\n");
   return phase === "judge" ? `REPORT: ${publish(task, result)}` : `RESULT: ${file("json")}`;
 }

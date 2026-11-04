@@ -48,7 +48,7 @@ function run(phase, task, out, env = {}) {
   return { ...r, args: read(files.args), context: read(join(work, `${id}.context.md`)) };
 }
 
-const finding = { id: "deep-module", file: "code.txt", line: 1, failure_condition: "c", evidence: "e" };
+const finding = { id: "deep-module", lens: "design", file: "code.txt", line: 1, failure_condition: "c", evidence: "e" };
 const envelope = { finding, challenge: { state: "VALID", kill_attempts: ["k"], reason: "r" }, disposition: { status: "open" } };
 const findingsFile = join(root, "findings.json");
 writeFileSync(findingsFile, JSON.stringify([finding]));
@@ -64,6 +64,27 @@ test("propose builds a filled context with global+overlay rules and read-only to
   assert.match(r.args, /^--tools\nread,grep,find,ls\n/m);
   assert.match(r.args, /^--no-extensions$/m);
   assert.match(r.args, /^--no-approve$/m);
+  const sessionDir = /^--session-dir\n.*\/sessions\/--adversarial-review--$/m;
+  assert.match(r.args, sessionDir);
+  assert.doesNotMatch(r.args, /^--no-session$/m);
+  const utcName = /^adversarial-review propose \S+ \d{4}-\d\d-\d\dT[\d:.]+Z$/m;
+  assert.match(r.args, utcName);
+});
+
+test("lens children run on the lens model; the judge keeps the default model", () => {
+  const r = run("propose", scope, [finding]);
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.args, /^--model\namazon-bedrock\/us\.anthropic\.claude-sonnet-5-5$/m);
+});
+
+test("a lens group gets one rules section per lens and must tag findings with one of them", () => {
+  const group = { ...scope, lens: ["design", "docs"] };
+  const r = run("propose", group, [finding, { ...finding, id: "stale-doc", lens: "docs" }]);
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.context, /## Lens rules \(design\)[\s\S]*## Lens rules \(docs\)/);
+  const foreign = run("propose", group, [{ ...finding, lens: "security" }]);
+  assert.equal(foreign.status, 1);
+  assert.match(foreign.stderr, /must be one of: design, docs/);
 });
 
 test("change reviews add bash for git show at the pinned SHA", () => {
@@ -146,6 +167,7 @@ test("judge gets read only, writes validated artifacts exclusively, prints REPOR
   const task = { mode: "change", envelope_files: [findingsFile], report_md: md };
   const r = run("judge", task, { sidecar: s, notes: "## Blast radius\n\nNOTES-MARKER" });
   assert.equal(r.status, 0, r.stderr);
+  assert.doesNotMatch(r.args, /^--model$/m, "judge keeps the default model");
   assert.equal(r.stdout.trim(), `REPORT: ${md}`);
   const written = readFileSync(md, "utf8");
   assert.equal(written.split("\n")[0], reportHeading(s), "launcher renders the canonical heading");

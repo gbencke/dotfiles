@@ -1,8 +1,8 @@
 ---
 name: review-repo
 description: >
-  Adversarial review of an entire repository: propose → kill → judge, one lens
-  per run, each phase step in its own fresh pi process via bin/run-phase.mjs.
+  Adversarial review of an entire repository: propose → kill → judge, lenses
+  grouped per chunk task, each phase step in its own fresh pi process via bin/run-phase.mjs.
   Writes a report plus findings.json under .gbencke/adversarial-review/reports/.
   Trigger: /review-repo <path> [--lenses a,b,c], "adversarial review of this repo".
 argument-hint: "<path> [--lenses a,b,c]"
@@ -18,9 +18,10 @@ challenge, and judge step runs in a fresh `pi -p` process launched by
 subagents, so a separate process per step is what keeps the phases
 independent (ADR 0006).
 
-**Lenses and chunks share one pool of slots.** `bin/run-lenses.sh` runs as
-many tasks at once as there are lenses; a free slot takes the next
-(lens, chunk) task whatever its lens, so fast lenses do not leave slots idle.
+**Lens groups and chunks share one pool of slots.** `bin/run-lenses.sh` runs as
+many tasks at once as there are lens groups; a free slot takes the next
+(group, chunk) task whatever its group, so fast groups do not leave slots idle.
+One task reviews its chunk under every lens of its group (ADR 0008).
 Batch runners already launch one review per (repo × lens) — see ADR 0004 — so a
 matrix child has a single lens and a single slot; the matrix fan-out does not grow.
 
@@ -75,7 +76,20 @@ finding list or completed lens counter proves the whole repository is healthy.
    Reconcile every prior ID in this declared scope using the v2 lifecycle contract.
    Other lens scopes and legacy repository reports remain explicit history, not
    whole-repo approvals or automatic closures. Never overwrite prior reports.
-7. Per-chunk matching: language lenses (signals are file globs like `*.go`,
+7. **Group the selected lenses.** Every selected lens goes into exactly one
+   group; the groups below cover every global lens. A project-only lens goes
+   into `security-platform`. Drop a group that has no selected lens.
+
+   | Group | Lenses |
+   |---|---|
+   | `failure-paths` | error-handling, chaos, sanity-checks |
+   | `correctness` | formal-validation, tests, concurrency |
+   | `structure` | design, docs, performance |
+   | `security-platform` | security, aws, python, typescript, golang, reactjs |
+
+   State each group with its lenses in chat. Coverage, health verdicts and
+   `meta.lenses` stay per lens, never per group.
+8. Per-chunk matching: language lenses (signals are file globs like `*.go`,
    `*.ts`) review ONLY the chunks whose files match — a Go-only chunk does not
    get the typescript lens. `always` lenses review every chunk.
 
@@ -84,10 +98,14 @@ finding list or completed lens counter proves the whole repository is healthy.
 1. Walk the repo. ALWAYS skip: `.git`, `node_modules`, `vendor`, `dist`,
    `build`, `target`, lock files, generated code, minified assets, binary
    files, the `.gbencke/adversarial-review` dir itself.
-2. Chunk along top-level module/directory boundaries. Split a directory that is
-   too large for one reading pass (~>40 source files or ~>30k tokens)
-   mechanically into sub-chunks.
-3. Produce the chunk list `[{id, paths[]}]` and state the count.
+2. Chunk along top-level module/directory boundaries, and pack them: put whole
+   directories together into one chunk until it holds ~40 source files or
+   ~30k tokens. Split only a directory that is over that budget on its own.
+   Never make a chunk of a few files when it fits into a neighbour. Target
+   chunk count ≈ ⌈total source tokens / 30k⌉. Each chunk costs one child per
+   lens group, so extra chunks multiply cost.
+3. Produce the chunk list `[{id, paths[]}]` and state the count, with the
+   file count of each chunk.
 4. Before discovery, map critical invariants across chunks: entry points, all
    shared-state writers, final consumers, and relevant success/failure/cancel/
    supersession/replacement/never-settling outcomes. Record coverage statuses and
@@ -96,25 +114,26 @@ finding list or completed lens counter proves the whole repository is healthy.
 
 ## Phase 3 — Propose and challenge: one shared pool
 
-1. **Write every task first.** For each lens, for each chunk that lens matches,
-   write `$WORK/tasks/<lens>/<NN>-<chunk>.task.json` (`NN` = zero-padded chunk
+1. **Write every task first.** For each lens group, for each chunk that at
+   least one of its lenses matches, write
+   `$WORK/tasks/<group>/<NN>-<chunk>.task.json` (`NN` = zero-padded chunk
    order, so the worker keeps that order):
 
    ```json
    {
-     "id": "<chunk>-<lens>",
+     "id": "<chunk>-<group>",
      "mode": "repo",
      "target_dir": "<TARGET_DIR>",
      "work_dir": "<WORK>",
-     "lens": "<lens>",
+     "lens": ["<every lens of the group that matches this chunk>"],
      "scope": "Chunk <chunk> of a repository review at <head_sha>",
      "paths": ["<every file in the chunk, relative to TARGET_DIR>"],
      "context": "<ledger rows and invariant/coverage rows that touch these paths; queued gaps owned by this chunk>"
    }
    ```
 
-   `<chunk>` and `<lens>` are slugs (letters, digits, `.`, `_`, `-`).
-2. **Run all lenses at once:**
+   `<chunk>`, `<group>` and each lens are slugs (letters, digits, `.`, `_`, `-`).
+2. **Run all groups at once:**
 
    ```bash
    nohup <extension>/bin/run-lenses.sh "$WORK/tasks" > "$WORK/tasks.log" 2>&1 &
@@ -129,22 +148,23 @@ finding list or completed lens counter proves the whole repository is healthy.
    (`<id>-propose`), then — only if it proposed something — a **kill** child
    (`<id>-challenge`) that gets the proposal verbatim. Never start the judge
    before every task is done.
-3. **Read `$WORK/tasks/manifest.tsv`** (lens, task, exit, result, log). Rows
-   with exit 0: append `result` (an envelopes file, `[]` when nothing was
-   proposed) to `ENVELOPES` in lens then chunk order (manifest rows arrive in
-   completion order: sort by lens, then task name), and record the chunk as
-   inspected under that lens. Read the result JSON only to update coverage and
+3. **Read `$WORK/tasks/manifest.tsv`** (lens, task, exit, result, log; the
+   `lens` column holds the group name). Rows with exit 0: append `result` (an
+   envelopes file, `[]` when nothing was proposed) to `ENVELOPES` in group
+   then chunk order (manifest rows arrive in completion order: sort by group,
+   then task name), and record the chunk as inspected under every lens in
+   that task's `lens` list. Read the result JSON only to update coverage and
    queue gaps (`next_check` items, sibling paths in other chunks). Do not read
    the chunk's source to add or drop findings — that is the children's job.
 
-A non-zero row is a failed pair: record the chunk as `not_inspected` for that
-lens with the next check `rerun; see <log>` and the `<id>-propose.err` /
+A non-zero row is a failed pair: record the chunk as `not_inspected` for every
+lens of that task with the next check `rerun; see <log>` and the `<id>-propose.err` /
 `<id>-challenge.err` files in `$WORK`. Never retry silently and never do the
 failed phase yourself. Exit 2 in a log means the task file is wrong: fix it and
 rerun that one task with `node <extension>/bin/run-phase.mjs pair <task>`.
 
 Before judgment, handle queued discovery gaps once: write their tasks under
-`$WORK/tasks-gaps/<lens>/` (new ids) and run `run-lenses.sh` on that dir the same
+`$WORK/tasks-gaps/<group>/` (new ids) and run `run-lenses.sh` on that dir the same
 way, or leave the gaps explicit. A critical
 uninspected chunk requires INCOMPLETE, not HEALTHY with a footnote.
 
@@ -221,7 +241,7 @@ hook and matrix launcher validate it again.
 ## Hard rules
 
 - Never use the `Agent` tool. Every propose, challenge, and judge step is a
-  `run-phase.mjs` child. All (lens, chunk) tasks share the `run-lenses.sh` pool;
+  `run-phase.mjs` child. All (group, chunk) tasks share the `run-lenses.sh` pool;
   each task is propose → challenge; the judge runs last (ADR 0006).
 - Keep the phases honest: never produce, rescue, or drop a finding yourself,
   and never skip the kill step because a finding "looks obvious" (ADR 0001).

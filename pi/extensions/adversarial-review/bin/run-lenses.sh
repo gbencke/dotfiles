@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Run every lens's propose -> challenge pairs from one shared pool: as many
-# slots as there are lenses, and a free slot takes the next task whatever its
-# lens, so fast lenses do not leave slots idle while a slow lens works through
-# its chunks. Tasks start in chunk order, round-robin across lenses.
+# Run every lens's (or lens group's) propose -> challenge pairs from one shared
+# pool: as many slots as there are lens dirs, and a free slot takes the next
+# task whatever its dir, so fast lenses do not leave slots idle while a slow
+# lens works through its chunks. Tasks start in chunk order, round-robin.
 # Called by the review-repo and review-change skills (docs/adr/0006-phase-processes.md).
 #
 # Usage:
 #   run-lenses.sh TASKS_DIR
 #
-# TASKS_DIR holds one subdirectory per lens, each with *.task.json files for
+# TASKS_DIR holds one subdirectory per lens or lens group, each with *.task.json files for
 # `run-phase.mjs pair`. Writes TASKS_DIR/manifest.tsv with columns
 # lens, task, exit, result, log (rows in completion order); exits 1 if any pair failed.
 set -uo pipefail

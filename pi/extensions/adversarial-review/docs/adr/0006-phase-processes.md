@@ -30,7 +30,9 @@ per chunk instead of per review, and gives every step an exit code and a log.
 
 Children are locked down from the command line: `--no-extensions`,
 `--no-skills`, `--no-context-files`, `--no-approve` (ignore `.pi` files in the
-reviewed repo), `--no-mcp`, `--no-session`, and a tool allowlist. Repo
+reviewed repo), `--no-mcp`, and a tool allowlist. Each child saves its session to
+`~/.pi/agent/sessions/--adversarial-review--/` (`--session-dir`, named
+`adversarial-review <phase> <id> <UTC ISO time>`), so its token cost is on record. Repo
 propose/challenge get `read,grep,find,ls`; change reviews add `bash` for
 `git show <sha>:path`; the judge gets only `read`. The judge returns the sidecar
 and short prose notes as JSON; the launcher renders the markdown from them, writes
