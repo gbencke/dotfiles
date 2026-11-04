@@ -7,6 +7,33 @@ description: Lint any JS/TS repository with a pinned ESLint 9 + plugin set (type
 
 `pinned-eslint` in this skill's directory (call it by its absolute path, written `<skill-dir>/pinned-eslint` below) installs a pinned ESLint + plugins into `~/.cache/pinned-eslint/<hash>` and runs it under `bwrap`: network off, filesystem read-only, only the repo writable.
 
+## macOS: Linux VM with shared folders
+
+On macOS, the runner sends analysis to a Lima VM named `pinned-skills`. The repo stays on the Mac disk: Linux reads the shared folder at the **same absolute path**. There is no clone or sync. Bubblewrap still isolates the analysis and blocks its network access. Linux runs directly as before.
+
+Set up once (Lima 2+ on Apple Silicon):
+
+```bash
+brew install lima
+mkdir -p ~/.cache/pinned-eslint
+limactl start --tty=false --name=pinned-skills --timeout=15m \
+  --mount-only "$(cd ~/git && pwd -P):w" \
+  --mount-only "$HOME/.pi/agent/skills" \
+  --mount-only "$HOME/.cache/pinned-eslint" \
+  --mount-only '/private/tmp:w' \
+  ~/.pi/agent/skills/pinned-eslint/lima.yaml
+```
+
+Run this long setup in the background with a timeout and tail its log. `lima.yaml` installs the Linux prerequisites. The VM uses 2 CPUs, 4 GiB RAM, and a sparse 20 GiB disk. Both pinned skills use this VM.
+
+- `pwd -P` resolves `~/git` symlinks, including repos on external disks. Mount other repo roots explicitly if needed. Script, repo, custom config, and report paths must be shared at the same paths in Linux.
+- Only the listed folders are shared; the Mac home is not mounted wholesale. The repo root and `/private/tmp` are writable. Writes, including `--fix`, change Mac files immediately.
+- Use the normal commands below from macOS; the runner starts the existing VM if needed. Absolute paths, paths with spaces, `--config`, `--report`, and ESLint arguments are forwarded.
+- Reports under Mac `/tmp` are normalized to `/private/tmp`, so they remain visible on the Mac. Tool caches for analysis stay in the Linux home.
+- `--print-store` stays native on macOS for Neovim's local ESLint LSP. It needs native Node.js/npm and `sha256sum` (`brew install node coreutils` if absent). It installs a separate Mac cache, not a Linux cache. Share that cache read-only so Neovim's custom configs remain accessible to VM scans.
+- `PINNED_ESLINT_PLUGINS` and `ESLINT_USE_FLAT_CONFIG` overrides are forwarded; credentials and other host environment variables are not.
+- Stop the VM with `limactl stop pinned-skills` to release RAM. If setup or bubblewrap fails, report the error; never bypass the sandbox.
+
 ## Run
 
 ```bash
@@ -80,5 +107,5 @@ grep -oE '\[(Error|Warning)/[^]]+\]' /tmp/eslint.txt | sort | uniq -c | sort -rn
 ## Caveats
 
 - Do not run `--fix` unless the user asks. It edits files in place.
-- With a repo `node_modules`, the pinned packages are bind-mounted over the repo's copies, read-only. Without one, the script prints a warning. The `unix` formatter may then fail to resolve; if so, retry with `-- --format stylish .`.
+- With a repo `node_modules`, the pinned packages are bind-mounted over the repo's copies, read-only. Without one, the script prints a warning. The bundled formatter resolves from the pinned cache either way; project imports and type checks can still require the repo's dependencies.
 - Errors such as `install bubblewrap` or `config not found` are fatal. Report them as-is.

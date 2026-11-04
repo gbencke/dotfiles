@@ -1,6 +1,7 @@
 #!/usr/bin/env zsh
 # Run pinned ESLint, plugins, and config against a repository.
 # The default config is eslint.config.ts next to this script; the skill is self-contained.
+# On macOS, run analysis in the shared-folder Lima VM; --print-store stays native for editors.
 # usage: pinned-eslint.zsh <repo> [eslint-version] [--config <file>] [--report <file>] [-- eslint-args...]
 
 set -euo pipefail
@@ -62,7 +63,23 @@ fi
 
 [[ -d $repo ]] || { print -u2 "error: repository is not a directory: $repo"; exit 66; }
 [[ -f $config ]] || { print -u2 "error: ESLint config not found: $config"; exit 66; }
-command -v bwrap >/dev/null || { print -u2 "error: install bubblewrap (bwrap)"; exit 69; }
+if [[ $OSTYPE == darwin* ]] && ! $print_store; then
+  command -v limactl >/dev/null || {
+    print -u2 "error: install Lima and create pinned-skills; see $script_dir/SKILL.md"
+    exit 69
+  }
+  typeset -a vm_args vm_env
+  vm_args=( "$repo" "$version" )
+  $custom_config && vm_args+=( --config "$config" )
+  [[ -n $report ]] && vm_args+=( --report "$report" )
+  (( ${+PINNED_ESLINT_PLUGINS} )) && vm_env+=( "PINNED_ESLINT_PLUGINS=$PINNED_ESLINT_PLUGINS" )
+  (( ${+ESLINT_USE_FLAT_CONFIG} )) && vm_env+=( "ESLINT_USE_FLAT_CONFIG=$ESLINT_USE_FLAT_CONFIG" )
+  exec limactl shell --start --workdir / pinned-skills \
+    env "${vm_env[@]}" zsh "$script_dir/$script_name" "${vm_args[@]}" -- "$@"
+fi
+if ! $print_store; then
+  command -v bwrap >/dev/null || { print -u2 "error: install bubblewrap (bwrap)"; exit 69; }
+fi
 command -v npm >/dev/null || { print -u2 "error: install npm"; exit 69; }
 command -v node >/dev/null || { print -u2 "error: install Node.js"; exit 69; }
 command -v sha256sum >/dev/null || { print -u2 "error: install sha256sum"; exit 69; }
@@ -164,7 +181,7 @@ if ! $custom_config; then
       formatter_given=true
     fi
   done
-  $formatter_given || set -- --format unix "$@"
+  $formatter_given || set -- --format "$store/node_modules/eslint-formatter-unix/index.js" "$@"
 fi
 
 if [[ -n $report ]]; then

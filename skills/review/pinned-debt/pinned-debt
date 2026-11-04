@@ -3,6 +3,7 @@
 # amplification, hotspots) against one or more git repositories.
 # Tools install once into a cache; analysis runs in bwrap with no network
 # and every repo mounted read-only. Only the report dir is writable.
+# On macOS, use the pinned-skills Lima VM with the same host paths.
 # usage: pinned-debt <repo>... [--out <dir>] [--since <git date>] [--print-store]
 
 set -euo pipefail
@@ -45,6 +46,20 @@ while (( $# )); do
 done
 
 (( ${#repos} )) || $print_store || usage
+out=${out:A}
+if [[ $OSTYPE == darwin* ]]; then
+  command -v limactl >/dev/null || {
+    print -u2 "error: install Lima and create pinned-skills; see $script_dir/SKILL.md"
+    exit 69
+  }
+  typeset -a vm_args vm_env
+  vm_args=( "${repos[@]}" --out "$out" --since "$since" )
+  $print_store && vm_args+=( --print-store )
+  (( ${+PINNED_DEBT_PLUGINS} )) && vm_env+=( "PINNED_DEBT_PLUGINS=$PINNED_DEBT_PLUGINS" )
+  (( ${+PINNED_DEBT_PY} )) && vm_env+=( "PINNED_DEBT_PY=$PINNED_DEBT_PY" )
+  exec limactl shell --start --workdir / pinned-skills \
+    env "${vm_env[@]}" zsh "$script_dir/$script_name" "${vm_args[@]}"
+fi
 for tool in bwrap npm node python3 git sha256sum; do
   command -v $tool >/dev/null || { print -u2 "error: install $tool"; exit 69; }
 done

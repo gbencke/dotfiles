@@ -18,4 +18,6 @@ Measure technical debt and cognitive load in JS/TS and Python git repos with pin
 
 ## Prerequisites
 
-`bwrap`, `node`, `npm`, `python3`, `git`, `sha256sum`.
+Linux: `bwrap`, `zsh`, `node`, `npm`, `python3` with venv, `git`, `sha256sum`.
+
+macOS: Lima 2+ and the shared `pinned-skills` VM. The repo stays on the Mac disk; the runner uses the same paths through shared folders. See `SKILL.md` for setup. Reports are visible on the Mac; tool caches stay in Linux.

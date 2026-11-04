@@ -7,6 +7,16 @@ description: Measure technical debt and cognitive load in any JS/TS or Python gi
 
 `pinned-debt` in this skill's directory (call it by its absolute path, written `<skill-dir>/pinned-debt` below) installs pinned tools into `~/.cache/pinned-debt/<hash>` and runs the analysis under `bwrap`: network off, filesystem read-only, every repo read-only, only the report dir writable.
 
+## macOS: Linux VM with shared folders
+
+The runner uses the same `pinned-skills` Lima VM as `pinned-eslint`. Follow the one-time setup in `../pinned-eslint/SKILL.md`; its `lima.yaml` installs the prerequisites for both skills.
+
+Run the normal commands below from macOS. Repos stay on the Mac disk and are shared at the same absolute paths, including the real target of a `~/git` symlink. No clone or sync is needed. The runner starts the existing VM, normalizes repo and output paths, and forwards `--since`, `--print-store`, `PINNED_DEBT_PLUGINS`, and `PINNED_DEBT_PY`.
+
+Bubblewrap keeps every repo read-only and disables network access during analysis. Tool caches stay in Linux; reports under Mac `/tmp` use shared `/private/tmp` and can be opened on the Mac. Unlike pinned-eslint's editor cache, `--print-store` returns a **Linux-only** cache path.
+
+Mount other repo roots and output directories explicitly before using them. Stop the VM with `limactl stop pinned-skills` to release RAM. Do not bypass the sandbox if VM setup fails.
+
 ## Run
 
 ```bash

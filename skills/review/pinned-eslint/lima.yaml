@@ -1,0 +1,20 @@
+# Shared Linux runtime for pinned-eslint and pinned-debt on macOS.
+# Supply explicit host folders with --mount-only; see SKILL.md.
+base:
+  - template:ubuntu
+vmType: vz
+mountType: virtiofs
+cpus: 2
+memory: 4GiB
+disk: 20GiB
+containerd:
+  system: false
+  user: false
+provision:
+  - mode: system
+    script: |
+      #!/bin/sh
+      set -eu
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get update
+      apt-get install -y bubblewrap zsh nodejs npm python3-venv git coreutils

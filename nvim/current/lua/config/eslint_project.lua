@@ -2,7 +2,7 @@
 -- * Scans the whole repo with the CLI, so Trouble (<leader>xx) and Neo-tree also see unopened files.
 --   Buffers with the eslint LSP attached keep the live LSP results instead, so nothing is listed twice.
 -- * Two modes per project (<leader>xe): "local" = the repo's eslint + eslint.config.*; "pinned" = the
---   pinned-eslint skill (fixed eslint 9 + strict plugin set; the scan runs in bubblewrap).
+--   pinned-eslint skill (fixed eslint 9 + strict plugin set; bubblewrap via Lima on macOS).
 -- * Rule screen (<leader>xR): choose which rules are reported. Local starts with every rule on;
 --   pinned starts with only the complexity/size rules on. Rules always run; only reporting is filtered.
 -- Mode and rule choices persist per project in stdpath("state")/eslint_project.json.
@@ -92,7 +92,8 @@ end
 -- eslint commands per mode ---------------------------------------------------------------------
 local function available(mode, cwd)
   if mode == "pinned" then
-    return vim.fn.executable(PINNED_BIN) == 1 and vim.fn.executable("bwrap") == 1
+    local runtime = vim.fn.has("mac") == 1 and "limactl" or "bwrap"
+    return vim.fn.executable(PINNED_BIN) == 1 and vim.fn.executable(runtime) == 1
   end
   if vim.fn.executable(cwd .. "/node_modules/.bin/eslint") ~= 1 then return false end
   for _, name in ipairs(config_files) do
