@@ -223,6 +223,7 @@ different launch profile.
 | `<leader>di` / `<F11>` | Step into. |
 | `<leader>do` | Step out. No Shift+F11 mapping is configured. |
 | `<leader>dC` | Run to cursor. |
+| `<leader>dg` | Go to the current execution position (the stopped line). |
 | `<leader>dr` | Restart the session. |
 | `<leader>dq` | Terminate the session; may stop an attached program. |
 | `<leader>du` | Toggle debug panels. |

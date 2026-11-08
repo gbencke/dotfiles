@@ -60,6 +60,7 @@ return {
       { "<leader>di", function() require("dap").step_into() end, desc = "Step into (F11)" },
       { "<leader>do", function() require("dap").step_out() end, desc = "Step out" },
       { "<leader>dC", function() require("dap").run_to_cursor() end, desc = "Run to cursor" },
+      { "<leader>dg", function() require("dap").focus_frame() end, desc = "Go to current execution position" },
       { "<leader>dr", function() require("dap").restart() end, desc = "Restart" },
       { "<leader>dq", function() require("dap").terminate() end, desc = "Terminate" },
       { "<leader>de", function() require("dapui").eval() end, mode = { "n", "v" }, desc = "Eval expression" },

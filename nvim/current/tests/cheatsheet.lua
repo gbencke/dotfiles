@@ -79,7 +79,7 @@ local ok, err = pcall(function()
     ["<leader>qd"] = true, ["<leader>du"] = true, ["<leader>db"] = true,
     ["<leader>dB"] = true, ["<leader>dl"] = true, ["<leader>dc"] = true,
     ["<leader>dn"] = true, ["<leader>di"] = true, ["<leader>do"] = true,
-    ["<leader>dC"] = true, ["<leader>dr"] = true, ["<leader>dq"] = true,
+    ["<leader>dC"] = true, ["<leader>dg"] = true, ["<leader>dr"] = true, ["<leader>dq"] = true,
     ["<leader>de"] = true, ["<leader>lf"] = true, ["<leader>la"] = true,
     ["<leader>ld"] = true, ["<leader>lt"] = true, ["<leader>lci"] = true,
     ["<leader>lco"] = true, ["<F5>"] = true, ["<F9>"] = true,
