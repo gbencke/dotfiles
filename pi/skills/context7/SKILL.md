@@ -35,3 +35,14 @@ Use this tool to actually read the documentation snippets for a specific library
 1. Always run `context7_search` first if you are unsure of the exact library ID.
 2. Review the search results and pick the most relevant library ID.
 3. Run `context7_docs` using the chosen ID, optionally specifying a topic to narrow down the context.
+
+## In Claude Code
+
+Claude Code reaches Context7 through its MCP server (`claude mcp add -s user context7 -- npx -y @upstash/context7-mcp`). The tools have different names there:
+
+| pi tool           | Claude Code MCP tool                |
+| ----------------- | ----------------------------------- |
+| `context7_search` | `mcp__context7__resolve-library-id` |
+| `context7_docs`   | `mcp__context7__query-docs`         |
+
+The workflow stays the same: resolve the library ID first, then query its docs. The MCP server works without `CONTEXT7_API_KEY` at a lower rate limit and reads the key from the environment when set.

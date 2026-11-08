@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# claude-goal — keep fixing until a check command passes, with a fresh context
+# per attempt. Claude Code port of pi's goal-loop extension.
+#
+#   claude-goal "pytest -x -q" "fix the failing scheduler tests"
+#   touch .claude-goal-stop        # stop after the current attempt
+#
+# Why a shell loop: each attempt is a new `claude -p` process, so attempt N
+# never inherits attempt N-1's wrong turns. Only the goal and the failure tail
+# cross from one attempt to the next.
+set -uo pipefail
+
+MAX_ATTEMPTS="${GOAL_MAX_ATTEMPTS:-8}"
+TAIL_CHARS="${GOAL_TAIL_CHARS:-4000}"
+CHECK_TIMEOUT="${GOAL_CHECK_TIMEOUT:-900}"
+STOP_FILE=".claude-goal-stop"
+
+if [[ $# -lt 1 || -z "${1// }" ]]; then
+  echo "Usage: claude-goal <check command> [goal]" >&2
+  exit 2
+fi
+check="$1"
+goal="${2:-make \`$check\` pass}"
+rm -f "$STOP_FILE"
+
+# Print a progress line on stderr; stdout belongs to the model's answers.
+say() { echo "[claude-goal] $*" >&2; }
+
+# Build the prompt for one attempt from the goal, attempt number and failure tail.
+kickoff() {
+  local attempt="$1" tail="$2"
+  printf 'Goal: %s\nCheck command: %s\n' "$goal" "$check"
+  if [[ -n "$tail" ]]; then
+    printf 'It currently fails. Tail of the output:\n\n%s\n' "$tail"
+  else
+    printf 'Run the check first to see the failure.\n'
+  fi
+  printf '\nFix the root cause with the smallest diff. Do not edit, skip, or weaken the check itself.\n'
+  printf 'Stop when you believe it passes — the check then runs automatically, and a failure restarts you in a fresh session with no memory of this attempt. This is attempt %s of %s.\n' "$attempt" "$MAX_ATTEMPTS"
+}
+
+tail_out=""
+for ((attempt = 1; attempt <= MAX_ATTEMPTS; attempt++)); do
+  started=$SECONDS
+  say "attempt $attempt/$MAX_ATTEMPTS: working…"
+  kickoff "$attempt" "$tail_out" | claude -p ${GOAL_PERMISSION_MODE:+--permission-mode "$GOAL_PERMISSION_MODE"}
+
+  output="$(timeout "$CHECK_TIMEOUT" bash -c "$check" 2>&1)"
+  code=$?
+  say "attempt $attempt/$MAX_ATTEMPTS: check exited $code after $((SECONDS - started))s"
+  if [[ $code -eq 0 ]]; then
+    say "done: goal met on attempt $attempt"
+    exit 0
+  fi
+  # tail -c, not ${output: -N}: the bash slice is empty when output is shorter than N.
+  tail_out="$(printf '%s' "$output" | tail -c "$TAIL_CHARS")"
+  echo "$tail_out" >&2
+  if [[ -e "$STOP_FILE" ]]; then
+    rm -f "$STOP_FILE"
+    say "stopped by $STOP_FILE after attempt $attempt"
+    exit 1
+  fi
+  if ((attempt < MAX_ATTEMPTS)); then
+    say "attempt $attempt/$MAX_ATTEMPTS: discarding context, restarting fresh"
+  fi
+done
+say "gave up: $MAX_ATTEMPTS attempts spent, check still fails"
+exit 1

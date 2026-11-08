@@ -32,3 +32,7 @@ Search the web and retrieve ranked results with titles, URLs, and relevant conte
 1. Keep queries specific. Instead of searching `python docs`, search `python 3.12 asyncio task groups`.
 2. If the snippets returned by a basic search aren't enough, you can re-run the search with `include_raw_content: true` or `search_depth: 'advanced'`.
 3. For finding official documentation, consider using the `include_domains` parameter to restrict results to `docs.python.org` or `developer.mozilla.org`.
+
+## In Claude Code
+
+Claude Code reaches Tavily through its MCP server (`claude mcp add -s user tavily -- npx -y tavily-mcp`). The server reads `TAVILY_API_KEY` from the environment. Call `mcp__tavily__tavily_search` with the same parameters. The server also offers `tavily_extract` (full text of given URLs), `tavily_crawl`, `tavily_map` and `tavily_research`.

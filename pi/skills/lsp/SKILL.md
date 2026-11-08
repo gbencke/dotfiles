@@ -39,3 +39,17 @@ Python, TypeScript, TSX, JavaScript, JSX, Rust, Go, C, C++, Lua, JSON, HTML, CSS
 
 ### `/lsp-status`
 Shows the current `ast-grep` version installed and lists all file extensions supported by the current detection mapping.
+
+## In Claude Code
+
+Claude Code has no `lsp_*` tools. Use these instead:
+
+| pi tool           | Claude Code                                                                             |
+| ----------------- | --------------------------------------------------------------------------------------- |
+| `lsp_hover`       | Built-in `LSP` tool, `hover` operation                                                  |
+| `lsp_definition`  | Built-in `LSP` tool, `goToDefinition` operation                                         |
+| `lsp_symbols`     | Built-in `LSP` tool, `documentSymbol` operation                                         |
+| `lsp_diagnostics` | `ast-grep scan <path>` (with `--rule <file.yml>`); TS errors arrive from the LSP plugin |
+| `lsp_format`      | Run the language formatter through Bash (`prettier --write`, `ruff format`, …)          |
+
+The built-in `LSP` tool needs `ENABLE_LSP=1` and a language plugin (`typescript-lsp`, `pyright-lsp`).
