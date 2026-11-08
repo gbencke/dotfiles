@@ -10,12 +10,31 @@ claude/install.sh
 
 Then **restart Claude Code**. It reads `~/.claude/skills/` only at startup.
 
-The script is safe to re-run. It does four things:
+The script is safe to re-run. It does five things:
 
 1. Links `~/.claude/CLAUDE.md` to `claude/CLAUDE.md`, which imports `~/.pi/agent/SYSTEM.md` with `@~/.pi/agent/SYSTEM.md`.
 2. Links every skill in `~/.pi/agent/skills/` and the archify package skill into `~/.claude/skills/`.
 3. Links the Claude-only skills in `claude/skills/` and puts `claude-goal` on `PATH`.
-4. Registers the MCP servers `codegraph`, `context7` and `tavily` at user scope. Keys come from the environment, never from the config.
+4. Links `claude/statusline.sh` to `~/.claude/statusline.sh` and sets the `statusLine` key in `~/.claude/settings.json`.
+5. Registers the MCP servers `codegraph`, `context7` and `tavily` at user scope. Keys come from the environment, never from the config.
+
+## Status line
+
+`claude/statusline.sh` prints two lines:
+
+```
+📁 ~/git.work/000.INFRA/dotfiles   master ↑2 +1 ~3 ?1
+🧠 [████░░░░░░] 42% 420k/1.0M  ⚙ 7 procs  Opus
+```
+
+| Segment         | Meaning                                                              |
+|-----------------|----------------------------------------------------------------------|
+| `↑2 ↓1`         | Commits ahead of / behind the upstream                               |
+| `+1 ~3 ?1 !1`   | Staged, modified, untracked and conflicted files; `✓` when clean     |
+| `[████░░] 42%`  | Context window used; green below 50%, yellow below 80%, red above    |
+| `⚙ 7 procs`     | Processes under this Claude session: shells, servers, MCP servers    |
+
+It needs `jq` and `git`. The branch glyph needs a Nerd Font.
 
 Change shared rules in pi's `SYSTEM.md`. Put a rule in `claude/CLAUDE.md` only when it applies to Claude alone.
 

@@ -38,6 +38,16 @@ for dir in "$DOTFILES_CLAUDE"/skills/*/; do
 done
 link "$DOTFILES_CLAUDE/bin/claude-goal" "$HOME/.local/bin/claude-goal"
 
+# Status line: dir, git state, context used, child processes.
+# settings.json is not tracked (it holds machine state), so patch only the
+# statusLine key with jq and keep everything else.
+link "$DOTFILES_CLAUDE/statusline.sh" "$HOME/.claude/statusline.sh"
+SETTINGS="$HOME/.claude/settings.json"
+[[ -f "$SETTINGS" ]] || echo '{}' >"$SETTINGS"
+jq '.statusLine = {type: "command", command: "~/.claude/statusline.sh", padding: 0}' \
+  "$SETTINGS" >"$SETTINGS.tmp" && chmod 600 "$SETTINGS.tmp" && mv "$SETTINGS.tmp" "$SETTINGS"
+echo "set   statusLine -> ~/.claude/statusline.sh"
+
 # MCP servers that replace pi's tool extensions. API keys come from the
 # environment (TAVILY_API_KEY, CONTEXT7_API_KEY), never from this config.
 add_mcp() {
