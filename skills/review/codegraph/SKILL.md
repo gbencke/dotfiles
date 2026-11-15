@@ -105,3 +105,14 @@ while keeping them findable, `exclude` removes them from the index:
 Explore cuts tokens *processed*, but its dense payloads stay resident in the
 context window longer than many small grep results would. In a long session on a
 small window, that footprint is real. It is still the cheaper path per answer.
+
+## In Claude Code
+
+Claude Code runs codegraph's own MCP server (`claude mcp add -s user codegraph -- codegraph serve --mcp`). It exposes only `mcp__codegraph__codegraph_explore`; every rule above applies to it unchanged. The other two tools become CLI calls through Bash:
+
+| pi tool                    | Claude Code (Bash)                                                        |
+| -------------------------- | ------------------------------------------------------------------------- |
+| `codegraph_affected_tests` | `codegraph affected <files...> [-p <repo>]`                               |
+| `codegraph_status`         | `codegraph status [<repo>]`, `codegraph sync [<repo>]`, `codegraph files` |
+
+`serve --mcp` runs codegraph's file watcher, so the index stays current here and `sync` is rarely needed.

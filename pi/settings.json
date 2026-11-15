@@ -1,32 +1,40 @@
 {
-  "lastChangelogVersion": "0.80.2",
-  "defaultProvider": "kimi-coding",
-  "defaultModel": "k2p7",
+  "lastChangelogVersion": "1.5.2",
+  "defaultProvider": "amazon-bedrock",
+  "defaultModel": "us.openai.gpt-6.1-sol",
   "packages": [
     "npm:@robzolkos/pi-nocchio",
     "npm:pi-powerline-footer",
-    "npm:@juicesharp/rpiv-todo",
-    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@spences10/pi-skills",
     "npm:@victor-software-house/pi-curated-themes",
     "git:github.com/DietrichGebert/ponytail",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@juicesharp/rpiv-todo",
+    "packages/pi-archify",
     "npm:pi-vimmode"
   ],
   "powerline": {
     "preset": "full",
     "fixedEditor": true
   },
-  "theme": "cursor-dark",
+  "theme": "everforest-dark-hard",
   "defaultThinkingLevel": "high",
-  "retry": {
-    "enabled": true,
-    "maxRetries": 3,
-    "baseDelayMs": 2000,
-    "provider": {
-      "timeoutMs": 3600000,
-      "maxRetries": 0,
-      "maxRetryDelayMs": 60000
-    }
+  "enabledModels": [
+    "amazon-bedrock/us.anthropic.claude-opus-5-5",
+    "anthropic/claude-sonnet-5-5",
+    "amazon-bedrock/us.openai.gpt-6.1-sol",
+    "bedrock-mantle-us-west-2/openai.gpt-6-astra"
+  ],
+  "hideThinkingBlock": false,
+  "steeringMode": "all",
+  "followUpMode": "all",
+  "scopedModels": {
+    "sol": "bedrock-mantle/openai.gpt-5.6-sol",
+    "luna": "bedrock-mantle/openai.gpt-5.6-luna",
+    "terra": "bedrock-mantle/openai.gpt-5.6-terra",
+    "astra": "bedrock-mantle-us-west-2/openai.gpt-6-astra"
   },
-  "httpIdleTimeoutMs": 0,
-  "treeFilterMode": "all"
+  "extensionChangelogVersions": {
+    "{\"source\":\"npm:pi-powerline-footer\",\"scope\":\"user\"}": "0.22.0"
+  }
 }

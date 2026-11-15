@@ -6,6 +6,7 @@ Skills for analyzing code, diagnosing bugs, and running structured reviews.
 
 | Skill | What it does |
 |-------|--------------|
+| `ai-reverse-engineering` | Reverse-engineer an authorized app into an evidence-backed blueprint: modules, workflows, rules, data, APIs, and user journeys. |
 | `change-amplification` | Detect architectural debt by analyzing merged PRs for scattered changes forced by one conceptual decision. |
 | `codegraph` | Read a repo through its pre-indexed knowledge graph instead of grepping: source, call paths, blast radius, and covering tests in one call. Needs the `codegraph` pi extension. |
 | `diagnose` | Run a disciplined diagnosis loop for hard bugs and performance regressions. |

@@ -16,3 +16,5 @@ sessions/
 
 .spotify_token.json
 !claude/CLAUDE.md
+__pycache__/
+.ruff_cache/
