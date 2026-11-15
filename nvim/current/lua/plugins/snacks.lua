@@ -1,4 +1,4 @@
--- ch.20: snacks (picker, terminal, QoL modules)
+-- ch.20: snacks (picker, theme selector, terminal, QoL modules)
 return {
   {
     "folke/snacks.nvim",
@@ -39,6 +39,7 @@ return {
       { "gi", function() Snacks.picker.lsp_implementations() end, desc = "Implementations" },
       { "gy", function() Snacks.picker.lsp_type_definitions() end, desc = "Type definitions" },
       { "<leader>gf", function() Snacks.picker.git_status() end, desc = "Git status files" },
+      { "<leader>ut", function() Snacks.picker.colorschemes() end, desc = "Theme selector" },
       -- terminal (ch.19.1)
       { "<leader>tf", function() Snacks.terminal(nil, { win = { position = "float" } }) end, desc = "Terminal (float)" },
       { "<leader>t1", function() Snacks.terminal(nil, { count = 1 }) end, desc = "Terminal 1" },

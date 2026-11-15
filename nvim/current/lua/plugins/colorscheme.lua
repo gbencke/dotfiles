@@ -6,4 +6,6 @@ return {
       vim.cmd.colorscheme("nightfox")
     end,
   },
+  { "rebelot/kanagawa.nvim", lazy = false },
+  { "Mofiqul/dracula.nvim", lazy = false },
 }

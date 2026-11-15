@@ -1,7 +1,11 @@
 -- Run: nvim --headless -i NONE -c 'luafile tests/cheatsheet.lua'
--- Validates documented runtime keymaps, commands, and adding a watch under the cursor.
+-- Validates documented runtime keymaps, settings, themes, commands, and adding a watch under the cursor.
 local ok, err = pcall(function()
   local doc = table.concat(vim.fn.readfile("CHEATSHEET.md"), "\n")
+  local groups = dofile("lua/plugins/which-key.lua")[1].opts.spec
+  assert(vim.iter(groups):any(function(group)
+    return group[1] == "<leader>u" and group.group == "settings"
+  end), "Missing which-key settings menu")
 
   local function run(keys)
     vim.cmd("new")
@@ -34,6 +38,15 @@ local ok, err = pcall(function()
   load("<leader>nf", "obsidian.nvim")
   assert(Snacks.config.scratch.filekey.cwd == false, "Scratch buffers must be shared across repositories")
   assert(Snacks.config.scratch.filekey.branch == false, "Scratch buffers must be shared across branches")
+
+  local colorscheme, background = vim.g.colors_name, vim.o.background
+  local themes = vim.fn.getcompletion("", "color")
+  for _, theme in ipairs({ "kanagawa", "kanagawa-wave", "kanagawa-dragon", "kanagawa-lotus", "dracula", "dracula-soft" }) do
+    assert(vim.tbl_contains(themes, theme), "Theme selector is missing " .. theme)
+    vim.cmd.colorscheme(theme)
+  end
+  vim.o.background = background
+  vim.cmd.colorscheme(colorscheme)
 
   local maps = {}
   for _, mode in ipairs({ "n", "v", "o", "x", "t", "i" }) do
@@ -95,7 +108,7 @@ local ok, err = pcall(function()
     ["<leader>mp"] = true, ["<leader>nn"] = true, ["<leader>nf"] = true,
     ["<leader>ns"] = true, ["<leader>nt"] = true, ["<leader>nb"] = true,
     ["<leader>no"] = true, ["<leader>nw"] = true,
-    ["<leader>."] = true, ["<leader>S"] = true,
+    ["<leader>."] = true, ["<leader>S"] = true, ["<leader>ut"] = true,
   }
   for lhs in pairs(global) do
     assert(doc:find("`" .. lhs .. "`", 1, true), "Cheatsheet is missing " .. lhs)

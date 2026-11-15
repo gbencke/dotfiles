@@ -1,4 +1,4 @@
--- ch.21.1: discoverability + group contract, including Lean proof tools
+-- ch.21.1: discoverability + group contract, including settings and Lean proof tools
 return {
   { "folke/which-key.nvim",
     event = "VeryLazy",
@@ -16,7 +16,7 @@ return {
         { "<leader>R", group = "http" }, { "<leader>j", group = "jupyter" },
         { "<leader>o", group = "overseer" }, { "<leader>p", group = "python" },
         { "<leader>m", group = "markdown" }, { "<leader>n", group = "notes (obsidian)" },
-        { "<leader>y", group = "copy" },
+        { "<leader>y", group = "copy" }, { "<leader>u", group = "settings" },
       },
     },
     keys = { { "<leader>?", function() require("which-key").show({ global = false }) end, desc = "Buffer keymaps" } } },

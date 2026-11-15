@@ -15,7 +15,7 @@ Neo-tree opens at startup. The start dashboard and AI plugins are disabled or re
 
 **Jump to:** [Debugging](#debugging) · [Files and search](#files-and-search) ·
 [Windows](#buffers-and-windows) · [Editing](#editing-and-completion) ·
-[Scratch](#scratch-buffers) · [Clipboard](#copy-information-to-the-clipboard) ·
+[Scratch](#scratch-buffers) · [Clipboard](#copy-information-to-the-clipboard) · [Settings](#settings) ·
 [LSP](#code-navigation-and-diagnostics) · [Lean](#lean-proofs) · [Replace](#search-and-replace) ·
 [Git](#git-and-github) · [Tests](#tests-and-coverage) ·
 [Terminals](#terminals-and-tasks) · [Sessions](#sessions) ·
@@ -48,6 +48,20 @@ nvim src/main.py
 | `<leader>bd` | Delete the current buffer without disrupting the window layout. |
 | `<leader>.` / `<leader>S` | Toggle the current scratch / select a saved scratch. |
 | `<leader>dc` or `<F5>` | Start or continue debugging. See setup below. |
+
+## Settings
+
+Press **Space u** to open the settings menu.
+
+| Key | Action |
+| --- | --- |
+| `<leader>ut` | Open the theme selector with live preview. |
+
+Available themes include the Nightfox family, Kanagawa (`kanagawa-wave`,
+`kanagawa-dragon`, `kanagawa-lotus`), and Dracula (`dracula`, `dracula-soft`).
+
+Press Enter to apply a theme or Esc to cancel. The choice lasts until restart;
+the startup theme remains `nightfox` in `lua/plugins/colorscheme.lua`.
 
 ## Copy information to the clipboard
 
