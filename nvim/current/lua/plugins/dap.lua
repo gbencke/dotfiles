@@ -1,4 +1,5 @@
--- ch.14/15: nvim-dap stack + debugpy + vscode-js-debug
+-- ch.14/15: nvim-dap stack + debugpy + vscode-js-debug; debug-menu watches.
+-- Variable annotations are disabled by default.
 -- dap.continue includes static profiles and .vscode/launch.json providers.
 local function continue_or_pick()
   require("dap").continue()
@@ -31,13 +32,16 @@ return {
     dependencies = {
       { "rcarriga/nvim-dap-ui", dependencies = { "nvim-neotest/nvim-nio" } },
       { "theHamsta/nvim-dap-virtual-text", opts = {
-          virt_text_pos = "inline",
+          enabled = false,
+          virt_text_pos = "eol",
+          virt_lines = true,
+          virt_lines_above = true,
           all_references = true,
           highlight_changed_variables = true,
           only_first_definition = false,
           display_callback = function(variable)
             local value = variable.value:gsub("%s+", " ")
-            return " = " .. (#value > 80 and value:sub(1, 77) .. "..." or value)
+            return variable.name .. " = " .. (#value > 80 and value:sub(1, 77) .. "..." or value)
           end,
       } },
       { "jay-babu/mason-nvim-dap.nvim",
@@ -64,6 +68,7 @@ return {
       { "<leader>dr", function() require("dap").restart() end, desc = "Restart" },
       { "<leader>dq", function() require("dap").terminate() end, desc = "Terminate" },
       { "<leader>de", function() require("dapui").eval() end, mode = { "n", "v" }, desc = "Eval expression" },
+      { "<leader>dw", function() require("dapui").elements.watches.add(vim.fn.expand("<cexpr>")) end, desc = "Watch symbol under cursor" },
       { "<leader>du", function() require("dapui").toggle() end, desc = "Toggle DAP UI" },
       -- optional F-key layout (ch.14.9)
       { "<F5>", continue_or_pick, desc = "DAP continue" },

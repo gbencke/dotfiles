@@ -76,7 +76,8 @@ after/lsp/*.lua           per-server LSP overrides (merged over lspconfig defaul
 
 `f` find · `g` git · `c` code/LSP · `d` debug · `t` test/terminal · `s` search/replace ·
 `q` session · `b` buffer · `x` diagnostics · `h` harpoon · `D` database ·
-`R` http · `j` jupyter · `o` overseer · `p` python · `m` markdown · `n` notes · `y` copy
+`R` http · `j` jupyter · `o` overseer · `p` python · `m` markdown · `n` notes · `y` copy ·
+`L` Lean (in `.lean` files; lowercase `l` remains LSP)
 
 The Obsidian workspaces are `~/gitjournal`, `~/git/331.obsidian-scripts`, and
 `~/git/362.agentic-job-scrapper`. Use `<leader>nw` to switch vaults.

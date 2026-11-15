@@ -1,4 +1,4 @@
--- ch.21.1: discoverability + group contract
+-- ch.21.1: discoverability + group contract, including Lean proof tools
 return {
   { "folke/which-key.nvim",
     event = "VeryLazy",
@@ -8,6 +8,7 @@ return {
         { "<leader>f", group = "find" }, { "<leader>g", group = "git" },
         { "<leader>c", group = "code" }, { "<leader>d", group = "debug" },
         { "<leader>l", group = "lsp" }, { "<leader>lc", group = "call hierarchy" },
+        { "<leader>L", group = "lean" },
         { "<leader>t", group = "test/terminal" }, { "<leader>s", group = "search/replace" },
         { "<leader>q", group = "session" }, { "<leader>b", group = "buffer" },
         { "<leader>x", group = "diagnostics" }, { "<leader>h", group = "harpoon" },

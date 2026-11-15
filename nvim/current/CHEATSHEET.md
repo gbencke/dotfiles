@@ -16,7 +16,7 @@ Neo-tree opens at startup. The start dashboard and AI plugins are disabled or re
 **Jump to:** [Debugging](#debugging) · [Files and search](#files-and-search) ·
 [Windows](#buffers-and-windows) · [Editing](#editing-and-completion) ·
 [Scratch](#scratch-buffers) · [Clipboard](#copy-information-to-the-clipboard) ·
-[LSP](#code-navigation-and-diagnostics) · [Replace](#search-and-replace) ·
+[LSP](#code-navigation-and-diagnostics) · [Lean](#lean-proofs) · [Replace](#search-and-replace) ·
 [Git](#git-and-github) · [Tests](#tests-and-coverage) ·
 [Terminals](#terminals-and-tasks) · [Sessions](#sessions) ·
 [Databases](#databases) · [HTTP](#http-requests) · [Obsidian](#obsidian-notes) ·
@@ -228,6 +228,7 @@ different launch profile.
 | `<leader>dq` | Terminate the session; may stop an attached program. |
 | `<leader>du` | Toggle debug panels. |
 | `<leader>de` | Evaluate the expression under the cursor or the Visual selection. |
+| `<leader>dw` | Add the symbol or expression under the cursor to Watches. |
 | `:DapPause` | Pause a running program. |
 | `:DapDisconnect` | Request detach without terminating the debuggee. |
 | `:DapToggleRepl` | Toggle the debug REPL. |
@@ -239,7 +240,8 @@ loads it without launching a program. macOS may require Fn with function keys.
 The right panels contain **scopes, watches, stacks, and breakpoints**. The bottom
 panels contain the **REPL and console**. They open on launch/attach and close when
 a session ends. `<CR>` expands an item; `e` edits a supported item or watch; `d`
-removes one where supported.
+removes one where supported. To add a watch, put the cursor on a variable in the
+source buffer and press `<leader>dw`. Watch values use the selected stack frame.
 
 A launched program can focus its terminal in Insert mode. Press `<C-]>` to leave
 Terminal mode, then use `<C-h/j/k/l>` to move back to a source or debug window.
@@ -494,7 +496,7 @@ server support.
 | `]d` / `[d` | Next / previous diagnostic; does not require an LSP. |
 | `<leader>xx` / `<leader>xX` | Toggle all / current-buffer diagnostics in Trouble. In repos with an `eslint.config.*` and a local eslint, `<leader>xx` also lists ESLint problems in unopened files (refreshed on start and on each save). |
 | `:EslintProject` | Re-run the project-wide ESLint scan now, e.g. after a `git pull`. |
-| `<leader>xe` / `:EslintMode [local\|pinned]` | Switch ESLint per project: `local` = repo eslint + `eslint.config.*`; `pinned` = the pinned-eslint strict set (bubblewrap via Lima on macOS; no fix-on-save). |
+| `<leader>xe` / `:EslintMode [local\|pinned]` | Switch ESLint per project: `local` = repo eslint + `eslint.config.*`; `pinned` = the pinned-eslint strict set (scan runs in bubblewrap; no fix-on-save). |
 | `<leader>xR` / `:EslintRules` | Checkbox dialog of the current mode's rules, with problem counts. `<Space>`/`x` toggle (Visual too), `a` all, `n` none, `r` defaults, `q` close. Local starts all on; pinned starts with only the complexity/size rules on. |
 | `<leader>xs` | Toggle the symbol outline. |
 | `<leader>xr` | Toggle LSP references/definitions in Trouble. |
@@ -510,6 +512,31 @@ Inside Lspsaga Finder, use `o` to open or toggle a result, `s` for a vertical
 split, `i` for a horizontal split, `t` for a tab, `w` to switch panes, and `q`
 to close. Call hierarchy uses `e` to edit, `s` for a vertical split, `i` for a
 horizontal split, `t` for a tab, `u` to expand or request calls, and `q` to close.
+
+## Lean proofs
+
+Open a `.lean` file and press **Space L** (uppercase L) for the Lean menu.
+These shortcuts are local to Lean source buffers; lowercase **Space l** remains
+the general LSP menu. `lean.nvim` loads on opening a Lean file. Lean and `elan`
+must be installed and available on Neovim's PATH.
+
+| Key | Command | Action |
+| --- | --- | --- |
+| `<leader>Li` | `:LeanInfoviewToggle` | Toggle the live proof-state view. |
+| `<leader>Lg` | `:LeanGoal` | Show the proof goal at the cursor in a popup. |
+| `<leader>Lt` | `:LeanTermGoal` | Show the expected type at the cursor in a popup. |
+| `<leader>Lf` | `:LeanGotoInfoview` | Focus the infoview window. |
+| `<leader>Lp` | `:LeanInfoviewAddPin` | Pin the proof state at the cursor for comparison. |
+| `<leader>Lc` | `:LeanInfoviewClearPins` | Clear the pinned proof states. |
+| `<leader>LP` | `:LeanInfoviewPinTogglePause` | Pause or resume updates of the current infoview pin. |
+| `<leader>Lr` | `:LeanRestartFile` | Restart processing of the current Lean file. |
+
+The infoview opens automatically and follows the source cursor. Move through
+`induction`, `rw`, and `rfl` to inspect hypotheses and goals. Pin one location with
+**Space L p**, then move to another to compare proof states. Infoview updates are
+not throttled to avoid a plugin race when clearing pins. Large proofs can use more
+CPU while moving the cursor. This view shows proof states, not the stack after each
+machine instruction.
 
 ## Search and replace
 

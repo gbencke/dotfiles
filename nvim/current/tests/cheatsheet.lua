@@ -1,5 +1,5 @@
 -- Run: nvim --headless -i NONE -c 'luafile tests/cheatsheet.lua'
--- Validates runtime keymaps and commands documented by CHEATSHEET.md.
+-- Validates documented runtime keymaps, commands, and adding a watch under the cursor.
 local ok, err = pcall(function()
   local doc = table.concat(vim.fn.readfile("CHEATSHEET.md"), "\n")
 
@@ -80,7 +80,7 @@ local ok, err = pcall(function()
     ["<leader>dB"] = true, ["<leader>dl"] = true, ["<leader>dc"] = true,
     ["<leader>dn"] = true, ["<leader>di"] = true, ["<leader>do"] = true,
     ["<leader>dC"] = true, ["<leader>dg"] = true, ["<leader>dr"] = true, ["<leader>dq"] = true,
-    ["<leader>de"] = true, ["<leader>lf"] = true, ["<leader>la"] = true,
+    ["<leader>de"] = true, ["<leader>dw"] = true, ["<leader>lf"] = true, ["<leader>la"] = true,
     ["<leader>ld"] = true, ["<leader>lt"] = true, ["<leader>lci"] = true,
     ["<leader>lco"] = true, ["<F5>"] = true, ["<F9>"] = true,
     ["<F10>"] = true, ["<F11>"] = true, ["<leader>or"] = true,
@@ -108,6 +108,19 @@ local ok, err = pcall(function()
   check_map("v", "<leader>de")
   check_map("v", "<leader>gy")
   check_map("t", "<C-]>")
+
+  vim.cmd("enew")
+  vim.api.nvim_buf_set_lines(0, 0, -1, false, { 'local tenant = "rt500_uat"' })
+  vim.api.nvim_win_set_cursor(0, { 1, 6 })
+  local watches = require("dapui").elements.watches
+  local watch_count = #watches.get()
+  vim.fn.maparg("<leader>dw", "n", false, true).callback()
+  assert(vim.wait(1000, function()
+    local added = watches.get()[watch_count + 1]
+    return added and added.expression == "tenant"
+  end), "Watch mapping did not add the symbol under the cursor")
+  watches.remove(watch_count + 1)
+  pcall(vim.cmd, "silent! bwipeout!")
 
   vim.cmd("enew")
   vim.bo.filetype = "python"
