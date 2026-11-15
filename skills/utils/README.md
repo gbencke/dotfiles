@@ -11,6 +11,7 @@ General-purpose utility skills for tasks outside Obsidian and code review.
 | `pacman-cache-clean` | Clean the Arch Linux pacman cache, keeping only installed package versions. |
 | `raindrop` | Manage bookmarks, collections, tags, and highlights in Raindrop.io via the REST API. |
 | `session-viewer` | Render agent session transcripts (Codex, Claude Code, OpenClaw, Pi) as a searchable, shareable single-file HTML viewer. |
+| `socratic-tutor` | Teach a topic through diagnostic questions, a level-based skill map, spaced review, and a final assessment. |
 | `tgsearch` | Search Telegram from the CLI: discover public channels by keyword or search messages within a channel. |
 | `yt-dlp` | Download audio and video from YouTube and 1000+ other platforms using `yt-dlp`. |
 
@@ -20,6 +21,7 @@ General-purpose utility skills for tasks outside Obsidian and code review.
 - Skill discovery and installation
 - Bookmark management
 - Session transcript review and sharing
+- Socratic tutoring and mastery assessment
 - Telegram search and OSINT
 - Arch Linux package cache cleanup
 - Media download
