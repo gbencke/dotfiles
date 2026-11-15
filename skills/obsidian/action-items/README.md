@@ -6,6 +6,7 @@ Manage the personal action-item log at `00.Tasks/ACTION_ITEMS.guilherme_bencke.m
 
 - `SKILL.md` — agent instructions and command reference.
 - `action_items.py` — helper script that reads and writes the action-items file.
+- `backfill_wikilinks.py` — one-off script that adds source-note wikilinks to older rows (dry run unless `--apply`).
 
 ## What it does
 

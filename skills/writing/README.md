@@ -1,6 +1,6 @@
 # Writing Skills
 
-Prose and technical-writing skills that rewrite text against a defined style standard.
+Prose and technical-writing skills that write or rewrite text against a defined style standard.
 
 ## Skills
 

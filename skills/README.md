@@ -7,10 +7,10 @@ This repository holds task-specific skills for an AI agent. Each skill is a self
 | Directory | Purpose |
 |-------------|---------|
 | `obsidian/` | Workflows that interact with an Obsidian markdown vault: action items, meeting summaries, decisions, daily digests, and deep dives. |
-| `programming.languages/` | Language-specific guidance and review checklists. Currently Go. |
-| `review/` | Code review and analysis skills: diagnosis, change amplification, possibility analysis, and strict quality audits. |
-| `utils/` | General utilities: skill discovery, bookmark management, transcript viewing, and media download. |
-| `writing/` | Prose and technical-writing skills: the Zinsser method and ASD-STE100 Simplified Technical English. |
+| `programming.languages/` | Language-specific guidance and review checklists: Go architecture and review, and C4 architecture docs for any repo. |
+| `review/` | Code review and analysis skills: codegraph, pinned ESLint and tech-debt runners, diagnosis, change amplification, reverse engineering, possibility analysis, and strict quality audits. |
+| `utils/` | General utilities: skill discovery, bookmarks, session transcripts, e2e evidence videos, Telegram search, pacman cache cleanup, and media download. |
+| `writing/` | Prose and technical-writing skills: the Zinsser method, ASD-STE100 Simplified Technical English, and writing for Product Owners and Project Managers. |
 
 ## How a skill works
 

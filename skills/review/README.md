@@ -21,6 +21,7 @@ Skills for analyzing code, diagnosing bugs, and running structured reviews.
 - Code review
 - Debugging
 - Architecture assessment
+- Reverse-engineering an existing app
 - Pre-decision exploration
 
 ## Runner checks

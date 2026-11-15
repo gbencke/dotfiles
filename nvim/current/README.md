@@ -55,6 +55,8 @@ lua/config/autocmds.lua   QoL autocmds, LspAttach, ruff/eslint save pipelines
 lua/config/lazy.lua       lazy.nvim bootstrap
 lua/plugins/*.lua         one file per plugin (or tight group)
 after/lsp/*.lua           per-server LSP overrides (merged over lspconfig defaults)
+tests/*.lua               headless checks (keymaps, cheatsheet, Lean, UI, treesitter)
+CHEATSHEET.md             shortcuts and debugging guide
 ```
 
 ## Key architecture decisions
@@ -91,6 +93,8 @@ Bufferline shows open buffers across the top. Use `]b` / `[b` to switch buffers.
 
 - Update deliberately: `:Lazy sync` on your schedule, review `git diff lazy-lock.json`, commit.
 - Breakage rollback: `git checkout -- lazy-lock.json && nvim -c "Lazy restore"`.
+- Checks: from this folder, run `nvim --headless -i NONE -c 'luafile tests/lean.lua'`.
+  The first line of each `tests/*.lua` file gives its exact command.
 - Startup budget: `:Lazy profile` — keep it under ~100ms; lazy-load triggers everywhere.
 - Pinned on purpose: `blink.cmp` v1 (`version = "1.*"`). nvim-treesitter uses `main`,
   the branch compatible with Neovim 0.12.

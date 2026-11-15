@@ -21,4 +21,5 @@ General-purpose utility skills for tasks outside Obsidian and code review.
 - Bookmark management
 - Session transcript review and sharing
 - Telegram search and OSINT
+- Arch Linux package cache cleanup
 - Media download

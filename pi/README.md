@@ -7,28 +7,36 @@ This directory is the source of truth for the Pi AI agent configuration. Changes
 ```
 pi/
 ├── SYSTEM.md           # Core system prompt and developer guidelines
-├── settings.json       # Default provider, model, and agent settings
+├── settings.json       # Default provider/model, enabled and scoped models, packages, theme
+├── models.json         # Custom providers (llama-local, Bedrock); keys resolve from commands
 ├── auth.json           # OAuth credentials — gitignored, never committed
-├── extensions/         # TypeScript tool implementations
+├── extensions/         # TypeScript extensions (see extensions/README.md)
+│   ├── adversarial-review/  # /review-repo and /review-change multi-agent review
+│   ├── codegraph/      # codegraph_explore, codegraph_affected_tests, codegraph_status
+│   ├── goal-loop/      # /goal: retry with a fresh context until a check passes
 │   ├── context7.ts
 │   ├── lsp.ts
 │   ├── obscura.ts
+│   ├── openrouter-fusion.ts  # Adds the OpenRouter fusion plugin to openrouter/fusion requests
 │   ├── tavily.ts
 │   └── tools-command.ts
-├── skills/             # Skill definitions loaded by the agent
+├── skills/             # Skills tied to pi tools or general agent behavior
+│   ├── caveman/        # Ultra-compressed replies
+│   ├── codegraph/      # Read code through the CodeGraph index
+│   ├── codegraph-adhoc/  # codegraph CLI lookups across all repos
 │   ├── context7/       # Context7 documentation retrieval
-│   ├── daily-digest/   # The Architect's Digest — daily engineering briefing
+│   ├── grill-with-docs/  # Stress-test a plan against domain docs and ADRs
 │   ├── lsp/            # Structural code analysis via ast-grep
 │   ├── obscura/        # Web scraping via Obscura headless browser
-│   ├── raindrop/       # Raindrop.io bookmark management
-│   ├── storm/          # Deep research via STORM methodology
-│   ├── tavily/         # AI-powered web search
 │   ├── spotify/        # Spotify Web API (catalog search + user playlists)
+│   ├── tavily/         # AI-powered web search
 │   ├── token-diagnostics/  # Agent token usage analysis and fleet reporting
-│   └── yt-dlp/         # Audio/video download via yt-dlp
-├── bin/                # Helper binaries (e.g., fd)
+│   └── zinsser/        # Zinsser-method rewrites
+├── bin/                # fd, pi (managed version launcher), pi-review-loop, pi-usage
 └── sessions/           # Session history — gitignored, never committed
 ```
+
+Domain skills (Obsidian, review, utils, writing, languages) live in [`../skills/`](../skills/README.md) and deploy to the same `~/.pi/agent/skills/` folder.
 
 ## Syncing to Live
 
@@ -36,7 +44,8 @@ Copy config files to `~/.pi/agent/` to apply changes:
 
 ```bash
 # Example: deploy a skill update
-cp pi/skills/daily-digest/SKILL.md ~/.pi/agent/skills/daily-digest/SKILL.md
+cp -a pi/skills/tavily/. ~/.pi/agent/skills/tavily/
+cp -a skills/review/pinned-eslint/. ~/.pi/agent/skills/pinned-eslint/
 
 # Example: deploy an extension update
 cp pi/extensions/tavily.ts ~/.pi/agent/extensions/tavily.ts

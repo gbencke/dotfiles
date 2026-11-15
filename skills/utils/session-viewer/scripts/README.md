@@ -7,6 +7,8 @@ TypeScript source and tests for the session viewer.
 - `html.ts` — HTML rendering helpers.
 - `session-viewer.ts` — main CLI entry point.
 - `session-viewer.test.ts` — tests.
+- `core/` — shared session types, JSONL parsing, and format detection.
+- `importers/` — one parser per agent format: Claude Code, Codex, and Pi/OpenClaw.
 
 Run the viewer with:
 

@@ -7,3 +7,10 @@
 ```
 
 Run the commands as soon as you create the AWS VM!!
+
+## Contents
+
+- `vm_minimal_script.sh`, `vm_minimal_script_no_gui.sh` - Terminal-only VM setup
+- `vnc/` - VNC/Xfce4 configuration
+- `start/` - Application startup scripts
+- `old/` - Legacy bootstrap scripts

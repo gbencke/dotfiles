@@ -11,6 +11,8 @@ Arch Linux setup scripts with multiple variants:
 - **arch.000.base.sh** - Full base setup
 - **arch.000.wsl.minimal.sh** - WSL minimal setup
 - **arch.000.wsl.sh** - Full WSL setup
+- **arch.001.chromium.sh** - Install Chromium
+- **arch.002.vim.sh** - Apply the Python Vim profile (`vim/switch_vimrc.sh python`)
 
 Includes:
 - Package installation (pacman)
@@ -18,26 +20,26 @@ Includes:
 - Git/NVM/Pipenv/Pyenv setup
 - i3 window manager config
 - VNC server setup
-- Alacritty terminal config with themes
+- Alacritty terminal config with themes (`alacritty/`), i3 (`i3/`), pacman (`pacman/`), Termite (`termite/`), and VNC (`vnc/`) configs
 
 ### ubuntu/
 Ubuntu setup scripts:
-- **old/bootstrap.sh** - Legacy bootstrap
-- **vm_minimal_script_no_gui.sh** - Minimal VM without GUI
-- VNC/Xfce4 configurations
-- Startup scripts for applications
+- **vm_minimal_script.sh** / **vm_minimal_script_no_gui.sh** - Terminal-only Ubuntu 18.04 VM setup for AWS
+- **old/** - Legacy bootstraps (`bootstrap.sh`, `bootstrap.vm.lubuntu.sh`, `debian.init.sh`)
+- **vnc/** - VNC/Xfce4 configuration (`config`, `xstartup`)
+- **start/** - Startup scripts for Chromium, Firefox, Git Extensions, and NetBeans
 
 ### android/
 - **termux/bashrc** - Termux Bash config with Git operations for Obsidian journal
 
 ### Other
 
-- **grub/** - GRUB boot entry switcher (Windows/Arch)
-- **swap/** - Dynamic swap file management
-- **tmux/** - Tmux configurations
+- **grub/** - GRUB boot entry switcher (Windows/Arch): `grub.exec.sh`
+- **swap/** - Swap file management: `create_swap.sh`, `drop_swap.sh`
+- **tmux/** - Tmux configuration: `.tmux.conf`
 - **wallpaper/** - Nature and Japanese-themed wallpapers
-- **xterm/** - Xterm configurations
-- **utils/** - Utility scripts
+- **xterm/** - Xterm configuration: `Xresources`
+- **utils/** - Utility scripts: `create_summaries.sh`
 
 ## Usage
 

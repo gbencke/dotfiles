@@ -11,6 +11,8 @@ These extensions are loaded dynamically and register various functions that the 
 - **`lsp.ts`**: Implements Language Server Protocol features (diagnostics, definitions, hover) using `ast-grep` and `typescript-language-server`.
 - **`obscura.ts`**: Provides web scraping and headless browser capabilities via the Obscura engine.
 - **`tavily.ts`**: Integrates Tavily AI search to allow the agent to search the web for recent documentation or solutions.
+- **`goal-loop/`**: `/goal <check> :: <task>` keeps fixing until the check command exits 0. Each failed attempt starts a fresh session seeded with only the goal and the failure tail; `/goal-stop` ends the loop after the current attempt. Self-check in `goal-loop/goal-loop.test.ts` (`npx tsx goal-loop.test.ts`).
+- **`openrouter-fusion.ts`**: For requests to the `openrouter/fusion` model, adds OpenRouter's `fusion` plugin with the analysis models and judge from that model's `fusionConfig` in `~/.pi/agent/models.json`. Other requests are unchanged.
 - **`tools-command.ts`**: Implements a `/tools` slash command to list all available tools to the user in the agent's UI.
 - **`adversarial-review/`**: Adversarial multi-agent code review (`/review-repo`, `/review-change`). Per-lens reviewers propose findings, adversarial challengers kill weak ones, a judge rules. Ships 12 markdown lenses (aws, design, docs, tests, chaos, security, performance, error-handling, typescript, golang, test-surface, blast-radius). Requires `@tintinweb/pi-subagents`. Docs in `adversarial-review/docs/`.
 
