@@ -1,6 +1,6 @@
 ---
 name: pinned-eslint
-description: Lint any JS/TS repository with a pinned ESLint 9 + plugin set (typescript-eslint, react, unicorn, sonarjs, import-x, functional...) running inside a bubblewrap sandbox with no network. Does not touch the repo's own ESLint setup. Use when asked to "lint this repo", "run eslint", "run pinned eslint", "eslint in bubblewrap", "check code quality with eslint", or invokes /pinned-eslint.
+description: Lint any JS/TS repository with a pinned ESLint 9 + plugin set (typescript-eslint, react, unicorn, sonarjs, import-x, functional...) running inside a bubblewrap sandbox with no network. Includes React architecture review requiring components to be either visual or effect-owning higher-order components (HOCs). Does not touch the repo's own ESLint setup. Use when asked to "lint this repo", "run eslint", "run pinned eslint", "eslint in bubblewrap", "check code quality with eslint", "review React code", or invokes /pinned-eslint.
 ---
 
 # Pinned ESLint (bubblewrap)
@@ -90,13 +90,40 @@ Follow these when writing TS/JS, so the first draft is lint-clean:
 - **Logic:** `??` not `||` for defaults, `?.` not `&&` chains. No always-true/false conditions. `async` only if it awaits; `return await` inside `try`. Handle every promise (`await`, `.catch`, or return it).
 - **Modules:** named exports only (default exports allowed in `*.config.*`). No import cycles. `node:` prefix for built-ins (`node:fs`). ESM only, no `require`.
 - **Style:** `for...of`, not indexed `for`. `includes`/`some`/`flatMap`/`slice` over older forms. `throw new Error('message')`. No negated `if/else`. Full names (`event`, `error`, not `e`, `err`). File names camelCase, PascalCase or kebab-case.
+- **React architecture:** each component is either visual or effect-owning. Effects always belong to higher-order components (HOCs). Apply the required review below when writing or evaluating React code.
 - **React (.tsx/.jsx):** hooks rules and exhaustive deps are errors. No components defined inside components, no index keys, `<>` fragments, self-closing empty tags, all jsx-a11y recommended rules.
 
 Never add `eslint-disable`. Fix the code.
 
+## Required React architecture review
+
+Apply this project policy even when ESLint reports no errors. The bundled ESLint
+plugins do not enforce the visual/effect boundary; inspect the code as well.
+
+- **Visual components** render UI from props. They may keep local UI state and
+  invoke callbacks supplied through props. They do not own effects, network
+  requests, subscriptions, timers, storage access, or other external I/O.
+- **Effect components are always HOCs.** A HOC accepts a component and returns a
+  wrapper component. The wrapper owns effects and their cleanup, then passes
+  data and callbacks to the wrapped component. It renders the wrapped component,
+  not its own presentational markup. Hooks run inside the wrapper, not inside
+  the HOC factory.
+- Inspect custom hooks and helpers called by visual components. Moving an effect
+  into a hook called by a visual component does not satisfy this boundary.
+- Compose HOCs outside render, at module scope, so component identity stays stable.
+  Keep hook-order and exhaustive-dependency checks enabled.
+- Report components that mix presentation and effects, or effect owners that are
+  not HOCs, as architecture violations. Cite file and line evidence. Recommend
+  splitting the visual component from an effect-owning HOC, for example
+  `withUser(ProfileView)`.
+
 ## Output
 
 Unix format: `path:line:col: message [Error/rule-id]`, then a problem count. The exit code is non-zero when errors are found; that is normal, not a script failure.
+
+Report React architecture violations separately from ESLint diagnostics. Do not
+invent ESLint rule IDs or claim the CLI checks this policy. State when the
+architecture review was not performed.
 
 Summarise by rule, worst first:
 

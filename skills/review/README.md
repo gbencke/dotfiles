@@ -10,7 +10,7 @@ Skills for analyzing code, diagnosing bugs, and running structured reviews.
 | `change-amplification` | Detect architectural debt by analyzing merged PRs for scattered changes forced by one conceptual decision. |
 | `codegraph` | Read a repo through its pre-indexed knowledge graph instead of grepping: source, call paths, blast radius, and covering tests in one call. Needs the `codegraph` pi extension. |
 | `diagnose` | Run a disciplined diagnosis loop for hard bugs and performance regressions. |
-| `pinned-eslint` | Lint any JS/TS repo with a pinned ESLint 9 and plugin set inside a bubblewrap sandbox with no network access. Bundles its own runner; macOS uses a Lima VM with shared folders. |
+| `pinned-eslint` | Lint JS/TS in a network-isolated bubblewrap sandbox; macOS uses a Lima VM. Also review React's visual/effect boundary: effects belong to HOCs. |
 | `pinned-debt` | Measure technical debt and cognitive load (cognitive complexity, duplication, change amplification, hotspots) in JS/TS and Python repos with pinned tools inside a bubblewrap sandbox, repos read-only. macOS uses the same Lima VM as pinned-eslint. |
 | `possibility-analysis` | Explore the solution space before committing to a decision. |
 | `thermo-nuclear-code-quality-review` | Run an extremely strict maintainability review focused on abstraction quality and structural simplification. |
