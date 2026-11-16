@@ -7,7 +7,7 @@
     sudo pacman -Sy --noconfirm archlinux-keyring 
     sudo pacman-key --populate archlinux
     sudo pacman -Syu
-    sudo pacman -Sy --noconfirm sudo git curl tmux vim mc tig p7zip htop mc wget unzip zsh protobuf
+    sudo pacman -Sy --noconfirm sudo git git-delta difftastic lazygit curl tmux vim mc tig p7zip htop mc wget unzip zsh protobuf
     sudo pacman -Sy --noconfirm tree nano dos2unix bc graphviz ctags 
     sudo pacman -Sy --noconfirm rsync ranger virtualgl  i3 i3status i3blocks sddm feh tigervnc ttf-inconsolata
     sudo pacman -Sy --noconfirm w3m mediainfo libcaca highlight unrar scrot tidy shellcheck alacritty ttf-liberation
@@ -22,6 +22,18 @@
     git config --global user.name "Guilherme Bencke"  
     git config --global push.default simple
     git config --global core.editor vim
+    # Use Delta for Git output and Difftastic for explicit comparisons.
+    git config --global core.pager delta
+    git config --global pager.diff delta
+    # Keep short diffs open and enable n/N navigation.
+    git config --global delta.paging always
+    git config --global delta.navigate true
+    git config --global interactive.diffFilter "delta --color-only --features=interactive"
+    git config --global diff.tool difftastic
+    git config --global difftool.difftastic.cmd 'difft "$LOCAL" "$REMOTE"'
+    git config --global difftool.prompt false
+    # Remove the external diff override so Git produces patches for Delta.
+    git config --global --unset-all diff.external || test "$?" -eq 5
 
     pip install flake8 autopep8 pylint virtualenv pmm cython pillow lxml pdftotext chardet vim-vint pyenv
 
@@ -52,6 +64,8 @@
 #NONINTERACTIVE 
     cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
     cp /var/git/000.INFRA/dotfiles/shells/zshrc ~/.zshrc
+    mkdir -p ~/.config/lazygit
+    cp /var/git/000.INFRA/dotfiles/lazygit/config.yml ~/.config/lazygit/config.yml
     cp /var/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
     sed -i -e 's/robbyrussell/clean/g' /root/.zshrc
     $SHELL
@@ -69,6 +83,18 @@
     git config --global user.name "Guilherme Bencke"  
     git config --global push.default simple
     git config --global core.editor vim
+    # Use Delta for Git output and Difftastic for explicit comparisons.
+    git config --global core.pager delta
+    git config --global pager.diff delta
+    # Keep short diffs open and enable n/N navigation.
+    git config --global delta.paging always
+    git config --global delta.navigate true
+    git config --global interactive.diffFilter "delta --color-only --features=interactive"
+    git config --global diff.tool difftastic
+    git config --global difftool.difftastic.cmd 'difft "$LOCAL" "$REMOTE"'
+    git config --global difftool.prompt false
+    # Remove the external diff override so Git produces patches for Delta.
+    git config --global --unset-all diff.external || test "$?" -eq 5
         
 #INTERACTIVE
     unset ZSH
@@ -85,6 +111,8 @@
     cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/config ~/.vnc/config
     cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
     cp /var/git/000.INFRA/dotfiles/shells/zshrc ~/.zshrc
+    mkdir -p ~/.config/lazygit
+    cp /var/git/000.INFRA/dotfiles/lazygit/config.yml ~/.config/lazygit/config.yml
     cp /var/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
     cp /var/git/000.INFRA/dotfiles/new.host/xterm/Xresources ~/.Xresources
 

@@ -14,7 +14,7 @@
     pacman -Sy --noconfirm w3m mediainfo libcaca highlight unrar scrot tidy shellcheck alacritty ttf-liberation
     pacman -Sy --noconfirm gtk2 xorg-xhost dmenu perl lsof libnotify libxss gtk3 nss go fakeroot
     pacman -Sy --noconfirm cmake make fuse libxslt jdk17-openjdk tk neovide xclip ruby rofi diffutils
-    pacman -Sy --noconfirm fzf dust eza git-delta btop
+    pacman -Sy --noconfirm fzf dust eza git-delta difftastic lazygit btop
   
 
     groupadd gbencke
@@ -36,12 +36,22 @@
     git config --global user.name "Guilherme Bencke"  
     git config --global push.default simple
     git config --global core.editor vim
+    # Use Delta for Git output and Difftastic for explicit comparisons.
+    git config --global core.pager delta
+    git config --global pager.diff delta
+    # Keep short diffs open and enable n/N navigation.
+    git config --global delta.paging always
+    git config --global delta.navigate true
+    git config --global interactive.diffFilter "delta --color-only --features=interactive"
+    git config --global diff.tool difftastic
+    git config --global difftool.difftastic.cmd 'difft "$LOCAL" "$REMOTE"'
+    git config --global difftool.prompt false
+    # Remove the external diff override so Git produces patches for Delta.
+    git config --global --unset-all diff.external || test "$?" -eq 5
     git config --global core.fileMode false
     git config --global credential.helper store
     git config --global core.excludesfile ~/.gitignoreGlobal
     git config --global http.sslVerify false 
-    git config set --global core.pager delta
-    git config set --global interactive.diffFilter "delta --color-only --features=interactive"
     git config set --global delta.features decorations
     git config set --global delta.interactive.keep-plus-minus-markers false
     git config set --global delta.decorations.commit-decoration-style "blue ol"
@@ -83,6 +93,8 @@
 #NONINTERACTIVE 
     cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
     cp /var/git/000.INFRA/dotfiles/shells/zshrc ~/.zshrc
+    mkdir -p ~/.config/lazygit
+    cp /var/git/000.INFRA/dotfiles/lazygit/config.yml ~/.config/lazygit/config.yml
     cp /var/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
     sed -i -e 's/robbyrussell/clean/g' /root/.zshrc
     $SHELL
@@ -100,10 +112,20 @@
     git config --global user.name "Guilherme Bencke"  
     git config --global push.default simple
     git config --global core.editor vim
+    # Use Delta for Git output and Difftastic for explicit comparisons.
+    git config --global core.pager delta
+    git config --global pager.diff delta
+    # Keep short diffs open and enable n/N navigation.
+    git config --global delta.paging always
+    git config --global delta.navigate true
+    git config --global interactive.diffFilter "delta --color-only --features=interactive"
+    git config --global diff.tool difftastic
+    git config --global difftool.difftastic.cmd 'difft "$LOCAL" "$REMOTE"'
+    git config --global difftool.prompt false
+    # Remove the external diff override so Git produces patches for Delta.
+    git config --global --unset-all diff.external || test "$?" -eq 5
     git config --global core.fileMode false
     git config --global credential.helper store
-    git config set --global core.pager delta
-    git config set --global interactive.diffFilter "delta --color-only --features=interactive"
     git config set --global delta.features decorations
     git config set --global delta.interactive.keep-plus-minus-markers false
     git config set --global delta.decorations.commit-decoration-style "blue ol"
@@ -133,6 +155,8 @@
     cp /var/git/000.INFRA/dotfiles/new.host/arch/vnc/config ~/.vnc/config
     cat /var/git/000.INFRA/dotfiles/shells/bashrc >> ~/.bashrc
     cp /var/git/000.INFRA/dotfiles/shells/zshrc ~/.zshrc
+    mkdir -p ~/.config/lazygit
+    cp /var/git/000.INFRA/dotfiles/lazygit/config.yml ~/.config/lazygit/config.yml
     cp /var/git/000.INFRA/dotfiles/new.host/tmux/.tmux.conf ~/.tmux.conf
     cp /var/git/000.INFRA/dotfiles/new.host/xterm/Xresources ~/.Xresources
 
@@ -168,7 +192,7 @@
     git clone https://github.com/NvChad/starter ~/.config/nvim && nvim
     npm install -g neovim
     npm install -g @builder.io/ai-shell
-    ai config set OPENAI_KEY=<your token>
+    ai config set OPENAI_KEY="<your token>"
   
 
 

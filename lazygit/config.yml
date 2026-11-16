@@ -32,17 +32,16 @@ git:
     showWholeGraph: true
 
   diffRenderers:
-    # Structural diffs through Difftastic, wrapped to the diff view width.
-    - type: extDiff
-      name: difftastic
-      command: difft --color=always --background={{colorScheme}} --context={{diffContext}} --width={{width}}
-
-    # Conventional diffs through delta. Side-by-side mode is enabled only
-    # when the diff view is wider than 160 columns; there delta wraps long
-    # lines itself. Unified lines are wrapped by wrapLinesInDiffView.
+    # Use Delta by default. Lazygit handles scrolling, so disable its pager.
+    # Show side-by-side diffs above 160 columns and wrap long lines.
     - type: stdinFilter
       name: delta
       command: delta --{{colorScheme}} --paging=never --line-numbers --width={{width}} --wrap-max-lines=unlimited {{if gt .width 160}}--side-by-side{{end}}
+
+    # Switch to Difftastic for structural diffs at the diff view width.
+    - type: extDiff
+      name: difftastic
+      command: difft --color=always --background={{colorScheme}} --context={{diffContext}} --width={{width}}
 
     # Unmodified Git output as a fallback.
     - type: rawGit

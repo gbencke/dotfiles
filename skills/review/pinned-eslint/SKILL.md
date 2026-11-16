@@ -80,17 +80,33 @@ Report every violation as an error. Do not suggest raising a limit or adding `es
 
 `@typescript-eslint/no-restricted-types` bans `Omit`, `Pick` and `Partial`. Fix by writing an explicit, purpose-specific type (e.g. `type UserUpdate = { name?: string }` instead of `Partial<User>`). The rule bans the types outright; it does not measure "too much" use.
 
+## Explicit return types (errors)
+
+`@typescript-eslint/explicit-function-return-type` applies to `.ts`, `.tsx`,
+`.mts`, and `.cts` files. It requires a return annotation on every TypeScript
+function: declarations, expressions, arrows, callbacks,
+methods, async functions, React components, and HOC factories and wrappers.
+Contextual typing and a typed variable do not replace the function's own return
+annotation. Returning a function or an `as const` value is not an exception.
+
+Use `(value): number => value + 1`, `(): void => { return; }`, and
+`async (): Promise<void> => { await save(); }`.
+Do not leave return types implicit, even when TypeScript can infer them.
+
+Regression check: run `python3 <skill-dir>/test_explicit_returns.py`.
+
 ## Write code that passes
 
 Follow these when writing TS/JS, so the first draft is lint-clean:
 
 - **Size:** lines ≤ 80 columns, functions ≤ 50 lines and ≤ 10 statements, ≤ 3 params (pass an object), nesting ≤ 3, cyclomatic complexity ≤ 10, cognitive ≤ 15, files ≤ 300 lines. Split early.
 - **Immutability:** `const` only, no `let`. No mutation (`push`, `obj.x =`, `delete`); build new values with spread, `map`, `filter`, `reduce`. Use `readonly` (keyword, not `Readonly<T>`) on properties, arrays and params.
-- **Types:** no `Omit`, `Pick`, `Partial`; write explicit types. Interfaces use property signatures (`readonly find: (id: string) => User`), not methods. Explicit return types on exported functions. `import { type X }` inline for type-only imports. No `any`, no non-null `!`.
+- **Types:** no `Omit`, `Pick`, `Partial`; write explicit types. Interfaces use property signatures (`readonly find: (id: string) => User`), not methods. Explicit return types on every function, including callbacks, components, and HOCs; do not rely on inference or contextual typing. `import { type X }` inline for type-only imports. No `any`, no non-null `!`.
 - **Logic:** `??` not `||` for defaults, `?.` not `&&` chains. No always-true/false conditions. `async` only if it awaits; `return await` inside `try`. Handle every promise (`await`, `.catch`, or return it).
 - **Modules:** named exports only (default exports allowed in `*.config.*`). No import cycles. `node:` prefix for built-ins (`node:fs`). ESM only, no `require`.
 - **Style:** `for...of`, not indexed `for`. `includes`/`some`/`flatMap`/`slice` over older forms. `throw new Error('message')`. No negated `if/else`. Full names (`event`, `error`, not `e`, `err`). File names camelCase, PascalCase or kebab-case.
-- **React architecture:** each component is either visual or effect-owning. Effects always belong to higher-order components (HOCs). Apply the required review below when writing or evaluating React code.
+- **Comments:** remove explanatory comments; make intent clear through names and structure. Keep required file headers, legal notices, and tooling directives.
+- **React architecture:** do not use React's `useEffect`, including in HOCs or custom hooks. Each component is either visual or an effect-owning higher-order component (HOC). Keep HOCs and visual components in separate files. Keep types, enums, and global values in the HOC file. Apply the required review below when writing or evaluating React code.
 - **React (.tsx/.jsx):** hooks rules and exhaustive deps are errors. No components defined inside components, no index keys, `<>` fragments, self-closing empty tags, all jsx-a11y recommended rules.
 
 Never add `eslint-disable`. Fix the code.
@@ -98,8 +114,17 @@ Never add `eslint-disable`. Fix the code.
 ## Required React architecture review
 
 Apply this project policy even when ESLint reports no errors. The bundled ESLint
-plugins do not enforce the visual/effect boundary; inspect the code as well.
+plugins do not enforce all policies below; inspect the code as well.
 
+- **No React `useEffect`.** Remove its imports and calls from components, HOCs,
+  custom hooks, and helpers. Aliases and namespace access such as
+  `React.useEffect` are also prohibited. Do not hide it behind another hook.
+- **Separate files.** Never define HOCs and visual components in the same file.
+  Keep types, enums, and global (module-level) values in the HOC file, not the
+  visual component file. Import types with type-only imports where needed.
+- **No explanatory comments.** Remove comments that explain the code; use clear
+  names and structure instead. Keep required headers, legal notices, and tooling
+  directives.
 - **Visual components** render UI from props. They may keep local UI state and
   invoke callbacks supplied through props. They do not own effects, network
   requests, subscriptions, timers, storage access, or other external I/O.
@@ -112,10 +137,11 @@ plugins do not enforce the visual/effect boundary; inspect the code as well.
   into a hook called by a visual component does not satisfy this boundary.
 - Compose HOCs outside render, at module scope, so component identity stays stable.
   Keep hook-order and exhaustive-dependency checks enabled.
-- Report components that mix presentation and effects, or effect owners that are
-  not HOCs, as architecture violations. Cite file and line evidence. Recommend
-  splitting the visual component from an effect-owning HOC, for example
-  `withUser(ProfileView)`.
+- Report `useEffect` usage, explanatory comments, mixed HOC/visual files,
+  misplaced types, enums, or global values, components that mix presentation and
+  effects, and effect owners that are not HOCs as policy violations. Cite file
+  and line evidence. Recommend separate visual and HOC files, composed with
+  `withUser(ProfileView)`, without introducing `useEffect`.
 
 ## Output
 
