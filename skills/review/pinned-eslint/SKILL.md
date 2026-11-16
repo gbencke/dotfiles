@@ -1,11 +1,23 @@
 ---
 name: pinned-eslint
-description: Lint any JS/TS repository with a pinned ESLint 9 + plugin set (typescript-eslint, react, unicorn, sonarjs, import-x, functional...) running inside a bubblewrap sandbox with no network. Includes React architecture review requiring components to be either visual or effect-owning higher-order components (HOCs). Does not touch the repo's own ESLint setup. Use when asked to "lint this repo", "run eslint", "run pinned eslint", "eslint in bubblewrap", "check code quality with eslint", "review React code", or invokes /pinned-eslint.
+description: Lint any JS/TS repository with a pinned ESLint 9 + plugin set (typescript-eslint, react, unicorn, sonarjs, import-x, functional...) running with no network on Linux, macOS, or Windows. Uses bubblewrap on Linux/macOS and Docker on Windows. Includes React architecture review requiring components to be either visual or effect-owning higher-order components (HOCs). Does not touch the repo's own ESLint setup. Use when asked to "lint this repo", "run eslint", "run pinned eslint", "check code quality with eslint", "review React code", or invokes /pinned-eslint.
 ---
 
-# Pinned ESLint (bubblewrap)
+# Pinned ESLint
 
-`pinned-eslint` in this skill's directory (call it by its absolute path, written `<skill-dir>/pinned-eslint` below) installs a pinned ESLint + plugins into `~/.cache/pinned-eslint/<hash>` and runs it under `bwrap`: network off, filesystem read-only, only the repo writable.
+The skill installs pinned ESLint packages in `~/.cache/pinned-eslint/<hash>` and runs analysis with networking disabled. The container filesystem is read-only; only the repository is writable.
+
+## Select the runner by OS
+
+Detect the host OS before invoking the runner. Do not invoke the zsh script on Windows.
+
+| Host | Detection | Runner |
+|---|---|---|
+| Windows | PowerShell: `$env:OS -eq 'Windows_NT'`; bash: `uname -s` starts with `MINGW`, `MSYS`, or `CYGWIN` | `powershell.exe -NoProfile -File "<skill-dir>/pinned-eslint.ps1"` |
+| macOS | `uname -s` returns `Darwin` | `<skill-dir>/pinned-eslint` |
+| Linux | `uname -s` returns `Linux` | `<skill-dir>/pinned-eslint` |
+
+Windows users can also invoke `<skill-dir>/pinned-eslint.cmd`; it delegates to the PowerShell runner. Linux and macOS retain the existing zsh entry point.
 
 ## macOS: Linux VM with shared folders
 
@@ -34,7 +46,28 @@ Run this long setup in the background with a timeout and tail its log. `lima.yam
 - `PINNED_ESLINT_PLUGINS` and `ESLINT_USE_FLAT_CONFIG` overrides are forwarded; credentials and other host environment variables are not.
 - Stop the VM with `limactl stop pinned-skills` to release RAM. If setup or bubblewrap fails, report the error; never bypass the sandbox.
 
-## Run
+## Windows: Docker Desktop with Linux containers
+
+The PowerShell runner keeps separate native and Linux caches. `--print-store` installs the native cache for editors with Windows Node.js/npm. Analysis installs its Linux cache in the Node container so platform-specific dependencies match the lint runtime. Only dependency installation has network access; linting uses `--network none`.
+
+The lint container has a read-only filesystem, dropped capabilities, and `no-new-privileges`. Docker mounts the repository read-write, the pinned Linux cache read-only, and the config read-only. No other host directory is mounted. Linux cache names include the processor architecture.
+
+Prerequisites:
+
+- Docker Desktop running with Linux containers.
+- Native Windows Node.js and npm only for `--print-store`.
+- Access to Docker Hub and the npm registry on the first run.
+
+```powershell
+<skill-dir>/pinned-eslint.cmd <repo>
+<skill-dir>/pinned-eslint.cmd <repo> --report C:\Temp\eslint.txt
+<skill-dir>/pinned-eslint.cmd <repo> -- src/
+<skill-dir>/pinned-eslint.cmd <repo> --print-store
+```
+
+The first run per version/plugin set pulls `node:22.14.0-bookworm-slim` and installs Linux packages. Later runs use both caches. `--print-store` stays native and does not require Docker. `--fix` writes only to the mounted repository. Docker setup or runtime failures are fatal; never bypass the sandbox.
+
+## Run on Linux and macOS
 
 ```bash
 <skill-dir>/pinned-eslint <repo>                                   # lint whole repo, default config, unix format
@@ -155,6 +188,16 @@ Summarise by rule, worst first:
 
 ```bash
 grep -oE '\[(Error|Warning)/[^]]+\]' /tmp/eslint.txt | sort | uniq -c | sort -rn | head -30
+```
+
+On Windows, use the same report with PowerShell:
+
+```powershell
+Select-String -Path C:\Temp\eslint.txt -Pattern '\[(Error|Warning)/[^]]+\]' -AllMatches |
+    ForEach-Object { $_.Matches.Value } |
+    Group-Object |
+    Sort-Object Count -Descending |
+    Select-Object -First 30 Count, Name
 ```
 
 ## Caveats

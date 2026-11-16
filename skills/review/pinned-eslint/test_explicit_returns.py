@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -101,12 +102,20 @@ class ExplicitReturnTypesTest(unittest.TestCase):
                 for kind, snippet in zip(("implicit", "explicit"), snippets):
                     (root / f"{kind}-{name}.{suffix}").write_text(snippet + "\n")
             report = root / "report.json"
+            if os.name == "nt":
+                command = [
+                    "powershell.exe", "-NoProfile", "-File",
+                    str(SKILL_DIR / "pinned-eslint.ps1"),
+                ]
+            else:
+                command = [str(SKILL_DIR / "pinned-eslint")]
             result = subprocess.run(
-                [str(SKILL_DIR / "pinned-eslint"), str(root),
-                 "--report", str(report), "--", "--format", "json", "."],
+                command + [str(root), "--report", str(report),
+                           "--", "--format", "json", "."],
                 capture_output=True, text=True, timeout=120, check=False,
             )
             self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertTrue(report.exists(), result.stdout + result.stderr)
             diagnostics = {
                 Path(entry["filePath"]).stem: entry["messages"]
                 for entry in json.loads(report.read_text())
