@@ -50,7 +50,7 @@ Run this long setup in the background with a timeout and tail its log. `lima.yam
 
 The PowerShell runner keeps separate native and Linux caches. `--print-store` installs the native cache for editors with Windows Node.js/npm. Analysis installs its Linux cache in the Node container so platform-specific dependencies match the lint runtime. Only dependency installation has network access; linting uses `--network none`.
 
-The lint container has a read-only filesystem, dropped capabilities, and `no-new-privileges`. Docker mounts the repository read-write, the pinned Linux cache read-only, and the config read-only. No other host directory is mounted. Linux cache names include the processor architecture.
+The lint container has a read-only filesystem, dropped capabilities, and `no-new-privileges`. Docker mounts the repository read-write and the pinned Linux cache read-only. It mounts the bundled config directory read-only, or a single custom config file. No other host directory is mounted. Linux cache names include the processor architecture.
 
 Prerequisites:
 
@@ -79,7 +79,7 @@ The first run per version/plugin set pulls `node:22.14.0-bookworm-slim` and inst
 ```
 
 - `<repo>` must be a directory. Use `.` for the cwd.
-- Default config: `eslint.config.ts` in this skill's directory. Nothing outside the skill is read. Needs ESLint 9 (default version 9.24.0).
+- Default config: `eslint.config.ts` and `useEffectBan.mjs` in this skill's directory. Keep both files together. Nothing outside the skill is read. Needs ESLint 9 (default version 9.24.0).
 - Anything after `--` goes straight to ESLint. If you omit paths, the default is `.`.
 - The first run per version/plugin set runs `npm install` (network, ~1 min). Later runs use the cache.
 - Override plugins with `PINNED_ESLINT_PLUGINS='pkg@ver pkg@ver ...'`. This creates a new cache entry.
@@ -128,6 +128,21 @@ Do not leave return types implicit, even when TypeScript can infer them.
 
 Regression check: run `python3 <skill-dir>/test_explicit_returns.py`.
 
+## Banned React useEffect (error)
+
+`pinned/no-use-effect` applies to all TS/JS extensions, not only JSX files.
+It rejects named imports (including aliases), named and wildcard re-exports
+from `react`, and `useEffect` access on React default or namespace imports.
+It also rejects literal computed access, optional access, destructuring,
+and access through direct CommonJS `require('react')` bindings.
+Other hooks, unrelated objects, and shadowed bindings remain allowed.
+
+The rule does not trace indirect module aliases, dynamic imports, dynamic
+property keys, or re-exports through other modules. Inspect these manually.
+Files excluded by the default config, including `.d.ts`, are not checked.
+
+Regression check: run `python3 <skill-dir>/test_use_effect.py`.
+
 ## Write code that passes
 
 Follow these when writing TS/JS, so the first draft is lint-clean:
@@ -146,8 +161,9 @@ Never add `eslint-disable`. Fix the code.
 
 ## Required React architecture review
 
-Apply this project policy even when ESLint reports no errors. The bundled ESLint
-plugins do not enforce all policies below; inspect the code as well.
+Apply this project policy even when ESLint reports no errors.
+`pinned/no-use-effect` enforces the direct React access ban described above.
+Inspect indirect access and the remaining architecture policies manually.
 
 - **No React `useEffect`.** Remove its imports and calls from components, HOCs,
   custom hooks, and helpers. Aliases and namespace access such as
@@ -180,8 +196,9 @@ plugins do not enforce all policies below; inspect the code as well.
 
 Unix format: `path:line:col: message [Error/rule-id]`, then a problem count. The exit code is non-zero when errors are found; that is normal, not a script failure.
 
-Report React architecture violations separately from ESLint diagnostics. Do not
-invent ESLint rule IDs or claim the CLI checks this policy. State when the
+Report manual React architecture findings separately from ESLint diagnostics.
+Use `pinned/no-use-effect` for the CLI's direct-access diagnostics. Do not claim
+that the CLI checks the remaining architecture policies. State when the manual
 architecture review was not performed.
 
 Summarise by rule, worst first:

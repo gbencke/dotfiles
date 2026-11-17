@@ -228,9 +228,11 @@ local function ensure_pinned_store(cb)
       vim.notify("pinned-eslint --print-store failed: " .. vim.trim(res.stderr or ""), vim.log.levels.ERROR)
       return
     end
-    -- A copy next to the pinned node_modules, so its plugin imports resolve outside the sandbox too.
+    -- Copy the config and rule next to pinned node_modules for imports outside the sandbox.
     vim.fn.mkdir(store .. "/nvim", "p")
-    assert(vim.uv.fs_copyfile(PINNED_DIR .. "/eslint.config.ts", store .. "/nvim/eslint.config.ts"))
+    for _, name in ipairs({ "eslint.config.ts", "useEffectBan.mjs" }) do
+      assert(vim.uv.fs_copyfile(PINNED_DIR .. "/" .. name, store .. "/nvim/" .. name))
+    end
     pinned_store = store
     cb()
   end))

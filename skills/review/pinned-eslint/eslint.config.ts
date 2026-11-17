@@ -8,14 +8,14 @@ import pluginPromise from 'eslint-plugin-promise';
 import unicorn from 'eslint-plugin-unicorn';
 import sonarjs from 'eslint-plugin-sonarjs';
 import importX from 'eslint-plugin-import-x';
+import { useEffectBan } from './useEffectBan.mjs';
 
 export default tseslint.config(
+  useEffectBan,
   {
     ignores: [
       '**/node_modules/**',
-      '**/dist/**',
-      '**/build/**',
-      '**/coverage/**',
+      '**/dist/**', '**/build/**', '**/coverage/**',
       '**/*.d.ts',
       '**/.next/**',
       '**/out/**',

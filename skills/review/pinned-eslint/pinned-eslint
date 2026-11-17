@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # Run pinned ESLint, plugins, and config against a repository.
-# The default config is eslint.config.ts next to this script; the skill is self-contained.
+# Load the default config and useEffectBan.mjs from this directory.
 # On macOS, run analysis in the shared-folder Lima VM; --print-store stays native for editors.
 # usage: pinned-eslint.zsh <repo> [eslint-version] [--config <file>] [--report <file>] [-- eslint-args...]
 
@@ -128,6 +128,9 @@ if [[ -n $config ]]; then
   config_dest="$store/config/${config:t}"
   touch "$config_dest"
   config_mount=( --ro-bind "$config" "$config_dest" )
+  if [[ $config == "$script_dir/eslint.config.ts" ]]; then
+    config_mount=( --ro-bind "$script_dir" "$store/config" )
+  fi
   config_args=( --config "$config_dest" )
 
   major=${version%%.*}

@@ -230,13 +230,18 @@ if ([int]::TryParse($version.Split('.')[0], [ref]$major) -and
     $configArguments += @('--no-eslintrc', '--resolve-plugins-relative-to', '/pinned')
 }
 
+# Mount both bundled config files. Other configs keep their single-file mount.
+$configMount = "${config}:$configTarget`:ro"
+if ($config -eq (Join-Path $scriptDirectory 'eslint.config.ts')) {
+    $configMount = "${scriptDirectory}:/pinned/config:ro"
+}
 $dockerArguments = @(
     'run', '--rm', '--init', '--network', 'none', '--read-only',
     '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges:true',
     '--pids-limit', '512', '--tmpfs', '/tmp:rw,nosuid,nodev',
     '-v', "${repo}:/repo", '--workdir', '/repo',
     '-v', "${store}:/pinned:ro",
-    '-v', "${config}:$configTarget`:ro"
+    '-v', $configMount
 )
 
 $createdDirectories = @()
