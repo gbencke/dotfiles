@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>stick-scene preview</title>
+    <style>
+      body { margin: 0; padding: 24px; font: 13px/1.4 system-ui, sans-serif; color: #555; background: #fff; }
+      .live stick-scene { width: min(720px, 100%); height: 300px; border: 1px dashed #e5e5e5; border-radius: 10px; }
+      .grid { display: grid; grid-template-columns: repeat(var(--cols, 4), var(--fw, 360px)); gap: 14px; }
+      .grid figure { margin: 0; }
+      .grid stick-scene { width: var(--fw, 360px); height: var(--fh, 230px); border: 1px solid #eee; border-radius: 8px; }
+      .grid figcaption { margin-top: 4px; font: 12px ui-monospace, monospace; color: #888; }
+      .bg-dark { background: #111; }
+    </style>
+  </head>
+  <body>
+    <main id="root"></main>
+    <script>
+      const q = new URLSearchParams(location.search);
+      window.__scene = q.get('scene');
+      document.write(`<script src="${new URL('../runtime/stick.js', location.href).href}"><\/script>`);
+      for (const src of q.getAll('src')) {
+        document.write(`<script src="${src}"><\/script>`);
+      }
+    </script>
+    <script>
+      (function () {
+        const root = document.getElementById('root');
+        const id = window.__scene;
+        const frames = q.get('frames');
+        if (q.get('theme')) {
+          STICK.theme(JSON.parse(q.get('theme')));
+        }
+        if (!frames) {
+          root.className = 'live';
+          root.innerHTML = `<p>${id}: click to play, hover to loop.</p><stick-scene scene="${id}" play="${q.get('play') || 'hover'}"></stick-scene>`;
+          return;
+        }
+        const list = frames.split(',').map((s) => s.trim()).filter(Boolean);
+        root.className = 'grid';
+        root.style.setProperty('--cols', q.get('cols') || String(Math.min(4, list.length)));
+        if (q.get('fw')) root.style.setProperty('--fw', q.get('fw') + 'px');
+        if (q.get('fh')) root.style.setProperty('--fh', q.get('fh') + 'px');
+        const els = list.map((f) => {
+          const fig = document.createElement('figure');
+          fig.innerHTML = `<stick-scene scene="${id}" play="idle"></stick-scene><figcaption>${f}</figcaption>`;
+          root.appendChild(fig);
+          return [fig.firstChild, f];
+        });
+        const freeze = () => {
+          const def = STICK.SCENES[id];
+          if (!def || els.some(([el]) => !el.v)) {
+            requestAnimationFrame(freeze);
+            return;
+          }
+          for (const [el, f] of els) {
+            const [spec, play] = f.split('@');
+            const [k, v] = spec.split(':');
+            const n = Number(v);
+            const o = k === 'idle' ? { idle: n } : k === 's' ? { u: n / def.dur } : { u: n };
+            if (play != null) {
+              o.n = Number(play);
+            }
+            STICK.at(el, o);
+          }
+          document.body.dataset.ready = '1';
+        };
+        (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => setTimeout(freeze, 50));
+      })();
+    </script>
+  </body>
+</html>
