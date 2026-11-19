@@ -65,6 +65,14 @@ Break complex work into 3-5 stages. Document in `IMPLEMENTATION_PLAN.md`:
 
 ## Technical Standards
 
+### Git Worktrees
+
+- Always create Git worktrees under `~/git.worktrees/` (`$HOME/git.worktrees/`).
+- Use `~/git.worktrees/<repo>/<worktree-name>` to keep repositories separate.
+- Create the parent directory first. Pass an explicit absolute destination to `git worktree add`.
+- Never create worktrees inside a repository (including `.worktrees/` or `.claude/worktrees/`), beside it, or in `/tmp`.
+- Do not move or delete existing worktrees unless the user asks.
+
 ### Architecture Principles
 
 - **Composition over inheritance** - Use dependency injection

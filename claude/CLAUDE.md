@@ -4,6 +4,10 @@ pi is the source of truth. The shared rules live in pi's SYSTEM.md; edit them th
 
 @~/.pi/agent/SYSTEM.md
 
+## Git Worktrees
+
+Always create Git worktrees under `~/git.worktrees/`. Follow the **Git Worktrees** rules in the imported `SYSTEM.md`.
+
 ## Additions not yet in SYSTEM.md
 
 ### My Profile as Developer

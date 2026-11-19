@@ -32,6 +32,14 @@ This directory, "dotfiles," is a personal collection of configuration files and 
 
 *   **`prompts/`**: A directory with guidelines and prompts for AI-assisted development, indicating an interest in leveraging large language models for coding tasks.
 
+## Git Worktrees
+
+- Always create Git worktrees under `~/git.worktrees/` (`$HOME/git.worktrees/`).
+- Use `~/git.worktrees/<repo>/<worktree-name>` to keep repositories separate.
+- Create the parent directory first. Pass an explicit absolute destination to `git worktree add`.
+- Never create worktrees inside a repository (including `.worktrees/` or `.claude/worktrees/`), beside it, or in `/tmp`.
+- Do not move or delete existing worktrees unless the user asks.
+
 ## Usage
 
 The primary use of this repository is to quickly and consistently set up a familiar development environment on a new machine. The general workflow is:
